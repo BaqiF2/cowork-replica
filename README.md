@@ -46,7 +46,7 @@ npm install claude-replica
 ### 从源码安装
 
 ```bash
-git clone https://github.com/your-username/claude-replica.git
+git clone https://github.com/BaqiF2/claude-replica.git
 cd claude-replica
 npm install
 npm run build
@@ -407,6 +407,6 @@ claude-replica/
 
 ## 📞 支持
 
-- 📧 Email: support@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/your-username/claude-replica/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/your-username/claude-replica/discussions)
+- 📧 Email: wuwenjun19930614@gmail.com
+- 🐛 Issues: [GitHub Issues](https://github.com/BaqiF2/claude-replica/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/BaqiF2/claude-replica/discussions)
