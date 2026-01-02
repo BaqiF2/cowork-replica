@@ -15,6 +15,11 @@
  * - Application.executeQuery(): 执行 SDK 查询
  */
 
+import * as dotenv from 'dotenv';
+
+// 在所有其他模块加载之前初始化环境变量
+dotenv.config();
+
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -52,9 +57,9 @@ import {
 import { SDKQueryExecutor, SDKErrorType, ERROR_MESSAGES } from './sdk';
 
 /**
- * 应用程序版本号
+ * 应用程序版本号（从环境变量读取，默认 0.1.0）
  */
-const VERSION = '0.1.0';
+const VERSION = process.env.VERSION || '0.1.0';
 
 // 导出 CI 相关类型和类，供外部使用
 export {

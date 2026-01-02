@@ -11,10 +11,14 @@
  * - 测试框架集成：TestFrameworkIntegration, createTestFrameworkIntegration
  */
 
-import {
-  createTerminalEmulator,
-  createAssertionMatcher,
-  createTestFixture,
+/**
+ * 使用示例：
+ *
+ * ```typescript
+ * import {
+ *   createTerminalEmulator,
+ *   createAssertionMatcher,
+ *   createTestFixture,
  *   SpecialKey,
  * } from 'claude-replica/testing';
  *
