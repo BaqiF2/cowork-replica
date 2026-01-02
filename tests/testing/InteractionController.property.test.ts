@@ -23,7 +23,7 @@ describe('InteractionController Property Tests', () => {
    * Property 6: Multi-Turn Conversation State
    *
    * *For any* sequence of user inputs in an interactive session, the session
-   * should maintain context across turns, and later inputs can reference
+   * should maintain context across turns, and later inputs can references
    * earlier conversation content.
    *
    * **Validates: Requirements 2.2, 2.6**
