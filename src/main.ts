@@ -1096,7 +1096,7 @@ ${
 
       return CISupport.getExitCode(error);
     } else {
-      console.error('未知错误:', error);
+      console.error('unknow error:', error);
       return ExitCodes.ERROR;
     }
   }
@@ -1104,6 +1104,12 @@ ${
 
 /**
  * 主函数
+ * process.argv 是 Node.js 中的一个全局变量，它是一个包含命令行参数的数组。这个数组的前两个元素是固定的：
+ * process.argv[0] 是 Node.js 可执行文件的路径
+ * process.argv[1] 是当前执行的 JavaScript 文件的路径
+ * process.argv[2] 及之后的元素才是实际传递给脚本的命令行参数
+ * 因此，process.argv.slice(2) 表示从索引 2 开始截取数组，这样就能获得所有实际的命令行参数，
+ * 排除了 Node.js 可执行文件路径和当前脚本路径这两个固定元素。
  */
 export async function main(args: string[] = process.argv.slice(2)): Promise<number> {
   const app = new Application();
@@ -1117,7 +1123,7 @@ if (require.main === module) {
       process.exit(exitCode);
     })
     .catch((error) => {
-      console.error('致命错误:', error);
+      console.error('fatal error:', error);
       process.exit(1);
     });
 }

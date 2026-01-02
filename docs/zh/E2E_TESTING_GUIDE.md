@@ -78,7 +78,7 @@ cd ~/claude-replica-e2e-test
 npm init -y
 mkdir -p src tests
 echo 'console.log("Hello World");' > src/index.js
-echo '# 测试项目' > README.md
+echo '# 测试项目' > README_ZH.md
 ```
 
 ---

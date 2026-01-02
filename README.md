@@ -4,56 +4,60 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/node/v/claude-replica.svg)](https://nodejs.org)
 
-完整复刻 Claude Code 的智能代码助手命令行工具。基于 Claude Agent SDK 构建，提供强大的 AI 辅助编程能力。
+A complete replica of Claude Code's intelligent coding assistant command-line tool. Built on the Claude Agent SDK, providing powerful AI-assisted programming capabilities.
 
-> **⚠️ 项目核心作用（非造轮子）**
+## 🌐 Language / 语言
+
+[Chinese Documentation](README_ZH.md) | 中文文档
+
+> **⚠️ Core Purpose (Not Reinventing the Wheel)**
 >
-> 本项目并非为了完全复制 Claude Code，而是作为 **学习与开发的脚手架**：
+> This project is not intended to completely replicate Claude Code, but serves as a **learning and development scaffold**:
 >
-> 1. **📚 学习 Claude Code 核心功能** - 通过阅读 `doc/` 目录下的文档，深入了解 Claude Code 的设计思想、架构模式和功能特性
+> 1. **📚 Learn Claude Code Core Features** - Deep dive into Claude Code's design philosophy, architectural patterns, and feature set by reading the documentation in the `doc/` directory
 >
-> 2. **🚀 掌握 Claude Agent SDK** - 通过 `doc/` 目录下的开发文档，熟练掌握 Claude Agent SDK 的核心功能和开发流程
+> 2. **🚀 Master Claude Agent SDK** - Through development documentation in the `doc/` directory, gain proficiency with the Claude Agent SDK's core capabilities and development workflows
 >
-> 3. **🎯 分层架构脚手架** - 采用清晰的分层设计（CLI层、业务逻辑层、SDK适配层），只需替换CLI层为任何"表现层"（Web界面、桌面应用、API服务等），即可快速构建全新的AI Agent。无需从零开始开发，充分发挥你的**想象力**！
+> 3. **🎯 Layered Architecture Scaffold** - Adopting a clear layered design (CLI layer, business logic layer, SDK adaptation layer), simply replace the CLI layer with any "presentation layer" (Web interface, desktop app, API service, etc.) to rapidly build entirely new AI Agents. No need to start from scratch—unleash your **imagination**!
 
-## ✨ 功能特性
+## ✨ Features
 
-### 核心功能
-- 🤖 **智能对话** - 基于 Claude Agent SDK 的智能代码助手
-- 📁 **文件操作** - 读取、编辑、创建和删除文件
-- 🔧 **命令执行** - 安全执行 Bash 命令
-- 🔍 **代码搜索** - 强大的代码库导航与搜索能力
-- 💾 **会话管理** - 保存和恢复对话会话
+### Core Functionality
+- 🤖 **Intelligent Conversation** - AI coding assistant based on Claude Agent SDK
+- 📁 **File Operations** - Read, edit, create, and delete files
+- 🔧 **Command Execution** - Safely execute Bash commands
+- 🔍 **Code Search** - Powerful codebase navigation and search capabilities
+- 💾 **Session Management** - Save and restore conversation sessions
 
-### 扩展系统
-- 🎯 **技能系统** - 自动加载领域知识和工作流指南
-- 📝 **自定义命令** - 创建可重用的命令模板
-- 🤝 **子代理** - 专门化的任务处理代理
-- 🪝 **钩子系统** - 工具使用后自动触发的操作
-- 🔌 **插件系统** - 打包的功能扩展
+### Extension Systems
+- 🎯 **Skills System** - Auto-loading domain knowledge and workflow guides
+- 📝 **Custom Commands** - Create reusable command templates
+- 🤝 **Subagents** - Specialized task-handling agents
+- 🪝 **Hooks System** - Automatically triggered actions after tool use
+- 🔌 **Plugin System** - Packaged feature extensions
 
-### 集成能力
-- 🌐 **MCP 集成** - Model Context Protocol 服务器支持
-- 🔐 **权限管理** - 细粒度的工具权限控制
-- ⏪ **回退系统** - 撤销文件修改，恢复到之前状态
-- 🖼️ **图像支持** - 发送图像进行 UI 设计和调试
-- 🏭 **CI/CD 支持** - 自动化管道集成
+### Integration Capabilities
+- 🌐 **MCP Integration** - Model Context Protocol server support
+- 🔐 **Permission Management** - Fine-grained tool permission control
+- ⏪ **Rewind System** - Undo file modifications, restore to previous state
+- 🖼️ **Image Support** - Send images for UI design and debugging
+- 🏭 **CI/CD Support** - Automated pipeline integration
 
-## 📦 安装
+## 📦 Installation
 
-### 全局安装（推荐）
+### Global Installation (Recommended)
 
 ```bash
 npm install -g claude-replica
 ```
 
-### 本地安装
+### Local Installation
 
 ```bash
 npm install claude-replica
 ```
 
-### 从源码安装
+### Install from Source
 
 ```bash
 git clone https://github.com/BaqiF2/claude-replica.git
@@ -63,34 +67,34 @@ npm run build
 npm link
 ```
 
-## 🔧 配置
+## 🔧 Configuration
 
-### 认证配置
+### Authentication Configuration
 
-Claude Replica 使用 Claude Agent SDK，会自动从 Claude Code 配置中获取认证信息。只需确保 Claude Code 已正确配置：
+Claude Replica uses the Claude Agent SDK and automatically retrieves authentication information from Claude Code configuration. Simply ensure Claude Code is properly configured:
 
 ```bash
-# 方式一：使用 Claude Code CLI 登录
+# Method 1: Login using Claude Code CLI
 claude login
 
-# 方式二：检查配置文件
+# Method 2: Check configuration file
 ls ~/.claude/settings.json
 ```
 
-认证信息会从以下位置自动加载（按优先级）：
-- `~/.claude/settings.json` (用户级)
-- `.claude/settings.json` (项目级)
-- `.claude/settings.local.json` (本地级)
+Authentication information is automatically loaded from the following locations (by priority):
+- `~/.claude/settings.json` (user-level)
+- `.claude/settings.json` (project-level)
+- `.claude/settings.local.json` (local-level)
 
-### 配置文件
+### Configuration Files
 
-Claude Replica 支持多级配置：
+Claude Replica supports multi-level configuration:
 
-1. **用户级配置**: `~/.claude-replica/settings.json`
-2. **项目级配置**: `.claude-replica/settings.json`
-3. **本地配置**: `.claude-replica/settings.local.json`
+1. **User-level config**: `~/.claude-replica/settings.json`
+2. **Project-level config**: `.claude-replica/settings.json`
+3. **Local config**: `.claude-replica/settings.local.json`
 
-配置优先级：本地 > 项目 > 用户
+Configuration priority: Local > Project > User
 
 ```json
 {
@@ -103,93 +107,93 @@ Claude Replica 支持多级配置：
 }
 ```
 
-## 🚀 使用方法
+## 🚀 Usage
 
-### 交互模式
+### Interactive Mode
 
 ```bash
-# 启动交互式会话
+# Start interactive session
 claude-replica
 
-# 继续最近的会话
+# Continue recent session
 claude-replica -c
 
-# 恢复指定会话
+# Resume specific session
 claude-replica --resume <session-id>
 ```
 
-### 非交互模式
+### Non-Interactive Mode
 
 ```bash
-# 单次查询
-claude-replica -p "解释这段代码的作用"
+# Single query
+claude-replica -p "Explain what this code does"
 
-# 从文件读取查询
+# Read query from file
 claude-replica -p "$(cat query.txt)"
 
-# 管道输入
-echo "分析这个项目结构" | claude-replica -p -
+# Pipe input
+echo "Analyze this project structure" | claude-replica -p -
 
-# 指定输出格式
-claude-replica -p "生成测试用例" --output-format json
+# Specify output format
+claude-replica -p "Generate test cases" --output-format json
 ```
 
-### 命令行选项
+### Command-Line Options
 
 ```
-基本选项:
-  -p, --print              非交互模式，执行查询后退出
-  -c, --continue           继续最近的会话
-  --resume <id>            恢复指定会话
-  --help                   显示帮助信息
-  --version                显示版本号
+Basic Options:
+  -p, --print              Non-interactive mode, execute query and exit
+  -c, --continue           Continue most recent session
+  --resume <id>            Resume specific session
+  --help                   Show help information
+  --version                Show version number
 
-模型选项:
-  --model <name>           指定模型 (sonnet, haiku, opus)
+Model Options:
+  --model <name>           Specify model (sonnet, haiku, opus)
 
-工具选项:
-  --allowed-tools <tools>  允许的工具列表（逗号分隔）
-  --disallowed-tools <t>   禁止的工具列表（逗号分隔）
+Tool Options:
+  --allowed-tools <tools>  List of allowed tools (comma-separated)
+  --disallowed-tools <t>   List of disallowed tools (comma-separated)
 
-权限选项:
-  --permission-mode <m>    权限模式 (default, acceptEdits, bypassPermissions, plan)
-  --dangerously-skip-permissions  跳过所有权限检查（危险）
+Permission Options:
+  --permission-mode <m>    Permission mode (default, acceptEdits, bypassPermissions, plan)
+  --dangerously-skip-permissions  Skip all permission checks (dangerous)
 
-输出选项:
-  --output-format <f>      输出格式 (text, json, stream-json, markdown)
-  --verbose                详细输出模式
+Output Options:
+  --output-format <f>      Output format (text, json, stream-json, markdown)
+  --verbose                Verbose output mode
 
-高级选项:
-  --max-turns <n>          最大对话轮数
-  --max-budget-usd <n>     最大预算（美元）
-  --sandbox                启用沙箱模式
-  --timeout <seconds>      执行超时时间
+Advanced Options:
+  --max-turns <n>          Maximum conversation turns
+  --max-budget-usd <n>     Maximum budget (USD)
+  --sandbox                Enable sandbox mode
+  --timeout <seconds>      Execution timeout
 ```
 
-### 内置命令
+### Built-in Commands
 
-在交互模式下，可以使用以下命令：
+In interactive mode, use the following commands:
 
 ```
-/help        - 显示帮助信息
-/sessions    - 列出所有会话
-/config      - 显示当前配置
-/permissions - 显示权限设置
-/mcp         - 显示 MCP 服务器状态
-/clear       - 清屏
-/exit        - 退出程序
+/help        - Show help information
+/sessions    - List all sessions
+/config      - Show current configuration
+/permissions - Show permission settings
+/mcp         - Show MCP server status
+/clear       - Clear screen
+/exit        - Exit program
 ```
 
-## 📚 扩展系统
+## 📚 Extension System
 
-### 技能 (Skills)
+### Skills
 
-在 `.claude-replica/skills/` 目录创建技能文件：
+Create skill files in `.claude-replica/skills/` directory:
 
 ```markdown
 ---
 name: react-expert
-description: React 开发专家
+description: React development expert
 triggers:
   - react
   - component
@@ -200,43 +204,43 @@ tools:
   - Bash
 ---
 
-你是 React 开发专家，擅长：
-- 函数组件和 Hooks
-- 状态管理
-- 性能优化
-- 测试策略
+You are a React development expert, specializing in:
+- Function components and Hooks
+- State management
+- Performance optimization
+- Testing strategies
 ```
 
-### 自定义命令 (Commands)
+### Custom Commands
 
-在 `.claude-replica/commands/` 目录创建命令文件：
+Create command files in `.claude-replica/commands/` directory:
 
 ```markdown
 ---
 name: review
-description: 代码审查
+description: Code review
 argumentHint: <file>
 ---
 
-请审查以下文件的代码质量：
+Please review the code quality of the following file:
 $ARGUMENTS
 
-重点关注：
-1. 代码风格
-2. 潜在 bug
-3. 性能问题
-4. 安全漏洞
+Focus on:
+1. Code style
+2. Potential bugs
+3. Performance issues
+4. Security vulnerabilities
 ```
 
-使用：`/review src/main.ts`
+Usage: `/review src/main.ts`
 
-### 子代理 (Agents)
+### Subagents
 
-在 `.claude-replica/agents/` 目录创建代理文件：
+Create agent files in `.claude-replica/agents/` directory:
 
 ```markdown
 ---
-description: 测试专家，专注于编写高质量测试
+description: Testing expert, focused on writing high-quality tests
 model: sonnet
 tools:
   - Read
@@ -244,16 +248,16 @@ tools:
   - Bash
 ---
 
-你是测试专家，负责：
-- 编写单元测试
-- 编写集成测试
-- 分析测试覆盖率
-- 提供测试策略建议
+You are a testing expert responsible for:
+- Writing unit tests
+- Writing integration tests
+- Analyzing test coverage
+- Providing testing strategy advice
 ```
 
-### 钩子 (Hooks)
+### Hooks
 
-在 `.claude-replica/hooks.json` 配置钩子：
+Configure hooks in `.claude-replica/hooks.json`:
 
 ```json
 {
@@ -271,9 +275,9 @@ tools:
 }
 ```
 
-### MCP 服务器
+### MCP Servers
 
-在项目根目录创建 `.mcp.json`：
+Create `.mcp.json` in the project root:
 
 ```json
 {
@@ -287,35 +291,35 @@ tools:
 }
 ```
 
-## 🔒 权限模式
+## 🔒 Permission Modes
 
-| 模式 | 描述 |
-|------|------|
-| `default` | 默认模式，敏感操作需要确认 |
-| `acceptEdits` | 自动接受文件编辑 |
-| `bypassPermissions` | 绕过所有权限检查 |
-| `plan` | 计划模式，只生成计划不执行 |
+| Mode | Description |
+|------|-------------|
+| `default` | Default mode, sensitive operations require confirmation |
+| `acceptEdits` | Auto-accept file edits |
+| `bypassPermissions` | Bypass all permission checks |
+| `plan` | Plan mode, only generate plans without execution |
 
-## 🏭 CI/CD 集成
+## 🏭 CI/CD Integration
 
-Claude Replica 支持在 CI/CD 环境中使用。认证信息由 Claude Agent SDK 自动处理，在 CI 环境中可通过环境变量覆盖：
+Claude Replica supports use in CI/CD environments. Authentication is handled automatically by the Claude Agent SDK, and can be overridden via environment variables in CI environments:
 
 ```yaml
-# GitHub Actions 示例
+# GitHub Actions Example
 - name: Install Claude Code CLI
   run: npm install -g @anthropic-ai/claude-code
 
 - name: Run Claude Replica
   env:
-    # 在 CI 中通过环境变量提供认证（可选）
+    # Provide authentication via environment variable in CI (optional)
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   run: |
-    claude-replica -p "分析代码并生成测试" \
+    claude-replica -p "Analyze code and generate tests" \
       --output-format json \
       --timeout 300
 ```
 
-CI 环境自动检测：
+CI environment auto-detection:
 - GitHub Actions
 - GitLab CI
 - Jenkins
@@ -323,104 +327,104 @@ CI 环境自动检测：
 - Travis CI
 - Azure Pipelines
 
-## 🛠️ 开发
+## 🛠️ Development
 
-### 环境要求
+### Environment Requirements
 
 - Node.js >= 20.0.0
 - npm >= 9.0.0
 
-### 开发命令
+### Development Commands
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 开发模式（监听文件变化）
+# Development mode (watch for changes)
 npm run dev
 
-# 构建
+# Build
 npm run build
 
-# 运行测试
+# Run tests
 npm test
 
-# 运行测试（监听模式）
+# Run tests (watch mode)
 npm run test:watch
 
-# 代码检查
+# Lint code
 npm run lint
 
-# 代码格式化
+# Format code
 npm run format
 
-# 清理构建产物
+# Clean build artifacts
 npm run clean
 ```
 
-### 项目结构
+### Project Structure
 
 ```
 claude-replica/
 ├── src/
-│   ├── agents/       # 子代理注册表
-│   ├── ci/           # CI/CD 支持
-│   ├── cli/          # CLI 解析器
-│   ├── commands/     # 命令管理器
-│   ├── config/       # 配置管理
-│   ├── context/      # 上下文管理
-│   ├── core/         # 核心引擎
+│   ├── agents/       # Subagent registry
+│   ├── ci/           # CI/CD support
+│   ├── cli/          # CLI parser
+│   ├── commands/     # Command manager
+│   ├── config/       # Configuration management
+│   ├── context/      # Context management
+│   ├── core/         # Core engine
 │   │   ├── MessageRouter.ts
 │   │   ├── SessionManager.ts
 │   │   └── StreamingMessageProcessor.ts
-│   ├── hooks/        # 钩子管理器
-│   ├── image/        # 图像处理
-│   ├── mcp/          # MCP 集成
-│   ├── output/       # 输出格式化
-│   ├── permissions/  # 权限管理
-│   ├── plugins/      # 插件系统
-│   ├── rewind/       # 回退系统
-│   ├── sandbox/      # 沙箱管理
-│   ├── skills/       # 技能管理器
-│   ├── tools/        # 工具注册表
-│   ├── ui/           # 交互式 UI
-│   ├── cli.ts        # CLI 入口
-│   ├── index.ts      # 主导出
-│   └── main.ts       # 主程序
-├── tests/            # 测试文件
-├── docs/             # 文档
-├── examples/         # 示例项目
-└── dist/             # 编译输出
+│   ├── hooks/        # Hook manager
+│   ├── image/        # Image processing
+│   ├── mcp/          # MCP integration
+│   ├── output/       # Output formatting
+│   ├── permissions/  # Permission management
+│   ├── plugins/      # Plugin system
+│   ├── rewind/       # Rewind system
+│   ├── sandbox/      # Sandbox management
+│   ├── skills/       # Skill manager
+│   ├── tools/        # Tool registry
+│   ├── ui/           # Interactive UI
+│   ├── cli.ts        # CLI entry point
+│   ├── index.ts      # Main export
+│   └── main.ts       # Main program
+├── tests/            # Test files
+├── docs/             # Documentation
+├── examples/         # Example projects
+└── dist/             # Build output
 ```
 
-## 📖 API 文档
+## 📖 API Documentation
 
-详细的 API 文档请参阅 [docs/API.md](docs/API.md)。
+For detailed API documentation, see [docs/API.md](docs/zh/API.md).
 
-## 📝 更新日志
+## 📝 Changelog
 
 ### v0.1.0 (2026-01)
 
-- 🎉 初始版本发布
-- ✨ 核心功能实现
-- 📦 扩展系统支持
-- 🔌 MCP 集成
-- 🏭 CI/CD 支持
+- 🎉 Initial release
+- ✨ Core functionality implementation
+- 📦 Extension system support
+- 🔌 MCP integration
+- 🏭 CI/CD support
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎贡献代码！请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解贡献指南。
+We welcome contributions! Please read [CONTRIBUTING_EN.md](CONTRIBUTING_EN.md) for contribution guidelines.
 
-## 📄 许可证
+## 📄 License
 
 [MIT License](LICENSE)
 
-## 🙏 致谢
+## 🙏 Acknowledgments
 
-- [Anthropic](https://www.anthropic.com/) - Claude AI 和 Agent SDK
-- [Claude Code](https://claude.ai/code) - 原始灵感来源
+- [Anthropic](https://www.anthropic.com/) - Claude AI and Agent SDK
+- [Claude Code](https://claude.ai/code) - Original inspiration source
 
-## 📞 支持
+## 📞 Support
 
 - 📧 Email: wuwenjun19930614@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/BaqiF2/claude-replica/issues)

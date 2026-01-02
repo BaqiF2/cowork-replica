@@ -895,6 +895,6 @@ const ExitCodes = {
 
 ## 更多信息
 
-- [README](../README.md) - 项目概述和快速开始
+- [README](../../README_ZH.md) - 项目概述和快速开始
 - [用户指南](USER_GUIDE.md) - 详细使用说明
 - [开发者指南](DEVELOPER_GUIDE.md) - 开发和贡献指南

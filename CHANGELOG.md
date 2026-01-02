@@ -1,145 +1,144 @@
-# 变更记录 (Changelog)
+# Changelog
 
-本文档记录 Claude Replica 项目的所有重要变更。
+This document records all important changes to the Claude Replica project.
 
-格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
-项目版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/) 规范。
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+project versions follow [Semantic Versioning](https://semver.org/) specification.
 
-## [未发布]
+## [Unreleased]
 
 ## [v0.1.0] - 2026-01-02
 
-### 新增
-- 项目整体架构设计
-- Claude Agent SDK 集成
-- 完整的 CLI 命令行界面
-- 会话管理系统
-- 工具权限管理系统
-- 多层级配置管理系统
-- 扩展系统（技能、命令、代理、钩子）
-- MCP（Model Context Protocol）集成
-- 终端交互测试框架
-- 属性测试（fast-check）
+### Added
+- Overall project architecture design
+- Claude Agent SDK integration
+- Complete CLI command-line interface
+- Session management system
+- Tool permission management system
+- Multi-level configuration management system
+- Extension system (Skills, Commands, Agents, Hooks)
+- MCP (Model Context Protocol) integration
+- Terminal interaction testing framework
+- Property testing (fast-check)
 
-### 文档
-- 添加项目文档规范
-- 添加文件头文档规范
-- 完整的 README 文档
-- API 参考文档
+### Documentation
+- Added project documentation standards
+- Added file header documentation standards
+- Complete README documentation
+- API reference documentation
 
 ---
 
-## 最新提交详情
+## Latest Commit Details
 
-### c593ad1 - 2026-01-02 - 为所有源代码文件添加文件头文档规范
+### c593ad1 - 2026-01-02 - Add file header documentation standards for all source code files
 
-本次变更涉及 **64 个文件**，添加了统一的文件头注释规范，提高了代码可读性和维护性。
+This change involved **64 files**, adding unified file header comment standards to improve code readability and maintainability.
 
-#### 变更类型
-- **文档 (docs)**: 为所有 TypeScript 源文件添加标准化文档头
+#### Change Types
+- **Documentation (docs)**: Added standardized documentation headers for all TypeScript source files
 
-#### 变更范围
-为以下模块的所有文件添加了文件头文档：
+#### Change Scope
+Added file header documentation for all files in the following modules:
 
-1. **核心入口文件**
-   - `src/main.ts` - 主程序入口
-   - `src/cli.ts` - CLI 入口点
-   - `src/index.ts` - 项目主入口文件
+1. **Core entry files**
+   - `src/main.ts` - Main program entry
+   - `src/cli.ts` - CLI entry point
+   - `src/index.ts` - Project main entry file
 
-2. **SDK 集成层**
-   - `src/sdk/SDKQueryExecutor.ts` - SDK 查询执行器
-   - `src/core/MessageRouter.ts` - 消息路由器
-   - `src/core/SessionManager.ts` - 会话管理器
-   - `src/core/StreamingMessageProcessor.ts` - 流式消息处理器
+2. **SDK integration layer**
+   - `src/sdk/SDKQueryExecutor.ts` - SDK query executor
+   - `src/core/MessageRouter.ts` - Message router
+   - `src/core/SessionManager.ts` - Session manager
+   - `src/core/StreamingMessageProcessor.ts` - Streaming message processor
 
-3. **配置管理系统**
-   - `src/config/ConfigManager.ts` - 配置管理器
-   - `src/config/SDKConfigLoader.ts` - SDK 配置加载器
-   - `src/config/EnvConfig.ts` - 环境配置
+3. **Configuration management system**
+   - `src/config/ConfigManager.ts` - Configuration manager
+   - `src/config/SDKConfigLoader.ts` - SDK configuration loader
+   - `src/config/EnvConfig.ts` - Environment configuration
 
-4. **权限管理**
-   - `src/permissions/PermissionManager.ts` - 权限管理器
+4. **Permission management**
+   - `src/permissions/PermissionManager.ts` - Permission manager
 
-5. **工具系统**
-   - `src/tools/ToolRegistry.ts` - 工具注册表
-   - `src/tools/*` - 各类工具处理器
+5. **Tool system**
+   - `src/tools/ToolRegistry.ts` - Tool registry
+   - `src/tools/*` - Various tool handlers
 
-6. **扩展系统**
-   - `src/skills/SkillManager.ts` - 技能管理器
-   - `src/commands/CommandManager.ts` - 命令管理器
-   - `src/agents/AgentRegistry.ts` - 代理注册表
-   - `src/hooks/HookManager.ts` - 钩子管理器
-   - `src/mcp/MCPManager.ts` - MCP 管理器
-   - `src/extensibility/ExtensibilityManager.ts` - 扩展性管理器
+6. **Extension system**
+   - `src/skills/SkillManager.ts` - Skill manager
+   - `src/commands/CommandManager.ts` - Command manager
+   - `src/agents/AgentRegistry.ts` - Agent registry
+   - `src/hooks/HookManager.ts` - Hook manager
+   - `src/mcp/MCPManager.ts` - MCP manager
+   - `src/extensibility/ExtensibilityManager.ts` - Extensibility manager
 
-7. **其他核心模块**
-   - `src/context/ContextManager.ts` - 上下文管理器
-   - `src/security/SecurityManager.ts` - 安全管理器
-   - `src/output/OutputFormatter.ts` - 输出格式化器
-   - `src/testing/*` - 测试相关模块
-   - `src/ui/InteractiveUI.ts` - 交互式 UI
-   - `src/sandbox/SandboxManager.ts` - 沙箱管理器
-   - `src/rewind/RewindManager.ts` - 回滚管理器
-   - `src/plugins/PluginManager.ts` - 插件管理器
-   - `src/performance/PerformanceManager.ts` - 性能管理器
-   - `src/ci/CISupport.ts` - CI 支持
-   - `src/collaboration/CollaborationManager.ts` - 协作管理器
-   - `src/docs/DocumentGenerator.ts` - 文档生成器
-   - `src/image/ImageHandler.ts` - 图片处理器
-   - `src/language/LanguageSupport.ts` - 语言支持
+7. **Other core modules**
+   - `src/context/ContextManager.ts` - Context manager
+   - `src/security/SecurityManager.ts` - Security manager
+   - `src/output/OutputFormatter.ts` - Output formatter
+   - `src/testing/*` - Testing-related modules
+   - `src/ui/InteractiveUI.ts` - Interactive UI
+   - `src/sandbox/SandboxManager.ts` - Sandbox manager
+   - `src/rewind/RewindManager.ts` - Rollback manager
+   - `src/plugins/PluginManager.ts` - Plugin manager
+   - `src/performance/PerformanceManager.ts` - Performance manager
+   - `src/ci/CISupport.ts` - CI support
+   - `src/collaboration/CollaborationManager.ts` - Collaboration manager
+   - `src/docs/DocumentGenerator.ts` - Document generator
+   - `src/image/ImageHandler.ts` - Image handler
+   - `src/language/LanguageSupport.ts` - Language support
 
-#### 文档规范
-每个文件头包含：
-- **文件功能说明**：简洁描述文件的主要职责和功能
-- **核心导出列表**：列出文件中的核心类、方法、常量等
-- **作用说明**：为每个核心导出提供简短的作用说明
+#### Documentation Standards
+Each file header includes:
+- **File functionality description**: Concise description of the file's main responsibilities and functions
+- **Core export list**: List of core classes, methods, constants, etc. in the file
+- **Purpose explanation**: Brief purpose explanation for each core export
 
-#### 示例格式
+#### Example Format
 ```typescript
 /**
- * 文件功能：会话管理模块，负责创建、保存、加载和清理用户会话
+ * File functionality: Session management module, responsible for creating, saving, loading and cleaning user sessions
  *
- * 核心类：
- * - SessionManager: 会话生命周期管理器
+ * Core classes:
+ * - SessionManager: Session lifecycle manager
  *
- * 核心方法：
- * - createSession(): 创建新会话实例
- * - loadSession(): 从磁盘加载指定会话数据
- * - saveSession(): 持久化会话到本地存储
- * - cleanExpiredSessions(): 清理过期会话
- * - resumeSession(): 恢复现有会话并支持 SDK 会话续接
+ * Core methods:
+ * - createSession(): Create new session instance
+ * - loadSession(): Load specified session data from disk
+ * - saveSession(): Persist session to local storage
+ * - cleanExpiredSessions(): Clean expired sessions
+ * - resumeSession(): Resume existing session and support SDK session continuation
  */
 ```
 
-#### 统计信息
-- **总文件数**: 64 个
-- **新增行数**: 401 行
-- **删除行数**: 340 行
-- **净增长**: 61 行（主要是文档内容）
+#### Statistics
+- **Total files**: 64
+- **Lines added**: 401
+- **Lines removed**: 340
+- **Net growth**: 61 lines (primarily documentation content)
 
-#### 影响范围
-- ✅ 提高了代码可读性
-- ✅ 符合项目文档规范（`.claude/rules/file-header-documentation.md`）
-- ✅ 便于新开发者理解代码结构
-- ✅ 提高了代码维护性
-- ✅ 无功能变更，仅文档改进
+#### Impact Scope
+- ✅ Improved code readability
+- ✅ Conforms to project documentation standards (`.claude/rules/file-header-documentation.md`)
+- ✅ Facilitates new developers understanding code structure
+- ✅ Improved code maintainability
+- ✅ No functional changes, documentation improvements only
 
 ---
 
-## 早期提交
+## Early Commits
 
-### 43d2a64 - 2026-01-02 - 添加项目文档、代码规范和技能系统
-- 添加项目文档和代码规范
-- 实现技能系统
-- 更新测试任务完成状态
+### 43d2a64 - 2026-01-02 - Add project documentation, code standards, and skills system
+- Added project documentation and code standards
+- Implemented skills system
+- Updated test task completion status
 
-### 8b76d95 - 2026-01-02 - 更新终端交互测试任务完成状态
-- 终端交互测试功能
+### 8b76d95 - 2026-01-02 - Update terminal interaction test task completion status
+- Terminal interaction test functionality
 
-### a936273 - 2026-01-02 - 集成 Claude Agent SDK 并添加终端交互测试
-- Claude Agent SDK 集成
-- 终端交互测试框架
+### a936273 - 2026-01-02 - Integrate Claude Agent SDK and add terminal interaction tests
+- Claude Agent SDK integration
+- Terminal interaction test framework
 
-### 47ae444 - 2026-01-02 - 移除Claude代码副本的Agent SDK参考文档
-- 移除无关的参考文档
-
+### 47ae444 - 2026-01-02 - Remove Claude Code copy's Agent SDK reference documentation
+- Removed irrelevant reference documentation
