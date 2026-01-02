@@ -282,7 +282,7 @@ export class CLIParser {
         default:
           // 检查是否是未知选项
           if (arg.startsWith('-')) {
-            throw new CLIParseError(`未知选项: ${arg}`);
+            throw new CLIParseError(`Unknown option: ${arg}`);
           }
           // 如果不是选项，可能是位置参数（查询内容）
           if (!options.prompt) {
@@ -367,7 +367,7 @@ claude-replica - Claude Code 智能代码助手命令行工具
    */
   private requireValue(args: string[], index: number, optionName: string): string {
     if (index + 1 >= args.length || args[index + 1].startsWith('-')) {
-      throw new CLIParseError(`选项 ${optionName} 需要一个值`);
+      throw new CLIParseError(`Option ${optionName} requires a value`);
     }
     return args[index + 1];
   }
@@ -388,7 +388,7 @@ claude-replica - Claude Code 智能代码助手命令行工具
   private parsePermissionMode(value: string): PermissionMode {
     if (!VALID_PERMISSION_MODES.includes(value as PermissionMode)) {
       throw new CLIParseError(
-        `无效的权限模式: ${value}。有效值: ${VALID_PERMISSION_MODES.join(', ')}`
+        `Invalid permission mode: ${value}. Valid values: ${VALID_PERMISSION_MODES.join(', ')}`
       );
     }
     return value as PermissionMode;
@@ -400,7 +400,7 @@ claude-replica - Claude Code 智能代码助手命令行工具
   private parseOutputFormat(value: string): OutputFormat {
     if (!VALID_OUTPUT_FORMATS.includes(value as OutputFormat)) {
       throw new CLIParseError(
-        `无效的输出格式: ${value}。有效值: ${VALID_OUTPUT_FORMATS.join(', ')}`
+        `Invalid output format: ${value}. Valid values: ${VALID_OUTPUT_FORMATS.join(', ')}`
       );
     }
     return value as OutputFormat;
@@ -414,7 +414,7 @@ claude-replica - Claude Code 智能代码助手命令行工具
     for (const source of sources) {
       if (!VALID_SETTING_SOURCES.includes(source)) {
         throw new CLIParseError(
-          `无效的配置源: ${source}。有效值: ${VALID_SETTING_SOURCES.join(', ')}`
+          `Invalid setting source: ${source}. Valid values: ${VALID_SETTING_SOURCES.join(', ')}`
         );
       }
     }
@@ -427,7 +427,7 @@ claude-replica - Claude Code 智能代码助手命令行工具
   private parseNumber(value: string, optionName: string): number {
     const num = parseFloat(value);
     if (isNaN(num)) {
-      throw new CLIParseError(`选项 ${optionName} 需要一个数字值，但收到: ${value}`);
+      throw new CLIParseError(`Option ${optionName} requires a numeric value, but received: ${value}`);
     }
     return num;
   }
