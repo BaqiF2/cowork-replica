@@ -1,10 +1,15 @@
 /**
- * 终端模拟器
+ * 文件功能：终端模拟器，使用 node-pty 创建伪终端会话，模拟真实用户与 CLI 工具的交互
  *
- * 使用 node-pty 创建伪终端会话，模拟真实用户与 CLI 工具的交互
- * 支持输入输出捕获、特殊按键发送、超时处理等功能
+ * 核心类：
+ * - TerminalEmulator: 终端模拟器核心类
  *
- * @module TerminalEmulator
+ * 核心方法：
+ * - write(): 写入输入到终端
+ * - waitForOutput(): 等待输出
+ * - sendKey(): 发送特殊按键
+ * - getOutput(): 获取终端输出
+ * - close(): 关闭终端会话
  */
 
 import * as pty from 'node-pty';

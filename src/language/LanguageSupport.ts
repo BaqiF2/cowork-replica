@@ -1,15 +1,15 @@
 /**
- * 多语言支持模块
+ * 文件功能：多语言支持模块，提供项目语言检测、代码生成策略和最佳实践建议功能
  *
- * 提供项目语言检测、代码生成策略和最佳实践建议功能
+ * 核心类：
+ * - LanguageSupport: 多语言支持核心类
  *
- * 支持的编程语言:
- * - JavaScript/TypeScript
- * - Python
- * - Java
- * - Go
- *
- * @module LanguageSupport
+ * 核心方法：
+ * - detectLanguage(): 检测项目主要编程语言
+ * - getBestPractices(): 获取指定语言的编码最佳实践
+ * - generateCodeSnippet(): 生成代码片段
+ * - validateCodeStyle(): 验证代码风格
+ * - getNamingConvention(): 获取命名约定
  */
 
 import * as fs from 'fs';

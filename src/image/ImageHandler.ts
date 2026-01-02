@@ -1,12 +1,15 @@
 /**
- * 图像处理器
+ * 文件功能：图像处理模块，负责处理图像的加载、编码、大小调整和格式验证
  *
- * 负责处理图像的加载、编码、大小调整和格式验证
- * 支持 PNG、JPEG、GIF、WebP 格式
- * 支持 @./image.png 语法、粘贴和拖放
+ * 核心类：
+ * - ImageHandler: 图像处理器核心类
  *
- * @module ImageHandler
- * **验证: 需求 16.1, 16.2, 16.3, 16.4, 16.5, 16.6**
+ * 核心方法：
+ * - loadImage(): 加载图像文件
+ * - validateFormat(): 验证图像格式
+ * - resizeImage(): 调整图像大小
+ * - encodeImage(): 编码图像为 Base64
+ * - processInput(): 处理用户输入的图像（语法、粘贴、拖放）
  */
 
 import * as fs from 'fs/promises';

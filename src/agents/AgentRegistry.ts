@@ -1,11 +1,15 @@
 /**
- * 子代理注册表
+ * 文件功能：子代理注册表，负责加载、管理和匹配子代理定义
  *
- * 负责加载、管理和匹配子代理定义
- * 支持从目录加载代理文件，根据任务描述匹配代理
- * 并转换为 SDK 兼容的格式
+ * 核心类：
+ * - AgentRegistry: 代理注册表核心类
  *
- * @module AgentRegistry
+ * 核心方法：
+ * - loadAgents(): 从指定目录加载代理定义
+ * - getAgent(): 获取指定名称的代理
+ * - listAgents(): 列出所有已加载的代理
+ * - findAgentForTask(): 根据任务描述匹配最适合的代理
+ * - parseAgentFile(): 解析代理定义文件（支持 YAML frontmatter）
  */
 
 import * as fs from 'fs/promises';

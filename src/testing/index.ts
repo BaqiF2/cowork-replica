@@ -1,23 +1,20 @@
 /**
- * 终端交互测试框架
+ * 文件功能：终端交互测试框架统一导出，提供完整的终端交互测试能力
  *
- * 提供完整的终端交互测试能力，包括：
- * - 终端模拟器：创建和管理 PTY 会话
- * - ANSI 解析器：处理终端转义序列
- * - 断言匹配器：验证输出是否符合预期
- * - 测试夹具：管理测试环境
- * - 交互控制器：执行交互脚本
- * - 报告生成器：生成测试报告
- * - 测试框架集成：检测和执行测试
- *
- * @module testing
- *
- * @example
- * ```typescript
- * import {
- *   createTerminalEmulator,
- *   createAssertionMatcher,
- *   createTestFixture,
+ * 核心导出：
+ * - 终端模拟器：TerminalEmulator, createTerminalEmulator
+ * - ANSI 解析器：ANSIParser, parseANSISequence
+ * - 断言匹配器：AssertionMatcher, createAssertionMatcher
+ * - 测试夹具：TestFixture, createTestFixture
+ * - 交互控制器：InteractionController
+ * - 报告生成器：ReportGenerator
+ * - 测试框架集成：TestFrameworkIntegration, createTestFrameworkIntegration
+ */
+
+import {
+  createTerminalEmulator,
+  createAssertionMatcher,
+  createTestFixture,
  *   SpecialKey,
  * } from 'claude-replica/testing';
  *

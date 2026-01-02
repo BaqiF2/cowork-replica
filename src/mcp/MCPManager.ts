@@ -1,10 +1,15 @@
 /**
- * MCPManager - MCP 服务器管理器
+ * 文件功能：MCP（Model Context Protocol）服务器管理模块，负责配置、加载和验证 MCP 服务器
  *
- * 管理 MCP (Model Context Protocol) 服务器的配置、加载和验证。
- * 支持 stdio、SSE、HTTP 三种传输类型。
+ * 核心类：
+ * - MCPManager: MCP 服务器管理器核心类
  *
- * **需求: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6**
+ * 核心方法：
+ * - loadServersFromConfig(): 从配置文件加载 MCP 服务器
+ * - listServers(): 列出所有已配置的服务器
+ * - validateConfig(): 验证 MCP 服务器配置
+ * - startServer(): 启动指定服务器
+ * - stopServer(): 停止指定服务器
  */
 
 import * as fs from 'fs/promises';

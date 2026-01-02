@@ -1,11 +1,14 @@
 /**
- * SDK 查询执行器
+ * 文件功能：SDK 查询执行模块，封装 Claude Agent SDK 的 query() 函数调用逻辑
  *
- * 封装 Claude Agent SDK 的 query() 函数调用逻辑
- * 负责执行查询、处理消息流、累积响应和错误处理
+ * 核心类：
+ * - SDKQueryExecutor: SDK 查询执行器核心类
  *
- * @module SDKQueryExecutor
- * **验证: 需求 1.1, 1.2, 1.3, 2.1, 2.2, 2.3**
+ * 核心方法：
+ * - execute(): 执行 SDK 查询并处理响应
+ * - interrupt(): 中断正在进行的查询
+ * - isRunning(): 检查是否有查询正在进行
+ * - classifyError(): 分类 SDK 错误类型
  */
 
 import {

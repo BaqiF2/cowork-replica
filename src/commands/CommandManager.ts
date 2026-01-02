@@ -1,11 +1,15 @@
 /**
- * 命令管理器
+ * 文件功能：命令管理模块，负责加载、管理和执行自定义命令模板
  *
- * 负责加载、管理和执行自定义命令
- * 支持用户级和项目级命令目录
- * 支持 /project:command 和 /user:command 命名空间
+ * 核心类：
+ * - CommandManager: 命令管理器核心类
  *
- * @module CommandManager
+ * 核心方法：
+ * - loadCommands(): 从指定目录加载命令文件
+ * - getCommand(): 获取指定名称的命令
+ * - listCommands(): 列出所有已加载的命令
+ * - executeCommand(): 执行指定命令
+ * - parseCommandFile(): 解析命令文件（支持 YAML frontmatter）
  */
 
 import * as fs from 'fs/promises';

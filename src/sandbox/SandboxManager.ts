@@ -1,12 +1,15 @@
 /**
- * 沙箱管理器
+ * 文件功能：沙箱管理模块，管理沙箱配置、命令检查、网络沙箱设置和违规检测
  *
- * 负责管理沙箱配置、命令排除列表检查、网络沙箱设置和违规检测
- * 提供安全的执行环境，限制危险操作
+ * 核心类：
+ * - SandboxManager: 沙箱管理器核心类
  *
- * **验证: 需求 26.2, 26.5**
- *
- * @module SandboxManager
+ * 核心方法：
+ * - checkCommand(): 检查命令是否允许执行
+ * - checkNetworkAccess(): 检查网络访问权限
+ * - validateConfig(): 验证沙箱配置
+ * - detectViolations(): 检测沙箱违规行为
+ * - enforceSettings(): 强制执行沙箱设置
  */
 
 import * as fs from 'fs/promises';

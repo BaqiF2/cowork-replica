@@ -1,6 +1,13 @@
 /**
- * 测试夹具模块
- * 负责测试环境的准备和清理
+ * 文件功能：测试夹具模块，负责测试环境的准备和清理
+ *
+ * 核心方法：
+ * - setup(): 设置测试环境
+ * - teardown(): 清理测试环境
+ * - createTestFiles(): 创建测试文件
+ * - cleanupTestFiles(): 清理测试文件
+ * - setupSkills(): 设置测试技能
+ * - cleanupSkills(): 清理测试技能
  */
 
 import * as fs from 'fs';

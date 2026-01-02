@@ -1,7 +1,15 @@
 /**
- * Claude Replica - 完整复刻 Claude Code 的智能代码助手
+ * 文件功能：项目主入口文件，统一导出所有公共 API 和类型定义
  *
- * 主入口文件，导出核心 API
+ * 核心导出：
+ * - 主程序入口：main, Application
+ * - CLI 组件：CLIParser, CLIOptions, CLIParseError 等
+ * - 核心组件：SessionManager, MessageRouter, StreamingMessageProcessor
+ * - 工具组件：ToolRegistry
+ * - 权限组件：PermissionManager, PermissionConfig 等
+ * - 配置组件：ConfigManager, SDKConfigLoader 等
+ * - 扩展组件：SkillManager, CommandManager, AgentRegistry 等
+ * - 其他组件：HookManager, MCPManager, OutputFormatter 等
  */
 
 // 主程序入口

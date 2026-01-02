@@ -1,14 +1,15 @@
 /**
- * ExtensibilityManager - 扩展性架构管理器
+ * 文件功能：扩展性架构管理模块，提供完整的插件 API 和工具扩展能力
  *
- * 提供完整的扩展性架构，支持：
- * - 自定义工具注册
- * - 工具参数验证
- * - 工具错误处理
- * - 工具钩子点
- * - 工具异步执行和流式输出
+ * 核心类：
+ * - ExtensibilityManager: 扩展性架构管理器核心类
  *
- * **需求: 30.1, 30.2, 30.3, 30.4, 30.5, 30.6**
+ * 核心方法：
+ * - registerTool(): 注册自定义工具
+ * - unregisterTool(): 注销自定义工具
+ * - validateToolParameters(): 验证工具参数
+ * - executeTool(): 执行自定义工具
+ * - createToolExecutor(): 创建工具执行器
  */
 
 import { EventEmitter } from 'events';

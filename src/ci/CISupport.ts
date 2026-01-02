@@ -1,11 +1,18 @@
 /**
- * CI/CD 支持模块
+ * 文件功能：CI/CD 支持模块，提供 CI 环境检测、结构化日志、超时管理等功能
  *
- * 提供 CI/CD 环境检测、结构化日志、超时管理等功能
- * 支持在 CI 管道中自动化运行 Claude Replica
+ * 核心类：
+ * - CISupport: CI/CD 支持核心类
+ * - CIDetector: CI 环境检测器
+ * - StructuredLogger: 结构化日志记录器
+ * - TimeoutManager: 超时管理器
  *
- * @module ci/CISupport
- * **验证: 需求 21.1, 21.2, 21.3, 21.4, 21.6**
+ * 核心方法：
+ * - isCI(): 检测是否在 CI 环境中运行
+ * - getLogger(): 获取结构化日志记录器
+ * - getSummary(): 获取 CI 环境摘要
+ * - startExecution(): 开始执行计时
+ * - endExecution(): 结束执行计时
  */
 
 import { EnvConfig, ENV_KEYS } from '../config';

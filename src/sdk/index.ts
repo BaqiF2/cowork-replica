@@ -1,13 +1,7 @@
 /**
- * SDK 模块导出
- *
- * 导出 SDK 查询执行器和相关类型
- *
- * @module sdk
- * **验证: 需求 1.1**
+ * 文件功能：SDK 模块统一导出，导出 SDK 查询执行器相关的所有类和接口
  */
 
-// 导出 SDKQueryExecutor 类和相关类型
 export {
   SDKQueryExecutor,
   SDKQueryOptions,

@@ -1,11 +1,15 @@
 /**
- * PluginManager - 插件管理器
+ * 文件功能：插件管理模块，管理插件的安装、卸载、加载和列表功能
  *
- * 管理插件的安装、卸载、加载和列表功能。
- * 支持从本地目录、Git 仓库和插件市场安装插件。
- * 加载插件中的命令、代理、技能、钩子和 MCP 服务器。
+ * 核心类：
+ * - PluginManager: 插件管理器核心类
  *
- * **需求: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6**
+ * 核心方法：
+ * - installPlugin(): 安装插件（支持本地、Git、市场）
+ * - uninstallPlugin(): 卸载插件
+ * - loadPlugin(): 加载插件内容
+ * - listPlugins(): 列出已安装的插件
+ * - reloadPlugins(): 重新加载所有插件
  */
 
 import * as fs from 'fs/promises';

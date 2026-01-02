@@ -1,13 +1,15 @@
 /**
- * 权限管理器
+ * 文件功能：权限管理模块，管理工具执行权限，支持多种权限模式
  *
- * 管理工具执行权限，支持 SDK 的权限模式和自定义权限处理
+ * 核心类：
+ * - PermissionManager: 权限管理器核心类
  *
- * SDK 权限模式:
- * - default: 默认模式，危险操作需要用户确认
- * - acceptEdits: 自动接受文件编辑，其他危险操作仍需确认
- * - bypassPermissions: 绕过所有权限检查
- * - plan: 计划模式，不执行任何工具
+ * 核心方法：
+ * - createCanUseToolHandler(): 创建 SDK 兼容的权限检查函数
+ * - setPromptUserCallback(): 设置用户确认回调函数
+ * - getConfig(): 获取当前权限配置
+ * - checkPermission(): 检查指定工具的使用权限
+ * - promptUser(): 提示用户确认危险操作
  */
 
 import { ToolRegistry } from '../tools/ToolRegistry';

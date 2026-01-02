@@ -1,10 +1,18 @@
 /**
- * 会话管理器
+ * 文件功能：会话管理模块，负责创建、保存、加载和清理用户会话
  *
- * 负责创建、保存、加载和管理会话
- * 支持会话持久化、恢复和过期清理
+ * 核心类：
+ * - SessionManager: 会话生命周期管理器
  *
- * @module SessionManager
+ * 核心方法：
+ * - createSession(): 创建新会话实例
+ * - loadSession(): 从磁盘加载指定会话数据
+ * - saveSession(): 持久化会话到本地存储
+ * - addMessage(): 向会话添加新消息
+ * - listSessions(): 列出所有保存的会话
+ * - getRecentSession(): 获取最近活跃的会话
+ * - cleanSessions(): 清理过期会话
+ * - deleteSession(): 删除指定会话
  */
 
 import * as fs from 'fs/promises';

@@ -1,6 +1,15 @@
 /**
- * 报告生成器
- * 负责生成测试报告，支持多种格式输出
+ * 文件功能：报告生成器，负责生成测试报告，支持多种格式输出
+ *
+ * 核心类：
+ * - ReportGenerator: 报告生成器核心类
+ *
+ * 核心方法：
+ * - generateReport(): 生成测试报告
+ * - formatText(): 格式化为文本
+ * - formatJSON(): 格式化为 JSON
+ * - formatJUnitXML(): 格式化为 JUnit XML
+ * - saveReport(): 保存报告到文件
  */
 
 import * as fs from 'fs';

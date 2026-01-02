@@ -1,14 +1,18 @@
 /**
- * 上下文管理器
+ * 文件功能：上下文管理器，负责智能管理对话上下文，包括 Token 计数和限制管理、历史消息压缩、智能文件片段提取、对话摘要生成、上下文窗口管理
  *
- * 负责智能管理对话上下文，包括：
- * - Token 计数和限制管理
- * - 历史消息压缩
- * - 智能文件片段提取
- * - 对话摘要生成
- * - 上下文窗口管理
+ * 核心类：
+ * - ContextManager: 上下文管理器类，提供智能上下文管理功能，确保在 token 限制内保持相关信息
  *
- * @module ContextManager
+ * 核心方法：
+ * - estimateTokens(): 估算文本的 token 数
+ * - countTokens(): 计算消息列表的总 token 数
+ * - getContextWindowState(): 获取上下文窗口状态
+ * - compressMessages(): 压缩历史消息
+ * - generateSummary(): 生成对话摘要
+ * - extractFileFragments(): 提取文件的相关片段
+ * - needsCompression(): 检查是否需要压缩上下文
+ * - autoManageContext(): 自动管理上下文
  */
 
 import { Message, ContentBlock } from '../core/SessionManager';

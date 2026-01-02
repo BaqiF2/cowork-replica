@@ -1,15 +1,13 @@
 /**
- * ANSI 转义序列解析器
+ * 文件功能：ANSI 转义序列解析器，提供 ANSI 转义序列的解析、去除和文本提取功能
  *
- * 提供 ANSI 转义序列的解析、去除和文本提取功能
- * 支持颜色、样式、光标控制等常见 ANSI 序列
- *
- * @module ANSIParser
+ * 核心方法：
+ * - parseANSISequence(): 解析 ANSI 序列
+ * - stripANSICodes(): 去除 ANSI 样式码
+ * - extractText(): 提取纯文本内容
+ * - parseStyle(): 解析样式信息
  */
 
-/**
- * ANSI 样式信息
- */
 export interface ANSIStyle {
   /** 粗体 */
   bold?: boolean;

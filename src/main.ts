@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * Claude Replica 主程序入口
+ * 文件功能：主程序入口，负责初始化应用程序、解析命令行参数、管理会话和执行查询
  *
- * 负责初始化应用程序、解析命令行参数、管理会话和执行查询
- * 支持交互式和非交互式两种运行模式
+ * 核心类：
+ * - Logger: 应用程序日志记录器，提供分级日志记录功能
+ * - Application: 应用程序主类，协调所有子系统
  *
- * @module main
- * **验证: 需求 1.1, 1.2, 1.3, 6.3, 6.4, 20.1, 20.2, 20.3, 20.4, 20.5, 20.6**
+ * 核心方法：
+ * - main(): 主程序入口函数
+ * - Application.run(): 运行应用程序主循环
+ * - Application.runInteractive(): 运行交互式模式
+ * - Application.runNonInteractive(): 运行非交互式模式
+ * - Application.executeQuery(): 执行 SDK 查询
  */
 
 import * as fs from 'fs/promises';

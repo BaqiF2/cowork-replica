@@ -1,10 +1,15 @@
 /**
- * HookManager - 钩子管理器
+ * 文件功能：钩子管理模块，管理和执行钩子操作，支持 12 种 SDK 钩子事件类型
  *
- * 管理和执行钩子操作，支持 Claude Agent SDK 的 12 种钩子事件类型。
- * 钩子可以在特定事件发生时自动执行命令或发送提示词。
+ * 核心类：
+ * - HookManager: 钩子管理器核心类
  *
- * **需求: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6**
+ * 核心方法：
+ * - loadHooks(): 从配置加载钩子定义
+ * - executeHooks(): 执行指定事件的钩子
+ * - registerHook(): 注册新的钩子
+ * - unregisterHook(): 取消注册钩子
+ * - listHooks(): 列出所有已注册的钩子
  */
 
 import { exec } from 'child_process';

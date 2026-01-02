@@ -1,10 +1,15 @@
 /**
- * 协作管理器
+ * 文件功能：协作管理模块，负责团队协作功能，包括配置共享、导出导入和验证
  *
- * 负责团队协作功能，包括配置共享、本地覆盖、认证配置、
- * .gitignore 管理、配置导出导入和配置验证
+ * 核心类：
+ * - CollaborationManager: 协作管理器核心类
  *
- * @module CollaborationManager
+ * 核心方法：
+ * - shareConfig(): 共享配置到团队
+ * - importConfig(): 导入外部配置
+ * - validateConfig(): 验证配置一致性
+ * - exportConfig(): 导出配置模板
+ * - syncWithTeam(): 与团队同步配置
  */
 
 import * as fs from 'fs/promises';

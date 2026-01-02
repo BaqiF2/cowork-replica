@@ -1,16 +1,15 @@
 /**
- * 性能管理器
+ * 文件功能：性能管理模块，负责应用程序的性能优化，包括启动速度、项目加载、缓存管理
  *
- * 负责应用程序的性能优化，包括：
- * - 快速启动（2 秒内初始化）
- * - 增量加载大型项目
- * - 项目结构缓存
- * - 异步 I/O 操作
- * - Token 限制管理
- * - 内存使用监控和清理
+ * 核心类：
+ * - PerformanceManager: 性能管理器核心类
  *
- * @module PerformanceManager
- * **验证: 需求 22.1, 22.2, 22.3, 22.4, 22.5, 22.6**
+ * 核心方法：
+ * - initialize(): 初始化性能优化组件
+ * - optimizeStartup(): 优化启动速度
+ * - cacheProjectStructure(): 缓存项目结构
+ * - monitorMemoryUsage(): 监控内存使用
+ * - manageTokenLimits(): 管理 Token 限制
  */
 
 import * as fs from 'fs/promises';

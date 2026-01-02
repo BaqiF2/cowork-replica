@@ -1,17 +1,19 @@
 /**
- * 流式消息处理器
+ * 文件功能：流式消息处理模块，负责处理 Claude Agent SDK 返回的流式消息并输出到终端
  *
- * 负责处理 Claude Agent SDK 返回的流式消息
- * 实现不同 SDKMessage 类型的处理、文本提取和终端输出
+ * 核心类：
+ * - StreamingMessageProcessor: 流式消息处理器
+ * - TerminalOutputHandler: 默认终端输出处理器
  *
- * @module StreamingMessageProcessor
- * **验证: 需求 2.1, 2.4**
+ * 核心方法：
+ * - processMessage(): 处理单个 SDK 消息
+ * - processAndDisplay(): 处理并显示 SDK 消息
+ * - processStream(): 处理流式消息生成器
+ * - displayAssistantMessage(): 显示助手消息
+ * - displayStreamEvent(): 显示流式事件消息
+ * - extractTextFromAssistantMessage(): 从助手消息提取文本
  */
 
-/**
- * SDK 消息类型枚举
- * 对齐 SDK 的 SDKMessage 类型定义
- */
 export type SDKMessageType =
   | 'assistant'
   | 'user'
@@ -20,7 +22,7 @@ export type SDKMessageType =
   | 'result'
   | 'error'
   | 'system'
-  | 'stream_event';  // 新增：支持流式事件
+  | 'stream_event';
 
 /**
  * 内容块类型 - 文本块

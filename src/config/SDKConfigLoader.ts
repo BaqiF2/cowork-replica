@@ -1,10 +1,15 @@
 /**
- * SDK 配置加载器
+ * 文件功能：SDK 配置加载模块，负责加载和合并用户级、项目级配置，构建 SDK Options
  *
- * 负责加载和合并用户级、项目级配置，构建 SDK Options
- * 支持 CLAUDE.md 文件加载和 settings.json 配置合并
+ * 核心类：
+ * - SDKConfigLoader: SDK 配置加载器核心类
  *
- * @module SDKConfigLoader
+ * 核心方法：
+ * - loadUserConfig(): 加载用户级配置
+ * - loadProjectConfig(): 加载项目级配置
+ * - mergeConfigs(): 合并多个配置源
+ * - buildSDKOptions(): 构建 SDK 兼容的选项对象
+ * - loadClaudeMd(): 加载 CLAUDE.md 文件内容
  */
 
 import * as fs from 'fs/promises';

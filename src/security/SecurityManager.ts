@@ -1,21 +1,17 @@
 /**
- * 安全管理器
+ * 文件功能：安全管理模块，提供敏感信息检测、危险命令确认、日志脱敏等安全功能
  *
- * 提供安全相关功能，包括：
- * - 敏感信息检测和警告
- * - 危险命令确认
- * - API 密钥环境变量处理
- * - HTTPS 加密传输验证
- * - 敏感文件黑名单
- * - 日志脱敏
+ * 核心类：
+ * - SecurityManager: 安全管理器核心类
  *
- * @module security/SecurityManager
- * **验证: 需求 26.1, 26.2, 26.3, 26.4, 26.5, 26.6**
+ * 核心方法：
+ * - detectSensitiveInfo(): 检测文本中的敏感信息
+ * - sanitizeLogData(): 脱敏日志数据
+ * - checkDangerousCommand(): 检查危险命令
+ * - confirmOperation(): 确认危险操作
+ * - validateEnvironment(): 验证环境安全性
  */
 
-/**
- * 敏感信息类型
- */
 export type SensitiveInfoType =
   | 'api_key'
   | 'password'

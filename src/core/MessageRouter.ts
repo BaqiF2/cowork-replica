@@ -1,10 +1,16 @@
 /**
- * 消息路由器
+ * 文件功能：消息路由模块，负责将用户消息路由到 Claude Agent SDK 并构建查询参数
  *
- * 负责路由消息到 Claude Agent SDK 并处理响应
- * 实现 query() 函数的调用、系统提示词构建、工具管理和权限处理
+ * 核心类：
+ * - MessageRouter: 消息路由器核心类
  *
- * @module MessageRouter
+ * 核心方法：
+ * - routeMessage(): 将消息路由到 SDK 并构建查询选项
+ * - buildSystemPrompt(): 构建系统提示词（包含 CLAUDE.md 和技能）
+ * - buildQueryOptions(): 构建完整的 SDK 查询选项
+ * - getEnabledToolNames(): 获取启用的工具列表
+ * - createPermissionHandler(): 创建权限处理函数
+ * - getAgentDefinitions(): 获取子代理定义
  */
 
 import { ConfigManager } from '../config/ConfigManager';

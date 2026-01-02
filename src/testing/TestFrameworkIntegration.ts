@@ -1,15 +1,15 @@
 /**
- * 测试框架集成模块
+ * 文件功能：测试框架集成模块，提供测试框架检测、测试执行、失败分析和覆盖率报告功能
  *
- * 提供测试框架检测、测试执行、输出解析、失败分析和覆盖率报告功能
+ * 核心类：
+ * - TestFrameworkIntegration: 测试框架集成核心类
  *
- * 支持的测试框架:
- * - Jest (JavaScript/TypeScript)
- * - Pytest (Python)
- * - JUnit (Java)
- * - Go Test (Go)
- *
- * @module TestFrameworkIntegration
+ * 核心方法：
+ * - detectFramework(): 检测项目使用的测试框架
+ * - runTests(): 执行测试套件
+ * - parseTestOutput(): 解析测试输出
+ * - analyzeFailures(): 分析测试失败原因
+ * - generateCoverageReport(): 生成覆盖率报告
  */
 
 import * as fs from 'fs';

@@ -1,11 +1,15 @@
 /**
- * 技能管理器
+ * 文件功能：技能管理模块，负责加载、匹配和应用技能模块
  *
- * 负责加载、匹配和应用技能模块
- * 支持用户级和项目级技能目录
- * 解析技能文件的 YAML frontmatter 元数据
+ * 核心类：
+ * - SkillManager: 技能管理器核心类
  *
- * @module SkillManager
+ * 核心方法：
+ * - loadSkills(): 从指定目录加载技能文件
+ * - getSkill(): 获取指定名称的技能
+ * - listSkills(): 列出所有已加载的技能
+ * - findSkillsByTrigger(): 根据触发器查找匹配技能
+ * - parseSkillFile(): 解析技能文件（支持 YAML frontmatter）
  */
 
 import * as fs from 'fs/promises';

@@ -1,10 +1,16 @@
 /**
- * 交互控制器
+ * 文件功能：交互控制器，负责执行交互脚本，协调终端模拟器和断言匹配器
  *
- * 负责执行交互脚本，协调终端模拟器和断言匹配器
- * 支持多种步骤类型：发送输入、发送特殊按键、等待输出、断言验证、延迟等
+ * 核心类：
+ * - InteractionController: 交互控制器核心类
  *
- * @module InteractionController
+ * 核心方法：
+ * - executeScript(): 执行交互脚本
+ * - executeStep(): 执行单个交互步骤
+ * - sendInput(): 发送输入
+ * - sendKey(): 发送特殊按键
+ * - waitForOutput(): 等待输出
+ * - assertOutput(): 断言验证输出
  */
 
 import { TerminalEmulator } from './TerminalEmulator';

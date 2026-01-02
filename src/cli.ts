@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * Claude Replica CLI 入口点
+ * 文件功能：CLI 入口点，负责处理命令行参数并启动应用程序
  *
- * 处理命令行参数并启动应用程序
- * 这是 npm bin 的入口文件，委托给 main.ts 处理
- *
- * @module cli
+ * 核心方法：
+ * - main(): 主程序入口点，委托给 main.ts 中的 Application 类处理
  */
 
 import { main } from './main';

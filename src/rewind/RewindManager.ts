@@ -1,10 +1,15 @@
 /**
- * 回退管理器
+ * 文件功能：回退管理器，负责捕获文件快照、恢复快照和管理快照历史
  *
- * 负责捕获文件快照、恢复快照和管理快照历史
- * 支持文件修改的撤销操作
+ * 核心类：
+ * - RewindManager: 回退管理器核心类
  *
- * @module RewindManager
+ * 核心方法：
+ * - initialize(): 初始化回退管理器
+ * - createSnapshot(): 创建文件快照
+ * - restoreSnapshot(): 恢复指定快照
+ * - listSnapshots(): 列出所有快照
+ * - deleteSnapshot(): 删除指定快照
  */
 
 import * as fs from 'fs/promises';

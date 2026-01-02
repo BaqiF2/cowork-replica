@@ -1,10 +1,15 @@
 /**
- * 断言匹配器
+ * 文件功能：断言匹配器，提供多种输出验证方式，支持精确匹配、包含匹配、正则匹配等
  *
- * 提供多种输出验证方式，支持精确匹配、包含匹配、正则匹配、
- * JSON 匹配和 JSON Schema 验证
+ * 核心类：
+ * - AssertionMatcher: 断言匹配器核心类
  *
- * @module AssertionMatcher
+ * 核心方法：
+ * - exactMatch(): 精确匹配验证
+ * - containsMatch(): 包含匹配验证
+ * - regexMatch(): 正则表达式匹配
+ * - jsonMatch(): JSON 匹配验证
+ * - validateSchema(): JSON Schema 验证
  */
 
 import Ajv, { ValidateFunction } from 'ajv';
@@ -14,9 +19,7 @@ import { ANSIParser } from './ANSIParser';
 import { AssertionOptions, AssertionResult } from './types';
 
 /**
- * 断言匹配器类
- *
- * 提供灵活的输出验证功能，支持多种匹配类型和选项
+ * 断言匹配器核心类
  */
 export class AssertionMatcher {
   private ansiParser: ANSIParser;

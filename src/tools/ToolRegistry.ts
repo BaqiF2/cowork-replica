@@ -1,19 +1,17 @@
 /**
- * 工具注册表
+ * 文件功能：工具注册表，负责管理 SDK 内置工具的启用和配置
  *
- * 管理 SDK 内置工具的启用和配置
+ * 核心类：
+ * - ToolRegistry: 工具注册表类，管理所有 SDK 内置工具的注册、查询和启用状态
  *
- * SDK 内置工具列表:
- * - 文件操作: Read, Write, Edit
- * - 命令执行: Bash, BashOutput, KillBash
- * - 搜索工具: Grep, Glob
- * - 子代理: Task
- * - 用户交互: AskUserQuestion
- * - 网络工具: WebFetch, WebSearch
- * - 任务管理: TodoWrite
- * - Jupyter: NotebookEdit
- * - 计划模式: ExitPlanMode
- * - MCP 工具: ListMcpResources, ReadMcpResource
+ * 核心方法：
+ * - getDefaultTools(): 获取默认启用的工具列表
+ * - getAllTools(): 获取所有可用工具列表
+ * - getEnabledTools(): 根据配置获取启用的工具列表
+ * - isValidTool(): 验证工具名称是否有效
+ * - getToolMetadata(): 获取工具元数据
+ * - isDangerousTool(): 检查工具是否为危险工具
+ * - validateConfig(): 验证工具配置
  */
 
 /**

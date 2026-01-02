@@ -1,12 +1,17 @@
 /**
- * CLI 参数解析器
+ * 文件功能：CLI 参数解析模块，负责解析命令行参数并生成配置选项
  *
- * 负责解析命令行参数并生成配置选项
- * **验证: 需求 1.1, 1.2, 1.3, 14.4, 17.1, 17.2, 17.3, 19.1, 19.2, 19.3**
+ * 核心类：
+ * - CLIParser: 命令行参数解析器
+ *
+ * 核心方法：
+ * - parse(): 解析命令行参数数组
+ * - getHelpText(): 获取帮助文本
+ * - isValidFormat(): 验证输出格式是否有效
  */
 
 /**
- * CLI 解析错误
+ * CLI 解析错误类
  */
 export class CLIParseError extends Error {
   constructor(message: string) {

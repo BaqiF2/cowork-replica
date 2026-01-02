@@ -1,11 +1,16 @@
 /**
- * 交互式 UI 组件
+ * 文件功能：交互式 UI 组件，负责处理用户交互、消息显示、进度指示和回退功能
  *
- * 负责处理用户交互、消息显示、工具调用显示、进度指示和回退功能
- * 支持 Esc 键中断和 Esc + Esc 打开回退菜单
+ * 核心类：
+ * - InteractiveUI: 交互式 UI 核心类
  *
- * @module InteractiveUI
- * **验证: 需求 1.4, 1.5, 1.6, 15.2, 27.1, 27.2, 27.3, 27.4, 27.5**
+ * 核心方法：
+ * - start(): 启动交互式 UI
+ * - stop(): 停止交互式 UI
+ * - displayMessage(): 显示消息到终端
+ * - displayProgress(): 显示进度指示器
+ * - promptConfirmation(): 提示用户确认
+ * - showRewindMenu(): 显示回退菜单
  */
 
 import * as readline from 'readline';

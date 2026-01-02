@@ -1,16 +1,17 @@
 /**
- * 输出格式化器
+ * 文件功能：输出格式化模块，负责将查询结果格式化为不同的输出格式
  *
- * 负责将查询结果格式化为不同的输出格式
- * 支持 text、json、stream-json、markdown 四种格式
+ * 核心类：
+ * - OutputFormatter: 输出格式化器核心类
  *
- * @module output/OutputFormatter
- * **验证: 需求 17.1, 17.2, 17.3, 17.4, 17.5, 17.6**
+ * 核心方法：
+ * - format(): 将查询结果格式化为指定格式
+ * - isValidFormat(): 验证输出格式是否有效
+ * - formatText(): 格式化为纯文本
+ * - formatJson(): 格式化为 JSON
+ * - formatMarkdown(): 格式化为 Markdown
  */
 
-/**
- * 输出格式类型
- */
 export type OutputFormat = 'text' | 'json' | 'stream-json' | 'markdown';
 
 /**

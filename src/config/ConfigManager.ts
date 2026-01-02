@@ -1,10 +1,15 @@
 /**
- * 配置管理器
+ * 文件功能：配置管理模块，负责加载、合并和管理用户配置和项目配置
  *
- * 负责加载、合并和管理用户配置和项目配置
- * 提供统一的配置访问接口
+ * 核心类：
+ * - ConfigManager: 配置管理器核心类
  *
- * @module ConfigManager
+ * 核心方法：
+ * - loadUserConfig(): 加载用户级配置
+ * - loadProjectConfig(): 加载项目级配置
+ * - mergeConfigs(): 合并多个配置源
+ * - loadClaudeMd(): 加载项目 CLAUDE.md 文件
+ * - ensureUserConfigDir(): 确保用户配置目录存在
  */
 
 import * as fs from 'fs/promises';
@@ -38,9 +43,7 @@ export {
 };
 
 /**
- * 配置管理器
- *
- * 封装 SDKConfigLoader，提供更高级的配置管理功能
+ * 配置管理器核心类
  */
 export class ConfigManager {
   /** SDK 配置加载器 */

@@ -1,14 +1,15 @@
 /**
- * 文档生成模块
+ * 文件功能：文档生成模块，提供代码变更检测、API 文档生成、README 生成等功能
  *
- * 提供代码变更检测、API 文档生成、README 生成、多格式输出和代码示例提取功能
+ * 核心类：
+ * - DocumentGenerator: 文档生成器核心类
  *
- * 支持的输出格式:
- * - Markdown
- * - HTML
- * - PDF (通过 Markdown 转换)
- *
- * @module DocumentGenerator
+ * 核心方法：
+ * - generateAPI(): 生成 API 文档
+ * - generateREADME(): 生成 README 文件
+ * - detectChanges(): 检测代码变更
+ * - extractCodeExamples(): 提取代码示例
+ * - exportDocumentation(): 导出文档（Markdown/HTML/PDF）
  */
 
 import * as fs from 'fs';

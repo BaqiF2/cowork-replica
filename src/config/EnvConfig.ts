@@ -1,10 +1,12 @@
 /**
- * 环境变量配置管理器
+ * 文件功能：环境变量配置管理模块，统一管理项目中所有环境变量的读取和验证
  *
- * 统一管理项目中所有环境变量的读取和验证
- * 支持从 .env 文件和系统环境变量中加载配置
- *
- * @module EnvConfig
+ * 核心方法：
+ * - getEnvConfig(): 获取环境变量配置
+ * - isDebugMode(): 检查是否启用调试模式
+ * - isCI(): 检查是否在 CI 环境中运行
+ * - getCIEnvironmentInfo(): 获取 CI 环境信息
+ * - validateEnvironment(): 验证环境变量配置
  */
 
 /**
