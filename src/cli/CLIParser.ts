@@ -13,7 +13,7 @@
 import * as dotenv from 'dotenv';
 
 // 加载环境变量配置
-dotenv.config();
+dotenv.config({ quiet: process.env.DOTENV_QUIET === 'true' });
 
 /**
  * CLI 解析错误类

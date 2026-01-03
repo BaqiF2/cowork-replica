@@ -186,14 +186,14 @@ describe('错误处理', () => {
   describe('CLI 解析错误', () => {
     it('应该正确处理 CLI 解析错误并返回 CONFIG_ERROR (2)', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const exitCode = await main(['--unknown-option']);
-      
+
       expect(exitCode).toBe(2); // CONFIG_ERROR (无效参数)
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('参数错误')
+        expect.stringContaining('Argument error')
       );
-      
+
       consoleErrorSpy.mockRestore();
     });
   });

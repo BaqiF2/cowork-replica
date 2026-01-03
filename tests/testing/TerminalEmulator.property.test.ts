@@ -344,8 +344,8 @@ describe('TerminalEmulator Property Tests', () => {
       'CTRL+C 应该能够中断进程',
       async () => {
         const emulator = createTerminalEmulator({
-          command: 'sleep',
-          args: ['60'], // 睡眠 60 秒
+          command: '/bin/sh',
+          args: ['-c', 'sleep 60'], // 使用 sh -c 执行 sleep，以便响应 CTRL+C
           timeout: 10000,
         });
 

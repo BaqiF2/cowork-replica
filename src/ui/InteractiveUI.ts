@@ -27,6 +27,11 @@ export interface Snapshot {
 }
 
 /**
+ * 权限模式类型
+ */
+export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
+
+/**
  * 交互式 UI 选项
  */
 export interface InteractiveUIOptions {
@@ -36,6 +41,8 @@ export interface InteractiveUIOptions {
   onInterrupt: () => void;
   /** 回退回调 */
   onRewind: () => Promise<void>;
+  /** 权限模式变更回调 */
+  onPermissionModeChange?: (mode: PermissionMode) => void;
   /** 输入流（默认 stdin） */
   input?: NodeJS.ReadableStream;
   /** 输出流（默认 stdout） */
@@ -89,6 +96,27 @@ const Colors = {
 };
 
 /**
+ * 权限模式颜色映射
+ */
+const PermissionModeColors: Record<PermissionMode, keyof typeof Colors> = {
+  default: 'green',
+  acceptEdits: 'yellow',
+  bypassPermissions: 'red',
+  plan: 'blue',
+};
+
+/**
+ * 权限模式显示名称映射
+ */
+const PermissionModeLabels: Record<PermissionMode, string> = {
+  default: 'De' +
+    'fault',
+  acceptEdits: 'Accept Edits',
+  bypassPermissions: 'Bypass Permissions',
+  plan: 'Plan Mode',
+};
+
+/**
  * 交互式 UI 类
  *
  * 提供完整的终端交互功能：
@@ -100,11 +128,13 @@ const Colors = {
  * - 显示回退菜单
  * - Esc 键中断功能
  * - Esc + Esc 打开回退菜单
+ * - Shift+Tab 切换权限模式
  */
 export class InteractiveUI extends EventEmitter {
   private readonly onMessage: (message: string) => Promise<void>;
   private readonly onInterrupt: () => void;
   private readonly onRewind: () => Promise<void>;
+  private readonly onPermissionModeChange?: (mode: PermissionMode) => void;
   private readonly input: NodeJS.ReadableStream;
   private readonly output: NodeJS.WritableStream;
   private readonly enableColors: boolean;
@@ -113,15 +143,20 @@ export class InteractiveUI extends EventEmitter {
   private isRunning = false;
   private lastEscTime = 0;
   private progressInterval: NodeJS.Timeout | null = null;
+  private currentPermissionMode: PermissionMode = 'default';
 
   /** Esc 双击检测时间窗口（毫秒） */
   private static readonly ESC_DOUBLE_PRESS_WINDOW = 300;
+
+  /** Shift+Tab 键序列检测缓冲区 */
+  private shiftTabBuffer: string = '';
 
   constructor(options: InteractiveUIOptions) {
     super();
     this.onMessage = options.onMessage;
     this.onInterrupt = options.onInterrupt;
     this.onRewind = options.onRewind;
+    this.onPermissionModeChange = options.onPermissionModeChange;
     this.input = options.input || process.stdin;
     this.output = options.output || process.stdout;
     this.enableColors = options.enableColors ?? true;
@@ -450,6 +485,15 @@ export class InteractiveUI extends EventEmitter {
   }
 
   /**
+   * 设置初始权限模式
+   *
+   * @param mode - 初始权限模式
+   */
+  setInitialPermissionMode(mode: PermissionMode): void {
+    this.currentPermissionMode = mode;
+  }
+
+  /**
    * 设置按键监听器
    */
   private setupKeyListener(): void {
@@ -459,6 +503,29 @@ export class InteractiveUI extends EventEmitter {
 
     this.input.on('data', (key: Buffer) => {
       const keyStr = key.toString();
+
+      // 累积键序列以检测 Shift+Tab
+      this.shiftTabBuffer += keyStr;
+
+      // 检测 Shift+Tab 键序列 (\x1b[Z)
+      if (this.shiftTabBuffer.endsWith('\x1b[Z')) {
+        const newMode = this.cyclePermissionMode();
+        const label = PermissionModeLabels[newMode];
+        const color = PermissionModeColors[newMode];
+
+        // 显示模式切换通知
+        this.writeLine('');
+        this.writeLine(this.colorize(`ℹ️ Switched to permission mode: ${label}`, color));
+
+        // 重置缓冲区
+        this.shiftTabBuffer = '';
+        return;
+      }
+
+      // 如果缓冲区过长，清空它
+      if (this.shiftTabBuffer.length > 10) {
+        this.shiftTabBuffer = '';
+      }
 
       // 检测 Esc 键
       if (keyStr === '\x1b') {
@@ -532,6 +599,9 @@ export class InteractiveUI extends EventEmitter {
         return;
       }
 
+      // 显示权限模式状态
+      this.displayPermissionStatus(this.currentPermissionMode);
+
       const promptStr = this.colorize('> ', 'cyan');
 
       this.rl.question(promptStr, (answer) => {
@@ -557,6 +627,7 @@ export class InteractiveUI extends EventEmitter {
     this.writeLine('  • 输入消息与 Claude 对话');
     this.writeLine('  • 按 Esc 中断当前操作');
     this.writeLine('  • 按 Esc + Esc 打开回退菜单');
+    this.writeLine('  • 按 Shift+Tab 切换权限模式');
     this.writeLine('  • 输入 /help 查看可用命令');
     this.writeLine('  • 按 Ctrl+C 退出');
     this.writeLine('');
@@ -588,6 +659,42 @@ export class InteractiveUI extends EventEmitter {
    */
   displayInfo(message: string): void {
     this.writeLine(`${this.colorize('ℹ️ 信息:', 'blue')} ${message}`);
+  }
+
+  /**
+   * 显示权限模式状态
+   *
+   * @param mode - 权限模式
+   */
+  displayPermissionStatus(mode: PermissionMode): void {
+    this.currentPermissionMode = mode;
+    const color = PermissionModeColors[mode];
+    const label = PermissionModeLabels[mode];
+
+    const statusLine = `Permission Mode: ${this.colorize(`[${label}]`, color)}`;
+    this.writeLine(statusLine);
+  }
+
+  /**
+   * 循环切换权限模式
+   *
+   * @returns 新的权限模式
+   */
+  private cyclePermissionMode(): PermissionMode {
+    const modes: PermissionMode[] = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
+    const currentIndex = modes.indexOf(this.currentPermissionMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    const newMode = modes[nextIndex];
+
+    // 更新当前权限模式
+    this.currentPermissionMode = newMode;
+
+    // 调用回调通知模式变更
+    if (this.onPermissionModeChange) {
+      this.onPermissionModeChange(newMode);
+    }
+
+    return newMode;
   }
 
   /**

@@ -165,7 +165,7 @@ describe('非交互式模式测试', () => {
       const result = await runCLI({
         args: ['-p', 'test', '--output-format', OutputFormats.STREAM_JSON],
         timeout: TEST_TIMEOUT,
-        env: { CI: '' },
+        env: { CI: '', DOTENV_QUIET: 'true' },
       });
 
       // 如果查询成功，验证 Stream-JSON 格式
@@ -190,7 +190,7 @@ describe('非交互式模式测试', () => {
       const result = await runCLI({
         args: ['-p', 'hello', '--output-format', 'stream-json'],
         timeout: TEST_TIMEOUT,
-        env: { CI: '' },
+        env: { CI: '', DOTENV_QUIET: 'true' },
       });
 
       if (result.exitCode === ExitCodes.SUCCESS) {

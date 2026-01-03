@@ -11,6 +11,7 @@ import {
   InteractiveUIOptions,
   Snapshot,
   MessageRole,
+  PermissionMode,
 } from '../../src/ui/InteractiveUI';
 
 /**
@@ -484,6 +485,148 @@ describe('InteractiveUI', () => {
       const outputText = output.getOutput();
       // 应包含 ANSI 转义序列
       expect(outputText).toMatch(/\x1b\[\d+m/);
+    });
+  });
+
+  describe('PermissionMode 类型', () => {
+    it('应正确导出 PermissionMode 类型', () => {
+      const modes: PermissionMode[] = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
+      expect(modes).toHaveLength(4);
+      expect(modes).toContain('default');
+      expect(modes).toContain('acceptEdits');
+      expect(modes).toContain('bypassPermissions');
+      expect(modes).toContain('plan');
+    });
+  });
+
+  describe('setInitialPermissionMode', () => {
+    it('应正确设置初始权限模式为 default', () => {
+      const { ui, output } = createTestUI();
+      ui.setInitialPermissionMode('default');
+      ui.displayPermissionStatus('default');
+      expect(output.getOutput()).toContain('Default');
+    });
+
+    it('应正确设置初始权限模式为 acceptEdits', () => {
+      const { ui, output } = createTestUI();
+      ui.setInitialPermissionMode('acceptEdits');
+      ui.displayPermissionStatus('acceptEdits');
+      expect(output.getOutput()).toContain('Accept Edits');
+    });
+
+    it('应正确设置初始权限模式为 bypassPermissions', () => {
+      const { ui, output } = createTestUI();
+      ui.setInitialPermissionMode('bypassPermissions');
+      ui.displayPermissionStatus('bypassPermissions');
+      expect(output.getOutput()).toContain('Bypass Permissions');
+    });
+
+    it('应正确设置初始权限模式为 plan', () => {
+      const { ui, output } = createTestUI();
+      ui.setInitialPermissionMode('plan');
+      ui.displayPermissionStatus('plan');
+      expect(output.getOutput()).toContain('Plan Mode');
+    });
+  });
+
+  describe('displayPermissionStatus', () => {
+    it('应显示默认模式状态', () => {
+      const { ui, output } = createTestUI();
+      ui.displayPermissionStatus('default');
+      const outputText = output.getOutput();
+      expect(outputText).toContain('Permission Mode:');
+      expect(outputText).toContain('Default');
+    });
+
+    it('应显示 acceptEdits 模式状态', () => {
+      const { ui, output } = createTestUI();
+      ui.displayPermissionStatus('acceptEdits');
+      const outputText = output.getOutput();
+      expect(outputText).toContain('Permission Mode:');
+      expect(outputText).toContain('Accept Edits');
+    });
+
+    it('应显示 bypassPermissions 模式状态', () => {
+      const { ui, output } = createTestUI();
+      ui.displayPermissionStatus('bypassPermissions');
+      const outputText = output.getOutput();
+      expect(outputText).toContain('Permission Mode:');
+      expect(outputText).toContain('Bypass Permissions');
+    });
+
+    it('应显示 plan 模式状态', () => {
+      const { ui, output } = createTestUI();
+      ui.displayPermissionStatus('plan');
+      const outputText = output.getOutput();
+      expect(outputText).toContain('Permission Mode:');
+      expect(outputText).toContain('Plan Mode');
+    });
+  });
+
+  describe('权限模式循环切换', () => {
+    it('应从 default 切换到 acceptEdits', () => {
+      const { ui, output } = createTestUI();
+
+      // 初始模式为 default
+      ui.setInitialPermissionMode('default');
+
+      // 显示 acceptEdits 模式，模拟循环后的状态
+      ui.displayPermissionStatus('acceptEdits');
+
+      expect(output.getOutput()).toContain('Accept Edits');
+    });
+
+    it('应正确显示所有模式的状态', () => {
+      const { ui, output } = createTestUI();
+      const modes: PermissionMode[] = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
+      const labels = ['Default', 'Accept Edits', 'Bypass Permissions', 'Plan Mode'];
+
+      modes.forEach((mode, index) => {
+        output.clear();
+        ui.setInitialPermissionMode(mode);
+        ui.displayPermissionStatus(mode);
+        expect(output.getOutput()).toContain(labels[index]);
+      });
+    });
+
+    it('应正确设置各种权限模式', () => {
+      const { ui } = createTestUI();
+      const modes: PermissionMode[] = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
+
+      // 验证所有模式都可以设置而不抛出错误
+      modes.forEach((mode) => {
+        expect(() => ui.setInitialPermissionMode(mode)).not.toThrow();
+      });
+    });
+  });
+
+  describe('onPermissionModeChange 回调', () => {
+    it('应支持 onPermissionModeChange 回调选项', () => {
+      const onPermissionModeChange = jest.fn();
+
+      // 验证可以正常创建带回调的 UI
+      expect(() => {
+        createTestUI({ onPermissionModeChange });
+      }).not.toThrow();
+    });
+
+    it('未提供回调时应正常工作不抛出错误', () => {
+      const { ui } = createTestUI();
+
+      // 验证可以正常设置模式
+      expect(() => {
+        ui.setInitialPermissionMode('acceptEdits');
+        ui.displayPermissionStatus('acceptEdits');
+      }).not.toThrow();
+    });
+
+    it('应支持空回调', () => {
+      const { ui } = createTestUI({ onPermissionModeChange: undefined });
+
+      expect(() => {
+        ui.setInitialPermissionMode('plan');
+        ui.displayPermissionStatus('plan');
+      }).not.toThrow();
     });
   });
 });

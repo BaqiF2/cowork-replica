@@ -18,7 +18,7 @@
 import * as dotenv from 'dotenv';
 
 // 在所有其他模块加载之前初始化环境变量
-dotenv.config();
+dotenv.config({ quiet: process.env.DOTENV_QUIET === 'true' });
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -31,7 +31,7 @@ import { MessageRouter } from './core/MessageRouter';
 import { StreamingMessageProcessor } from './core/StreamingMessageProcessor';
 import { PermissionManager, PermissionConfig } from './permissions/PermissionManager';
 import { ToolRegistry } from './tools/ToolRegistry';
-import { InteractiveUI, Snapshot as UISnapshot } from './ui/InteractiveUI';
+import { InteractiveUI, Snapshot as UISnapshot, PermissionMode } from './ui/InteractiveUI';
 import { SkillManager } from './skills/SkillManager';
 import { CommandManager } from './commands/CommandManager';
 import { AgentRegistry } from './agents/AgentRegistry';
@@ -494,7 +494,14 @@ export class Application {
       onRewind: async () => {
         await this.handleRewind(session);
       },
+      onPermissionModeChange: (mode: PermissionMode) => {
+        // 更新权限模式
+        this.permissionManager.setMode(mode);
+      },
     });
+
+    // 初始化 UI 的权限模式显示
+    this.ui.setInitialPermissionMode(this.permissionManager.getMode());
 
     // 启动 UI
     try {
@@ -1061,7 +1068,7 @@ ${
     }
 
     if (error instanceof TimeoutError) {
-      console.error(`超时错误: ${error.message}`);
+      console.error(`Timeout error: ${error.message}`);
       this.ciLogger?.logError(error);
       return ExitCodes.TIMEOUT_ERROR;
     }
@@ -1069,8 +1076,8 @@ ${
     if (error instanceof Error) {
       // 网络错误处理
       if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
-        console.error('网络错误: 无法连接到服务器，请检查网络连接');
-        console.error('提示: 将自动重试...');
+        console.error('Network error: Unable to connect to server, please check your network connection');
+        console.error('Hint: Will retry automatically...');
         this.ciLogger?.logError(error, { type: 'network' });
         return ExitCodes.NETWORK_ERROR;
       }
@@ -1081,12 +1088,12 @@ ${
         error.message.includes('401') ||
         error.message.includes('403')
       ) {
-        console.error('API 错误: 认证失败，请检查 ANTHROPIC_API_KEY 环境变量');
+        console.error('API error: Authentication failed, please check ANTHROPIC_API_KEY environment variable');
         this.ciLogger?.logError(error, { type: 'auth' });
         return ExitCodes.AUTH_ERROR;
       }
 
-      console.error(`错误: ${error.message}`);
+      console.error(`Error: ${error.message}`);
       this.ciLogger?.logError(error);
 
       // 详细模式下显示堆栈
@@ -1096,7 +1103,7 @@ ${
 
       return CISupport.getExitCode(error);
     } else {
-      console.error('未知错误:', error);
+      console.error('Unknown error:', error);
       return ExitCodes.ERROR;
     }
   }

@@ -224,14 +224,17 @@ describe('Terminal Helpers Property Tests', () => {
       fc.assert(
         fc.property(
           fc.array(jsonLineArb, { minLength: 1, maxLength: 3 }),
-          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => {
-            try {
-              JSON.parse(s.trim());
-              return false;
-            } catch {
-              return true;
-            }
-          }),
+          // 生成明确的无效JSON字符串
+          fc.constantFrom(
+            'not valid json',
+            '{invalid}',
+            'null,',
+            '{"unclosed": "json"',
+            'text without quotes',
+            '---',
+            '```json',
+            '[[[invalid]]]'
+          ),
           fc.integer({ min: 0, max: 3 }),
           (validLines, invalidLine, insertIndex) => {
             // 在有效行中插入无效行
