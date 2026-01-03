@@ -328,8 +328,10 @@ tools:
                 const toolsYaml = config.tools.length > 0
                   ? `tools:\n${config.tools.map(t => `  - ${t}`).join('\n')}`
                   : '';
+                // 确保description是字符串类型并正确转义
+                const description = String(config.description).replace(/"/g, '\\"');
                 const content = `---
-description: ${config.description}
+description: "${description}"
 model: ${config.model}
 ${toolsYaml}
 ---
@@ -346,7 +348,8 @@ ${config.prompt}
               for (const config of uniqueConfigs) {
                 const sdkAgent = sdkAgents[config.name];
                 expect(sdkAgent).toBeDefined();
-                expect(sdkAgent.description).toBe(config.description);
+                // 确保比较的是字符串类型
+                expect(String(sdkAgent.description)).toBe(String(config.description));
                 expect(sdkAgent.model).toBe(config.model);
                 expect(sdkAgent.prompt).toBe(config.prompt);
               }

@@ -367,6 +367,7 @@ describe('CI Property Tests', () => {
                   if (i !== j) {
                     const otherSpec = fileSpecs[j];
                     // 只有当文件名不同时才检查
+                    // 使用大小写敏感的比较，避免大小写不敏感文件系统的误判
                     if (spec.filename !== otherSpec.filename) {
                       const otherFileExists = await fixture.fileExists(otherSpec.filename);
                       // 其他 fixture 的文件不应该存在于当前 fixture 的目录中

@@ -304,8 +304,8 @@ describe('TerminalEmulator', () => {
 
     it('sendKey(CTRL_C) 应该中断进程', async () => {
       const emulator = createTerminalEmulator({
-        command: '/bin/sleep',
-        args: ['60'],
+        command: '/bin/sh',
+        args: ['-c', 'sleep 60'],
         timeout: 10000,
       });
 

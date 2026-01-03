@@ -18,7 +18,7 @@
 import * as dotenv from 'dotenv';
 
 // 在所有其他模块加载之前初始化环境变量
-dotenv.config();
+dotenv.config({ quiet: process.env.DOTENV_QUIET === 'true' });
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -31,7 +31,7 @@ import { MessageRouter } from './core/MessageRouter';
 import { StreamingMessageProcessor } from './core/StreamingMessageProcessor';
 import { PermissionManager, PermissionConfig } from './permissions/PermissionManager';
 import { ToolRegistry } from './tools/ToolRegistry';
-import { InteractiveUI, Snapshot as UISnapshot } from './ui/InteractiveUI';
+import { InteractiveUI, Snapshot as UISnapshot, PermissionMode } from './ui/InteractiveUI';
 import { SkillManager } from './skills/SkillManager';
 import { CommandManager } from './commands/CommandManager';
 import { AgentRegistry } from './agents/AgentRegistry';
@@ -494,7 +494,14 @@ export class Application {
       onRewind: async () => {
         await this.handleRewind(session);
       },
+      onPermissionModeChange: (mode: PermissionMode) => {
+        // 更新权限模式
+        this.permissionManager.setMode(mode);
+      },
     });
+
+    // 初始化 UI 的权限模式显示
+    this.ui.setInitialPermissionMode(this.permissionManager.getMode());
 
     // 启动 UI
     try {
@@ -1069,7 +1076,7 @@ ${
     if (error instanceof Error) {
       // 网络错误处理
       if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
-        console.error('Network error: Unable to connect to server, please check network connection');
+        console.error('Network error: Unable to connect to server, please check your network connection');
         console.error('Hint: Will retry automatically...');
         this.ciLogger?.logError(error, { type: 'network' });
         return ExitCodes.NETWORK_ERROR;
@@ -1096,7 +1103,7 @@ ${
 
       return CISupport.getExitCode(error);
     } else {
-      console.error('unknow error:', error);
+      console.error('Unknown error:', error);
       return ExitCodes.ERROR;
     }
   }
