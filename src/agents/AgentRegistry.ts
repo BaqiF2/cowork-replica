@@ -127,11 +127,11 @@ export class AgentRegistry {
             this.agents.set(name, agent);
           }
         } catch (error) {
-          console.warn(`警告: 无法解析代理文件 ${file}:`, error);
+          console.warn(`Warning: Unable to parse agent file ${file}:`, error);
         }
       }
     } catch (error) {
-      console.warn(`警告: 无法读取代理目录 ${directory}:`, error);
+      console.warn(`Warning: Unable to read agent directory ${directory}:`, error);
     }
   }
 

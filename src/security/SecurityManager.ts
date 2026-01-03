@@ -519,7 +519,7 @@ export class SecurityManager {
       if (this.warningCallback) {
         this.warningCallback(message, match.severity);
       } else {
-        console.warn(`[安全警告] ${message}`);
+        console.warn(`[Security Warning] ${message}`);
       }
     }
 
@@ -564,30 +564,30 @@ export class SecurityManager {
     const match = this.detectDangerousCommand(command);
 
     if (!match) {
-      return true; // 不是危险命令，允许执行
+      return true; // Not a dangerous command, allow execution
     }
 
     if (!match.requiresConfirmation) {
-      // 低风险命令，发出警告但允许执行
+      // Low risk command, warn but allow execution
       if (this.warningCallback) {
-        this.warningCallback(`低风险命令: ${match.reason}`, 'low');
+        this.warningCallback(`Low risk command: ${match.reason}`, 'low');
       }
       return true;
     }
 
-    // 需要用户确认
+    // Requires user confirmation
     if (!this.confirmationCallback) {
-      // 没有确认回调，默认拒绝高风险命令
-      console.warn(`[安全] 危险命令被阻止: ${match.reason}`);
+      // No confirmation callback, reject high risk commands by default
+      console.warn(`[Security] Dangerous command blocked: ${match.reason}`);
       return false;
     }
 
     const message =
-      `⚠️ 检测到危险命令\n\n` +
-      `命令: ${command}\n` +
-      `风险等级: ${match.riskLevel}\n` +
-      `原因: ${match.reason}\n\n` +
-      `确定要执行此命令吗？`;
+      `⚠️ Dangerous command detected\n\n` +
+      `Command: ${command}\n` +
+      `Risk level: ${match.riskLevel}\n` +
+      `Reason: ${match.reason}\n\n` +
+      `Are you sure you want to execute this command?`;
 
     return this.confirmationCallback(message, match.reason);
   }
@@ -606,14 +606,14 @@ export class SecurityManager {
 
     if (!value) {
       if (config.required) {
-        throw new Error(`缺少必需的 API 密钥。请设置环境变量 ${config.envVarName}`);
+        throw new Error(`Missing required API key. Please set environment variable ${config.envVarName}`);
       }
       return null;
     }
 
     // 验证格式
     if (config.validationPattern && !config.validationPattern.test(value)) {
-      throw new Error(`API 密钥格式无效。请检查环境变量 ${config.envVarName} 的值`);
+      throw new Error(`Invalid API key format. Please check the value of environment variable ${config.envVarName}`);
     }
 
     return value;
@@ -648,7 +648,7 @@ export class SecurityManager {
     }
 
     if (!this.validateHttps(url)) {
-      throw new Error(`安全错误: URL 必须使用 HTTPS 协议。收到: ${url}`);
+      throw new Error(`Security error: URL must use HTTPS protocol. Received: ${url}`);
     }
   }
 
@@ -705,14 +705,14 @@ export class SecurityManager {
     // 检查目录
     for (const dir of this.config.sensitiveFiles.directories) {
       if (pathParts.includes(dir)) {
-        return `文件位于敏感目录 "${dir}" 中`;
+        return `File is in sensitive directory "${dir}"`;
       }
     }
 
     // 检查文件模式
     for (const pattern of this.config.sensitiveFiles.patterns) {
       if (this.matchPattern(fileName, pattern)) {
-        return `文件匹配敏感模式 "${pattern}"`;
+        return `File matches sensitive pattern "${pattern}"`;
       }
     }
 

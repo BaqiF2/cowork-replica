@@ -191,7 +191,7 @@ export class SandboxManager {
         // 配置文件不存在，使用默认设置
         return this.settings;
       }
-      throw new Error(`加载沙箱配置失败: ${(error as Error).message}`);
+      throw new Error(`Failed to load sandbox configuration: ${(error as Error).message}`);
     }
   }
 
@@ -469,7 +469,7 @@ export class SandboxManager {
     // 触发回调
     if (this.onViolation) {
       Promise.resolve(this.onViolation(violation)).catch((error) => {
-        console.error('违规处理回调执行失败:', error);
+        console.error('Violation callback execution failed:', error);
       });
     }
 

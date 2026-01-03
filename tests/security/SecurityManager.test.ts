@@ -223,7 +223,7 @@ describe('SecurityManager', () => {
           envVarName: 'TEST_API_KEY',
           required: true,
         });
-      }).toThrow('缺少必需的 API 密钥');
+      }).toThrow('Missing required API key.');
     });
 
 
@@ -247,7 +247,7 @@ describe('SecurityManager', () => {
           required: true,
           validationPattern: /^sk-[a-z0-9]+$/,
         });
-      }).toThrow('API 密钥格式无效');
+      }).toThrow('Invalid API key format');
     });
   });
 
@@ -267,7 +267,7 @@ describe('SecurityManager', () => {
     it('强制 HTTPS 时应该抛出错误', () => {
       expect(() => {
         securityManager.ensureHttps('http://api.anthropic.com');
-      }).toThrow('URL 必须使用 HTTPS 协议');
+      }).toThrow('"Security error: URL must use HTTPS protocol');
     });
 
     it('禁用强制 HTTPS 时不应该抛出错误', () => {

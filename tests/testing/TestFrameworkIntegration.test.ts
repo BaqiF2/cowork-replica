@@ -131,7 +131,7 @@ describe('TestFrameworkIntegration', () => {
 
     it('应该在未检测到框架时抛出错误', () => {
       const newIntegration = new TestFrameworkIntegration(testDir);
-      expect(() => newIntegration.generateTestCommand()).toThrow('未检测到测试框架');
+      expect(() => newIntegration.generateTestCommand()).toThrow('No test framework detected, please call detectFramework() first');
     });
   });
 

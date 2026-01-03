@@ -402,9 +402,9 @@ describe('ReportGenerator', () => {
 
       const output = consoleSpy.mock.calls.map((call) => call[0]).join('\n');
 
-      expect(output).toContain('总计: 2');
-      expect(output).toContain('通过: 1');
-      expect(output).toContain('失败: 1');
+      expect(output).toContain('Total:: 2');
+      expect(output).toContain('Passed:: 1');
+      expect(output).toContain('Failed:: 1');
     });
   });
 
@@ -473,7 +473,7 @@ describe('ReportGenerator', () => {
 
       await expect(
         generator.generate([suite], { format: 'invalid' as any })
-      ).rejects.toThrow('不支持的报告格式');
+      ).rejects.toThrow('Unsupported report format: invalid');
     });
   });
 

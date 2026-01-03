@@ -405,7 +405,7 @@ export class SDKQueryExecutor {
                 outputTokens: resultMessage.usage.output_tokens,
               },
               isError: true,
-              errorMessage: errorMessages.join('; ') || `错误: ${resultMessage.subtype}`,
+              errorMessage: errorMessages.join('; ') || `Error: ${resultMessage.subtype}`,
               sessionId,
             };
           }

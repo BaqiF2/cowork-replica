@@ -228,7 +228,7 @@ export class PerformanceManager {
 
     // 记录初始化时间
     const initTime = Date.now() - startTime;
-    console.debug(`[PerformanceManager] 初始化完成，耗时 ${initTime}ms`);
+    console.debug(`[PerformanceManager] Initialization completed, took ${initTime}ms`);
   }
 
   /**
@@ -277,7 +277,7 @@ export class PerformanceManager {
 
       if (!metrics.withinTarget) {
         console.warn(
-          `[PerformanceManager] 启动时间 ${metrics.totalTime}ms 超过目标 ${this.config.targetStartupTime}ms`
+          `[PerformanceManager] Startup time ${metrics.totalTime}ms exceeds target ${this.config.targetStartupTime}ms`
         );
       }
 
@@ -302,7 +302,7 @@ export class PerformanceManager {
       try {
         await initFunction();
       } catch (error) {
-        console.error('[PerformanceManager] 延迟初始化失败:', error);
+        console.error('[PerformanceManager] Deferred initialization failed:', error);
       }
     }, delayMs);
   }
@@ -608,7 +608,7 @@ export class PerformanceManager {
         await fs.mkdir(path.dirname(cacheFile), { recursive: true });
         await fs.writeFile(cacheFile, JSON.stringify(cache), 'utf-8');
       } catch (error) {
-        console.warn('[PerformanceManager] 保存缓存失败:', error);
+        console.warn('[PerformanceManager] Failed to save cache:', error);
       }
     }
   }
@@ -870,15 +870,15 @@ export class PerformanceManager {
    */
   private getTokenRecommendation(usagePercent: number): string {
     if (usagePercent >= 1) {
-      return '已超出 token 限制，需要压缩上下文或开始新会话';
+      return 'Token limit exceeded, compress context or start a new session';
     } else if (usagePercent >= 0.9) {
-      return '接近 token 限制，建议压缩历史消息';
+      return 'Approaching token limit, consider compressing message history';
     } else if (usagePercent >= 0.8) {
-      return 'Token 使用较高，考虑移除不必要的上下文';
+      return 'Token usage is high, consider removing unnecessary context';
     } else if (usagePercent >= 0.6) {
-      return 'Token 使用正常';
+      return 'Token usage is normal';
     } else {
-      return 'Token 使用充足';
+      return 'Token usage is sufficient';
     }
   }
 
@@ -967,7 +967,7 @@ export class PerformanceManager {
       global.gc();
     }
 
-    console.debug('[PerformanceManager] 内存清理完成');
+    console.debug('[PerformanceManager] Memory cleanup completed');
   }
 
   /**

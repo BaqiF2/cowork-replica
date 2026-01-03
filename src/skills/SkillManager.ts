@@ -127,12 +127,12 @@ export class SkillManager {
               skills.push(skill);
             }
           } catch (error) {
-            console.warn(`警告: 无法解析技能文件 ${filePath}:`, error);
+            console.warn(`Warning: Unable to parse skill file ${filePath}:`, error);
           }
         }
       }
     } catch (error) {
-      console.warn(`警告: 无法读取技能目录 ${directory}:`, error);
+      console.warn(`Warning: Unable to read skill directory ${directory}:`, error);
     }
 
     return skills;

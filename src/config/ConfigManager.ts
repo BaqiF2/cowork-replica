@@ -60,6 +60,7 @@ export class ConfigManager {
 
   constructor() {
     this.loader = new SDKConfigLoader();
+    // 用户配置目录
     this.userConfigDir = path.join(os.homedir(), '.claude-replica');
   }
 
@@ -198,20 +199,20 @@ export class ConfigManager {
 
       // 验证 model 字段
       if (config.model && typeof config.model !== 'string') {
-        errors.push('model 必须是字符串类型');
+        errors.push('model must be a string');
       }
 
       // 验证 maxTurns 字段
       if (config.maxTurns !== undefined) {
         if (typeof config.maxTurns !== 'number' || config.maxTurns < 1) {
-          errors.push('maxTurns 必须是正整数');
+          errors.push('maxTurns must be a positive integer');
         }
       }
 
       // 验证 maxBudgetUsd 字段
       if (config.maxBudgetUsd !== undefined) {
         if (typeof config.maxBudgetUsd !== 'number' || config.maxBudgetUsd < 0) {
-          errors.push('maxBudgetUsd 必须是非负数');
+          errors.push('maxBudgetUsd must be a non-negative number');
         }
       }
 
@@ -219,26 +220,26 @@ export class ConfigManager {
       if (config.permissionMode) {
         const validModes = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
         if (!validModes.includes(config.permissionMode)) {
-          errors.push(`permissionMode 必须是以下值之一: ${validModes.join(', ')}`);
+          errors.push(`permissionMode must be one of: ${validModes.join(', ')}`);
         }
       }
 
       // 验证 allowedTools 字段
       if (config.allowedTools && !Array.isArray(config.allowedTools)) {
-        errors.push('allowedTools 必须是数组类型');
+        errors.push('allowedTools must be an array');
       }
 
       // 验证 disallowedTools 字段
       if (config.disallowedTools && !Array.isArray(config.disallowedTools)) {
-        errors.push('disallowedTools 必须是数组类型');
+        errors.push('disallowedTools must be an array');
       }
 
       return { valid: errors.length === 0, errors };
     } catch (error) {
       if (error instanceof SyntaxError) {
-        errors.push(`JSON 解析错误: ${error.message}`);
+        errors.push(`JSON parse error: ${error.message}`);
       } else {
-        errors.push(`读取配置文件失败: ${(error as Error).message}`);
+        errors.push(`Failed to read config file: ${(error as Error).message}`);
       }
       return { valid: false, errors };
     }

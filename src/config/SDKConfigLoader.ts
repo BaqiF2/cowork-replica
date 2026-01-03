@@ -209,6 +209,7 @@ export class SDKConfigLoader {
   private readonly userConfigDir: string;
 
   constructor() {
+    // claude 配置目录
     this.userConfigDir = path.join(os.homedir(), '.claude');
   }
 
@@ -247,7 +248,7 @@ export class SDKConfigLoader {
       const content = await fs.readFile(configPath, 'utf-8');
       return this.parseConfig(content);
     } catch (error) {
-      console.warn(`警告: 无法加载用户配置 ${configPath}:`, error);
+      console.warn(`Warning: Unable to load user configuration ${configPath}:`, error);
       return {};
     }
   }
@@ -271,7 +272,7 @@ export class SDKConfigLoader {
       const content = await fs.readFile(configPath, 'utf-8');
       return this.parseConfig(content);
     } catch (error) {
-      console.warn(`警告: 无法加载项目配置 ${configPath}:`, error);
+      console.warn(`Warning: Unable to load project configuration ${configPath}:`, error);
       return {};
     }
   }
@@ -298,7 +299,7 @@ export class SDKConfigLoader {
         try {
           return await fs.readFile(claudeMdPath, 'utf-8');
         } catch (error) {
-          console.warn(`警告: 无法读取 CLAUDE.md ${claudeMdPath}:`, error);
+          console.warn(`Warning: Unable to read CLAUDE.md ${claudeMdPath}:`, error);
         }
       }
     }

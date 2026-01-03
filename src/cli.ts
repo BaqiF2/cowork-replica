@@ -15,6 +15,6 @@ main()
     process.exit(exitCode);
   })
   .catch((error) => {
-    console.error('致命错误:', error);
+    console.error('Fatal error:', error);
     process.exit(1);
   });

@@ -356,7 +356,7 @@ export class DocumentGenerator {
       }
     } catch (error) {
       // 如果不是 Git 仓库，返回空列表
-      console.warn('无法检测代码变更：不是 Git 仓库或 Git 命令失败');
+      console.warn('Unable to detect code changes: not a Git repository or Git command failed');
     }
 
     return changes;
@@ -1135,16 +1135,16 @@ export class DocumentGenerator {
    * 生成目录
    */
   private generateTableOfContents(config: ReadmeConfig): string {
-    const items: string[] = ['## 目录\n'];
+    const items: string[] = ['## Table of Contents\n'];
 
     if (config.includeInstallation !== false) {
-      items.push('- [安装](#安装)');
+      items.push('- [Installation](#installation)');
     }
     if (config.includeUsage !== false) {
-      items.push('- [使用方法](#使用方法)');
+      items.push('- [Usage](#usage)');
     }
     if (config.includeApiOverview) {
-      items.push('- [API 概览](#api-概览)');
+      items.push('- [API Overview](#api-overview)');
     }
     if (config.customSections) {
       for (const section of config.customSections) {
@@ -1153,10 +1153,10 @@ export class DocumentGenerator {
       }
     }
     if (config.includeContributing !== false) {
-      items.push('- [贡献](#贡献)');
+      items.push('- [Contributing](#contributing)');
     }
     if (config.includeLicense !== false) {
-      items.push('- [许可证](#许可证)');
+      items.push('- [License](#license)');
     }
 
     return items.join('\n') + '\n';
@@ -1166,7 +1166,7 @@ export class DocumentGenerator {
    * 生成安装说明
    */
   private async generateInstallationSection(): Promise<string> {
-    const lines: string[] = ['## 安装\n'];
+    const lines: string[] = ['## Installation\n'];
     const projectInfo = await this.getProjectInfo();
 
     // 检测项目类型并生成相应的安装命令
@@ -1174,7 +1174,7 @@ export class DocumentGenerator {
       lines.push('```bash');
       lines.push(`npm install ${projectInfo.name}`);
       lines.push('```\n');
-      lines.push('或使用 yarn:\n');
+      lines.push('Or using yarn:\n');
       lines.push('```bash');
       lines.push(`yarn add ${projectInfo.name}`);
       lines.push('```\n');
@@ -1190,7 +1190,7 @@ export class DocumentGenerator {
       lines.push(`go get ${projectInfo.name}`);
       lines.push('```\n');
     } else if (fs.existsSync(path.join(this.workingDirectory, 'pom.xml'))) {
-      lines.push('添加以下依赖到 `pom.xml`:\n');
+      lines.push('Add the following dependency to `pom.xml`:\n');
       lines.push('```xml');
       lines.push('<dependency>');
       lines.push(`  <groupId>com.example</groupId>`);
@@ -1207,7 +1207,7 @@ export class DocumentGenerator {
    * 生成使用示例
    */
   private async generateUsageSection(): Promise<string> {
-    const lines: string[] = ['## 使用方法\n'];
+    const lines: string[] = ['## Usage\n'];
 
     // 尝试从代码中提取示例
     const examples = await this.extractCodeExamples();
@@ -1278,17 +1278,17 @@ export class DocumentGenerator {
    * 生成贡献指南
    */
   private generateContributingSection(): string {
-    return `## 贡献
+    return `## Contributing
 
-欢迎贡献代码！请遵循以下步骤：
+Contributions are welcome! Please follow these steps:
 
-1. Fork 本仓库
-2. 创建特性分支 (\`git checkout -b feature/amazing-feature\`)
-3. 提交更改 (\`git commit -m 'Add some amazing feature'\`)
-4. 推送到分支 (\`git push origin feature/amazing-feature\`)
-5. 创建 Pull Request
+1. Fork this repository
+2. Create a feature branch (\`git checkout -b feature/amazing-feature\`)
+3. Commit your changes (\`git commit -m 'Add some amazing feature'\`)
+4. Push to the branch (\`git push origin feature/amazing-feature\`)
+5. Create a Pull Request
 
-请确保您的代码符合项目的编码规范，并通过所有测试。
+Please ensure your code follows the project's coding standards and passes all tests.
 `;
   }
 
@@ -1299,9 +1299,9 @@ export class DocumentGenerator {
     const licenseFile = await this.findLicenseFile();
     const licenseType = licenseFile ? await this.detectLicenseType(licenseFile) : 'MIT';
 
-    return `## 许可证
+    return `## License
 
-本项目采用 ${licenseType} 许可证 - 详情请参阅 [LICENSE](LICENSE) 文件。
+This project is licensed under the ${licenseType} License - see the [LICENSE](LICENSE) file for details.
 `;
   }
 

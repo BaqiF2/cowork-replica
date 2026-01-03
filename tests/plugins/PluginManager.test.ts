@@ -281,7 +281,7 @@ describe('PluginManager', () => {
       const result = await pluginManager.installPlugin(anotherDir);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('已安装');
+      expect(result.error).toContain('Plugin duplicate-plugin is already installed');
 
       await fs.rm(anotherDir, { recursive: true, force: true });
     });

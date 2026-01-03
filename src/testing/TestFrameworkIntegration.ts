@@ -238,7 +238,7 @@ export class TestFrameworkIntegration {
     } = {}
   ): string {
     if (!this.frameworkConfig) {
-      throw new Error('未检测到测试框架，请先调用 detectFramework()');
+      throw new Error('No test framework detected, please call detectFramework() first');
     }
 
     const { testPattern, withCoverage, verbose, watch } = options;
@@ -286,7 +286,7 @@ export class TestFrameworkIntegration {
     }
 
     if (this.detectedFramework === 'unknown') {
-      throw new Error('无法检测到支持的测试框架');
+      throw new Error('No supported test framework detected');
     }
 
     const command = this.generateTestCommand({

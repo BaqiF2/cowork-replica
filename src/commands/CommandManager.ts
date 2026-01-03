@@ -155,12 +155,12 @@ export class CommandManager {
               commands.push(command);
             }
           } catch (error) {
-            console.warn(`警告: 无法解析命令文件 ${filePath}:`, error);
+            console.warn(`Warning: Unable to parse command file ${filePath}:`, error);
           }
         }
       }
     } catch (error) {
-      console.warn(`警告: 无法读取命令目录 ${directory}:`, error);
+      console.warn(`Warning: Unable to read command directory ${directory}:`, error);
     }
 
     return commands;
@@ -385,7 +385,7 @@ export class CommandManager {
     const command = this.getCommand(name);
 
     if (!command) {
-      throw new Error(`命令未找到: ${name}`);
+      throw new Error(`Command not found: ${name}`);
     }
 
     let content = command.template;

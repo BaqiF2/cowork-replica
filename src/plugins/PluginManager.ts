@@ -159,7 +159,7 @@ export class PluginManager {
       await fs.mkdir(this.pluginsDir, { recursive: true });
     } catch (error) {
       if (this.debug) {
-        console.error('创建插件目录失败:', error);
+        console.error('Failed to create plugins directory:', error);
       }
     }
   }
@@ -181,14 +181,14 @@ export class PluginManager {
             }
           } catch (error) {
             if (this.debug) {
-              console.warn(`加载插件 ${entry.name} 失败:`, error);
+              console.warn(`Failed to load plugin ${entry.name}:`, error);
             }
           }
         }
       }
     } catch (error) {
       if (this.debug) {
-        console.warn('加载已安装插件失败:', error);
+        console.warn('Failed to load installed plugins:', error);
       }
     }
   }
@@ -218,12 +218,12 @@ export class PluginManager {
           installPath = await this.installFromMarketplace(source);
           break;
         default:
-          throw new Error(`不支持的插件来源类型: ${sourceType}`);
+          throw new Error(`Unsupported plugin source type: ${sourceType}`);
       }
 
       const plugin = await this.loadPlugin(installPath);
       if (!plugin) {
-        throw new Error('无法加载已安装的插件');
+        throw new Error('Failed to load installed plugin');
       }
 
       plugin.sourceType = sourceType;
@@ -231,14 +231,14 @@ export class PluginManager {
       this.plugins.set(plugin.name, plugin);
 
       if (this.debug) {
-        console.log(`插件 ${plugin.name} 安装成功`);
+        console.log(`Plugin ${plugin.name} installed successfully`);
       }
 
       return { success: true, plugin };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (this.debug) {
-        console.error('安装插件失败:', error);
+        console.error('Failed to install plugin:', error);
       }
       return { success: false, error: errorMessage };
     }
@@ -292,18 +292,18 @@ export class PluginManager {
     // 验证源目录存在
     const stat = await fs.stat(expandedPath);
     if (!stat.isDirectory()) {
-      throw new Error(`插件路径不是目录: ${expandedPath}`);
+      throw new Error(`Plugin path is not a directory: ${expandedPath}`);
     }
 
     // 读取插件元数据
     const metadata = await this.readPluginMetadata(expandedPath);
     if (!metadata) {
-      throw new Error('插件目录缺少有效的 plugin.json 文件');
+      throw new Error('Plugin directory missing valid plugin.json file');
     }
 
     // 检查是否已安装
     if (this.plugins.has(metadata.name)) {
-      throw new Error(`插件 ${metadata.name} 已安装`);
+      throw new Error(`Plugin ${metadata.name} is already installed`);
     }
 
     // 复制到插件目录
@@ -333,12 +333,12 @@ export class PluginManager {
       // 读取插件元数据
       const metadata = await this.readPluginMetadata(tempPath);
       if (!metadata) {
-        throw new Error('Git 仓库缺少有效的 plugin.json 文件');
+        throw new Error('Git repository missing valid plugin.json file');
       }
 
       // 检查是否已安装
       if (this.plugins.has(metadata.name)) {
-        throw new Error(`插件 ${metadata.name} 已安装`);
+        throw new Error(`Plugin ${metadata.name} is already installed`);
       }
 
       // 移动到最终位置
@@ -366,7 +366,7 @@ export class PluginManager {
   private async installFromMarketplace(pluginName: string): Promise<string> {
     // 检查是否已安装
     if (this.plugins.has(pluginName)) {
-      throw new Error(`插件 ${pluginName} 已安装`);
+      throw new Error(`Plugin ${pluginName} is already installed`);
     }
 
     // 构建下载 URL
@@ -386,7 +386,7 @@ export class PluginManager {
       // 读取插件元数据
       const metadata = await this.readPluginMetadata(tempPath);
       if (!metadata) {
-        throw new Error('下载的插件缺少有效的 plugin.json 文件');
+        throw new Error('Downloaded plugin missing valid plugin.json file');
       }
 
       // 移动到最终位置
@@ -414,7 +414,7 @@ export class PluginManager {
     const plugin = this.plugins.get(name);
     if (!plugin) {
       if (this.debug) {
-        console.warn(`插件 ${name} 未安装`);
+        console.warn(`Plugin ${name} is not installed`);
       }
       return false;
     }
@@ -427,13 +427,13 @@ export class PluginManager {
       this.plugins.delete(name);
 
       if (this.debug) {
-        console.log(`插件 ${name} 已卸载`);
+        console.log(`Plugin ${name} uninstalled`);
       }
 
       return true;
     } catch (error) {
       if (this.debug) {
-        console.error(`卸载插件 ${name} 失败:`, error);
+        console.error(`Failed to uninstall plugin ${name}:`, error);
       }
       return false;
     }
@@ -615,14 +615,14 @@ export class PluginManager {
             }
           } catch (error) {
             if (this.debug) {
-              console.warn(`解析命令文件 ${filePath} 失败:`, error);
+              console.warn(`Failed to parse command file ${filePath}:`, error);
             }
           }
         }
       }
     } catch (error) {
       if (this.debug) {
-        console.warn(`加载命令目录 ${directory} 失败:`, error);
+        console.warn(`Failed to load command directory ${directory}:`, error);
       }
     }
 
@@ -677,14 +677,14 @@ export class PluginManager {
             }
           } catch (error) {
             if (this.debug) {
-              console.warn(`解析代理文件 ${filePath} 失败:`, error);
+              console.warn(`Failed to parse agent file ${filePath}:`, error);
             }
           }
         }
       }
     } catch (error) {
       if (this.debug) {
-        console.warn(`加载代理目录 ${directory} 失败:`, error);
+        console.warn(`Failed to load agent directory ${directory}:`, error);
       }
     }
 
@@ -744,14 +744,14 @@ export class PluginManager {
             }
           } catch (error) {
             if (this.debug) {
-              console.warn(`解析技能文件 ${filePath} 失败:`, error);
+              console.warn(`Failed to parse skill file ${filePath}:`, error);
             }
           }
         }
       }
     } catch (error) {
       if (this.debug) {
-        console.warn(`加载技能目录 ${directory} 失败:`, error);
+        console.warn(`Failed to load skill directory ${directory}:`, error);
       }
     }
 

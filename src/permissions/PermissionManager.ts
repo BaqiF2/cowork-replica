@@ -218,7 +218,7 @@ export class PermissionManager {
   async promptUser(tool: string, args: Record<string, unknown>): Promise<boolean> {
     if (!this.promptUserCallback) {
       // 如果没有设置回调，默认拒绝
-      console.warn(`权限请求: ${tool}，但未设置用户确认回调，默认拒绝`);
+      console.warn(`Permission request: ${tool}, but user confirmation callback not set, denying by default`);
       return false;
     }
 
@@ -239,17 +239,17 @@ export class PermissionManager {
   private formatPermissionRequest(tool: string, args: Record<string, unknown>): string {
     switch (tool) {
       case 'Write':
-        return `允许写入文件: ${args.path}?`;
+        return `Allow writing file: ${args.path}?`;
       case 'Edit':
-        return `允许编辑文件: ${args.path}?`;
+        return `Allow editing file: ${args.path}?`;
       case 'Bash':
-        return `允许执行命令: ${args.command}?`;
+        return `Allow executing command: ${args.command}?`;
       case 'KillBash':
-        return `允许终止命令: ${args.pid || '后台进程'}?`;
+        return `Allow killing process: ${args.pid || 'background process'}?`;
       case 'NotebookEdit':
-        return `允许编辑 Notebook: ${args.path}?`;
+        return `Allow editing notebook: ${args.path}?`;
       default:
-        return `允许使用工具 ${tool}?`;
+        return `Allow using tool ${tool}?`;
     }
   }
 

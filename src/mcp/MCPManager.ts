@@ -121,28 +121,28 @@ export class MCPManager {
 
       // 验证配置格式
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        throw new Error('MCP 配置必须是一个对象');
+        throw new Error('MCP configuration must be an object');
       }
 
       // 如果启用严格模式，验证所有配置
       if (this.strictMode) {
         const validation = this.validateAllConfigs(parsed);
         if (!validation.valid) {
-          throw new Error(`MCP 配置验证失败:\n${validation.errors.join('\n')}`);
+          throw new Error(`MCP configuration validation failed:\n${validation.errors.join('\n')}`);
         }
       }
 
       this.config = parsed as MCPServerConfigMap;
 
       if (this.debug) {
-        console.log(`已加载 ${Object.keys(this.config).length} 个 MCP 服务器配置`);
+        console.log(`Loaded ${Object.keys(this.config).length} MCP server configurations`);
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new Error(`MCP 配置文件不存在: ${configPath}`);
+        throw new Error(`MCP configuration file does not exist: ${configPath}`);
       }
       if (error instanceof SyntaxError) {
-        throw new Error(`MCP 配置文件格式无效: ${error.message}`);
+        throw new Error(`MCP configuration file format invalid: ${error.message}`);
       }
       throw error;
     }
@@ -165,7 +165,7 @@ export class MCPManager {
       try {
         await this.loadServersFromConfig(configPath);
         if (this.debug) {
-          console.log(`从 ${configPath} 加载 MCP 配置`);
+          console.log(`Loaded MCP configuration from ${configPath}`);
         }
         return true;
       } catch {
@@ -185,20 +185,20 @@ export class MCPManager {
    */
   addServer(name: string, config: McpServerConfig): void {
     if (!name || typeof name !== 'string') {
-      throw new Error('服务器名称必须是非空字符串');
+      throw new Error('Server name must be a non-empty string');
     }
 
     if (this.strictMode) {
       const validation = this.validateConfig(config);
       if (!validation.valid) {
-        throw new Error(`服务器 "${name}" 配置无效:\n${validation.errors.join('\n')}`);
+        throw new Error(`Server "${name}" configuration invalid:\n${validation.errors.join('\n')}`);
       }
     }
 
     this.config[name] = config;
 
     if (this.debug) {
-      console.log(`已添加 MCP 服务器: ${name}`);
+      console.log(`MCP server added: ${name}`);
     }
   }
 
@@ -212,7 +212,7 @@ export class MCPManager {
     if (Object.prototype.hasOwnProperty.call(this.config, name)) {
       delete this.config[name];
       if (this.debug) {
-        console.log(`已移除 MCP 服务器: ${name}`);
+        console.log(`MCP server removed: ${name}`);
       }
       return true;
     }
@@ -307,7 +307,7 @@ export class MCPManager {
     const errors: string[] = [];
 
     if (!config || typeof config !== 'object') {
-      return { valid: false, errors: ['配置必须是一个对象'] };
+      return { valid: false, errors: ['Config must be an object'] };
     }
 
     // 检查是否是 stdio 配置（有 command 字段）
@@ -328,11 +328,11 @@ export class MCPManager {
     // 检查是否有 transport 字段但值不正确
     if ('transport' in config) {
       const transport = (config as { transport: string }).transport;
-      errors.push(`未知的传输类型: ${transport}`);
+      errors.push(`Unknown transport type: ${transport}`);
       return { valid: false, errors };
     }
 
-    errors.push('配置必须包含 command（stdio）或 transport（sse/http）字段');
+    errors.push('Config must contain command (stdio) or transport (sse/http) field');
     return { valid: false, errors };
   }
 
@@ -364,26 +364,26 @@ export class MCPManager {
     const errors: string[] = [];
 
     if (typeof config.command !== 'string' || config.command.trim() === '') {
-      errors.push('command 必须是非空字符串');
+      errors.push('command must be a non-empty string');
     }
 
     if (!Array.isArray(config.args)) {
-      errors.push('args 必须是数组');
+      errors.push('args must be an array');
     } else {
       for (let i = 0; i < config.args.length; i++) {
         if (typeof config.args[i] !== 'string') {
-          errors.push(`args[${i}] 必须是字符串`);
+          errors.push(`args[${i}] must be a string`);
         }
       }
     }
 
     if (config.env !== undefined) {
       if (typeof config.env !== 'object' || config.env === null || Array.isArray(config.env)) {
-        errors.push('env 必须是对象');
+        errors.push('env must be an object');
       } else {
         for (const [key, value] of Object.entries(config.env)) {
           if (typeof value !== 'string') {
-            errors.push(`env.${key} 必须是字符串`);
+            errors.push(`env.${key} must be a string`);
           }
         }
       }
@@ -399,13 +399,13 @@ export class MCPManager {
     const errors: string[] = [];
 
     if (config.transport !== 'sse') {
-      errors.push('transport 必须是 "sse"');
+      errors.push('transport must be "sse"');
     }
 
     if (typeof config.url !== 'string' || config.url.trim() === '') {
-      errors.push('url 必须是非空字符串');
+      errors.push('url must be a non-empty string');
     } else if (!this.isValidUrl(config.url)) {
-      errors.push('url 必须是有效的 URL');
+      errors.push('url must be a valid URL');
     }
 
     if (config.headers !== undefined) {
@@ -414,11 +414,11 @@ export class MCPManager {
         config.headers === null ||
         Array.isArray(config.headers)
       ) {
-        errors.push('headers 必须是对象');
+        errors.push('headers must be an object');
       } else {
         for (const [key, value] of Object.entries(config.headers)) {
           if (typeof value !== 'string') {
-            errors.push(`headers.${key} 必须是字符串`);
+            errors.push(`headers.${key} must be a string`);
           }
         }
       }
@@ -434,13 +434,13 @@ export class MCPManager {
     const errors: string[] = [];
 
     if (config.transport !== 'http') {
-      errors.push('transport 必须是 "http"');
+      errors.push('transport must be "http"');
     }
 
     if (typeof config.url !== 'string' || config.url.trim() === '') {
-      errors.push('url 必须是非空字符串');
+      errors.push('url must be a non-empty string');
     } else if (!this.isValidUrl(config.url)) {
-      errors.push('url 必须是有效的 URL');
+      errors.push('url must be a valid URL');
     }
 
     if (config.headers !== undefined) {
@@ -449,11 +449,11 @@ export class MCPManager {
         config.headers === null ||
         Array.isArray(config.headers)
       ) {
-        errors.push('headers 必须是对象');
+        errors.push('headers must be an object');
       } else {
         for (const [key, value] of Object.entries(config.headers)) {
           if (typeof value !== 'string') {
-            errors.push(`headers.${key} 必须是字符串`);
+            errors.push(`headers.${key} must be a string`);
           }
         }
       }
@@ -471,7 +471,7 @@ export class MCPManager {
     for (const [name, config] of Object.entries(configs)) {
       const result = this.validateConfig(config as McpServerConfig);
       if (!result.valid) {
-        errors.push(`服务器 "${name}":`);
+        errors.push(`Server "${name}":`);
         errors.push(...result.errors.map((e) => `  - ${e}`));
       }
     }
@@ -578,7 +578,7 @@ export class MCPManager {
   clear(): void {
     this.config = {};
     if (this.debug) {
-      console.log('已清除所有 MCP 服务器配置');
+      console.log('All MCP server configurations cleared');
     }
   }
 
@@ -605,7 +605,7 @@ export class MCPManager {
     const content = JSON.stringify(this.config, null, 2);
     await fs.writeFile(configPath, content, 'utf-8');
     if (this.debug) {
-      console.log(`已保存 MCP 配置到 ${configPath}`);
+      console.log(`MCP configuration saved to ${configPath}`);
     }
   }
 

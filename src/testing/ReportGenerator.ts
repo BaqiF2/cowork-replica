@@ -99,7 +99,7 @@ export class ReportGenerator {
         this.printConsole(results, options);
         return '';
       default:
-        throw new Error(`不支持的报告格式: ${options.format}`);
+        throw new Error(`Unsupported report format: ${options.format}`);
     }
 
     // 如果指定了输出路径，写入文件
@@ -349,12 +349,12 @@ export class ReportGenerator {
     };
 
     console.log('\n' + colors.bold + '═══════════════════════════════════════════════════════════════' + colors.reset);
-    console.log(colors.bold + '                         测试报告' + colors.reset);
+    console.log(colors.bold + '                         Test Report' + colors.reset);
     console.log(colors.bold + '═══════════════════════════════════════════════════════════════' + colors.reset + '\n');
 
     for (const suite of results) {
       console.log(colors.bold + `📦 ${suite.name}` + colors.reset);
-      console.log(colors.gray + `   ${suite.tests.length} 个测试 | 耗时 ${this.formatDuration(suite.duration)}` + colors.reset);
+      console.log(colors.gray + `   ${suite.tests.length} tests | took ${this.formatDuration(suite.duration)}` + colors.reset);
       console.log('');
 
       for (const test of suite.tests) {
@@ -395,18 +395,18 @@ export class ReportGenerator {
       console.log('');
     }
 
-    // 汇总
+    // Summary
     console.log(colors.bold + '───────────────────────────────────────────────────────────────' + colors.reset);
-    console.log(colors.bold + '汇总:' + colors.reset);
-    console.log(`  总计: ${totalTests}`);
-    console.log(`  ${colors.green}通过: ${totalPassed}${colors.reset}`);
-    console.log(`  ${colors.red}失败: ${totalFailed}${colors.reset}`);
-    console.log(`  ${colors.yellow}跳过: ${totalSkipped}${colors.reset}`);
-    console.log(`  ${colors.cyan}耗时: ${this.formatDuration(totalDuration)}${colors.reset}`);
+    console.log(colors.bold + 'Summary:' + colors.reset);
+    console.log(`  Total: ${totalTests}`);
+    console.log(`  ${colors.green}Passed: ${totalPassed}${colors.reset}`);
+    console.log(`  ${colors.red}Failed: ${totalFailed}${colors.reset}`);
+    console.log(`  ${colors.yellow}Skipped: ${totalSkipped}${colors.reset}`);
+    console.log(`  ${colors.cyan}Duration: ${this.formatDuration(totalDuration)}${colors.reset}`);
 
     const passRate = totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(1) : '0.0';
     const rateColor = totalFailed > 0 ? colors.red : colors.green;
-    console.log(`  ${rateColor}通过率: ${passRate}%${colors.reset}`);
+    console.log(`  ${rateColor}Pass rate: ${passRate}%${colors.reset}`);
     console.log(colors.bold + '═══════════════════════════════════════════════════════════════' + colors.reset + '\n');
   }
 

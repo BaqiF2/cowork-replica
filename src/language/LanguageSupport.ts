@@ -908,7 +908,7 @@ export class LanguageSupport {
         title: '正确处理 Promise 错误',
         description: '始终使用 try-catch 或 .catch() 处理 Promise 错误',
         example:
-          'try {\n  const data = await fetchData();\n} catch (error) {\n  console.error("获取数据失败:", error);\n}',
+          'try {\n  const data = await fetchData();\n} catch (error) {\n  console.error("Failed to fetch data:", error);\n}',
         antiPattern: 'const data = await fetchData(); // 未处理错误',
         priority: 'high',
       },
@@ -917,7 +917,7 @@ export class LanguageSupport {
         title: '编写单元测试',
         description: '为关键业务逻辑编写单元测试，使用 Jest 或 Vitest',
         example:
-          'describe("calculateTotal", () => {\n  it("应该正确计算总价", () => {\n    expect(calculateTotal([10, 20])).toBe(30);\n  });\n});',
+          'describe("calculateTotal", () => {\n  it("should correctly calculate total", () => {\n    expect(calculateTotal([10, 20])).toBe(30);\n  });\n});',
         priority: 'high',
       },
       {
@@ -939,7 +939,7 @@ export class LanguageSupport {
         title: '使用 JSDoc 注释',
         description: '为公共 API 添加 JSDoc 注释，提高代码可读性',
         example:
-          '/**\n * 计算两个数的和\n * @param {number} a - 第一个数\n * @param {number} b - 第二个数\n * @returns {number} 两数之和\n */\nfunction add(a, b) {\n  return a + b;\n}',
+          '/**\n * Calculate the sum of two numbers\n * @param {number} a - First number\n * @param {number} b - Second number\n * @returns {number} The sum\n */\nfunction add(a, b) {\n  return a + b;\n}',
         priority: 'medium',
       },
     ];
@@ -989,7 +989,7 @@ export class LanguageSupport {
         example:
           'function processData(data: unknown): void {\n  if (typeof data === "string") {\n    console.log(data.toUpperCase());\n  }\n}',
         antiPattern:
-          'function processData(data: any): void {\n  console.log(data.toUpperCase()); // 可能运行时错误\n}',
+          'function processData(data: any): void {\n  console.log(data.toUpperCase()); // Potential runtime error\n}',
         priority: 'high',
       },
       {
@@ -1038,8 +1038,8 @@ export class LanguageSupport {
         title: '使用具体的异常类型',
         description: '捕获具体的异常类型，而不是使用裸 except',
         example:
-          'try:\n    value = int(user_input)\nexcept ValueError as e:\n    print(f"无效输入: {e}")',
-        antiPattern: 'try:\n    value = int(user_input)\nexcept:\n    print("出错了")',
+          'try:\n    value = int(user_input)\nexcept ValueError as e:\n    print(f"Invalid input: {e}")',
+        antiPattern: 'try:\n    value = int(user_input)\nexcept:\n    print("Error occurred")',
         priority: 'high',
       },
       {
@@ -1096,7 +1096,7 @@ export class LanguageSupport {
         example:
           'public Optional<User> findUserById(Long id) {\n    return Optional.ofNullable(userRepository.findById(id));\n}',
         antiPattern:
-          'public User findUserById(Long id) {\n    return userRepository.findById(id); // 可能返回 null\n}',
+          'public User findUserById(Long id) {\n    return userRepository.findById(id); // May return null\n}',
         priority: 'high',
       },
       {
@@ -1129,7 +1129,7 @@ export class LanguageSupport {
         title: '使用 Javadoc 注释',
         description: '为公共 API 添加 Javadoc 注释',
         example:
-          '/**\n * 计算两个数的和。\n *\n * @param a 第一个数\n * @param b 第二个数\n * @return 两数之和\n */\npublic int add(int a, int b) {\n    return a + b;\n}',
+          '/**\n * Calculate the sum of two numbers.\n *\n * @param a First number\n * @param b Second number\n * @return The sum\n */\npublic int add(int a, int b) {\n    return a + b;\n}',
         priority: 'medium',
       },
       {
@@ -1170,15 +1170,15 @@ export class LanguageSupport {
         title: '显式处理错误',
         description: 'Go 使用返回值处理错误，不要忽略错误',
         example:
-          'result, err := doSomething()\nif err != nil {\n    return fmt.Errorf("操作失败: %w", err)\n}',
-        antiPattern: 'result, _ := doSomething() // 忽略错误',
+          'result, err := doSomething()\nif err != nil {\n    return fmt.Errorf("operation failed: %w", err)\n}',
+        antiPattern: 'result, _ := doSomething() // Ignoring error',
         priority: 'high',
       },
       {
         category: 'error_handling',
         title: '使用错误包装',
         description: '使用 fmt.Errorf 和 %w 包装错误，保留错误链',
-        example: 'if err != nil {\n    return fmt.Errorf("处理用户 %s 失败: %w", userID, err)\n}',
+        example: 'if err != nil {\n    return fmt.Errorf("failed to process user %s: %w", userID, err)\n}',
         priority: 'medium',
       },
       {
@@ -1202,7 +1202,7 @@ export class LanguageSupport {
         title: '使用 godoc 注释',
         description: '为导出的标识符添加注释，注释以标识符名称开头',
         example:
-          '// UserService 提供用户相关的业务逻辑。\ntype UserService struct {\n    // ...\n}\n\n// CreateUser 创建新用户。\nfunc (s *UserService) CreateUser(name string) error {\n    // ...\n}',
+          '// UserService provides user-related business logic.\ntype UserService struct {\n    // ...\n}\n\n// CreateUser creates a new user.\nfunc (s *UserService) CreateUser(name string) error {\n    // ...\n}',
         priority: 'medium',
       },
       {
@@ -1218,7 +1218,7 @@ export class LanguageSupport {
         title: '使用 context 传递取消信号',
         description: '使用 context.Context 传递取消信号和超时',
         example:
-          'func DoWork(ctx context.Context) error {\n    select {\n    case <-ctx.Done():\n        return ctx.Err()\n    default:\n        // 执行工作\n    }\n    return nil\n}',
+          'func DoWork(ctx context.Context) error {\n    select {\n    case <-ctx.Done():\n        return ctx.Err()\n    default:\n        // Do work\n    }\n    return nil\n}',
         priority: 'high',
       },
     ];

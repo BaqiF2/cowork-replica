@@ -335,7 +335,7 @@ export class SessionManager {
 
       return session;
     } catch (error) {
-      console.warn(`警告: 无法加载会话 ${sessionId}:`, error);
+      console.warn(`Warning: Unable to load session ${sessionId}:`, error);
       return null;
     }
   }
@@ -432,7 +432,7 @@ export class SessionManager {
     try {
       await fs.rm(sessionDir, { recursive: true, force: true });
     } catch (error) {
-      console.warn(`警告: 无法删除会话 ${sessionId}:`, error);
+      console.warn(`Warning: Unable to delete session ${sessionId}:`, error);
     }
   }
 

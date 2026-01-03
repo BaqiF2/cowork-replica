@@ -238,7 +238,7 @@ describe('HookManager', () => {
           type: 'command',
           command: 'echo test',
         });
-      }).toThrow('未知的钩子事件类型');
+      }).toThrow('Unknown hook event type: InvalidEvent');
     });
   });
 

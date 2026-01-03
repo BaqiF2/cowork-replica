@@ -216,7 +216,7 @@ export class ToolTimeoutError extends Error {
     public readonly toolName: string,
     public readonly timeout: number
   ) {
-    super(`工具 ${toolName} 执行超时 (${timeout}ms)`);
+    super(`Tool ${toolName} execution timeout (${timeout}ms)`);
     this.name = 'ToolTimeoutError';
   }
 }
@@ -273,7 +273,7 @@ export class ExtensibilityManager extends EventEmitter {
    */
   registerTool(tool: CustomToolDefinition): void {
     if (this.customTools.has(tool.name)) {
-      throw new Error(`工具 ${tool.name} 已注册`);
+      throw new Error(`Tool ${tool.name} is already registered`);
     }
 
     // 验证工具定义
@@ -282,7 +282,7 @@ export class ExtensibilityManager extends EventEmitter {
     this.customTools.set(tool.name, tool);
 
     if (this.config.debug) {
-      console.log(`已注册工具: ${tool.name}`);
+      console.log(`Tool registered: ${tool.name}`);
     }
 
     this.emit('toolRegistered', tool);
@@ -298,7 +298,7 @@ export class ExtensibilityManager extends EventEmitter {
     const existed = this.customTools.delete(toolName);
 
     if (existed && this.config.debug) {
-      console.log(`已注销工具: ${toolName}`);
+      console.log(`Tool unregistered: ${toolName}`);
     }
 
     if (existed) {
@@ -356,23 +356,23 @@ export class ExtensibilityManager extends EventEmitter {
    */
   private validateToolDefinition(tool: CustomToolDefinition): void {
     if (!tool.name || typeof tool.name !== 'string') {
-      throw new Error('工具名称必须是非空字符串');
+      throw new Error('Tool name must be a non-empty string');
     }
 
     if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tool.name)) {
-      throw new Error('工具名称必须以字母开头，只能包含字母、数字和下划线');
+      throw new Error('Tool name must start with a letter and contain only letters, numbers, and underscores');
     }
 
     if (!tool.description || typeof tool.description !== 'string') {
-      throw new Error('工具描述必须是非空字符串');
+      throw new Error('Tool description must be a non-empty string');
     }
 
     if (!Array.isArray(tool.parameters)) {
-      throw new Error('工具参数必须是数组');
+      throw new Error('Tool parameters must be an array');
     }
 
     if (typeof tool.executor !== 'function') {
-      throw new Error('工具执行函数必须是函数');
+      throw new Error('Tool executor must be a function');
     }
 
     // 验证参数定义
@@ -389,20 +389,20 @@ export class ExtensibilityManager extends EventEmitter {
    */
   private validateParameterDefinition(param: ToolParameter): void {
     if (!param.name || typeof param.name !== 'string') {
-      throw new Error('参数名称必须是非空字符串');
+      throw new Error('Parameter name must be a non-empty string');
     }
 
     const validTypes: ParameterType[] = ['string', 'number', 'boolean', 'array', 'object'];
     if (!validTypes.includes(param.type)) {
-      throw new Error(`参数类型必须是以下之一: ${validTypes.join(', ')}`);
+      throw new Error(`Parameter type must be one of: ${validTypes.join(', ')}`);
     }
 
     if (!param.description || typeof param.description !== 'string') {
-      throw new Error('参数描述必须是非空字符串');
+      throw new Error('Parameter description must be a non-empty string');
     }
 
     if (typeof param.required !== 'boolean') {
-      throw new Error('参数 required 字段必须是布尔值');
+      throw new Error('Parameter required field must be a boolean');
     }
   }
 
@@ -611,7 +611,7 @@ export class ExtensibilityManager extends EventEmitter {
     this.toolHooks.get(event)!.push(handler);
 
     if (this.config.debug) {
-      console.log(`已添加工具钩子: ${event}`);
+      console.log(`Tool hook added: ${event}`);
     }
   }
 
@@ -664,7 +664,7 @@ export class ExtensibilityManager extends EventEmitter {
         await handler(context);
       } catch (error) {
         if (this.config.debug) {
-          console.error(`工具钩子 ${event} 执行失败:`, error);
+          console.error(`Tool hook ${event} execution failed:`, error);
         }
         // 钩子错误不应该中断工具执行
       }
@@ -690,7 +690,7 @@ export class ExtensibilityManager extends EventEmitter {
     if (!tool) {
       return {
         success: false,
-        error: `工具 ${toolName} 未注册`,
+        error: `Tool ${toolName} is not registered`,
         errorCode: 'TOOL_NOT_FOUND',
       };
     }
@@ -699,7 +699,7 @@ export class ExtensibilityManager extends EventEmitter {
     if (this.currentExecutions >= this.config.maxConcurrentExecutions) {
       return {
         success: false,
-        error: '已达到最大并发执行数',
+        error: 'Maximum concurrent executions reached',
         errorCode: 'MAX_CONCURRENT_EXCEEDED',
       };
     }
@@ -823,7 +823,7 @@ export class ExtensibilityManager extends EventEmitter {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
-      error: `工具 ${toolName} 执行失败: ${errorMessage}`,
+      error: `Tool ${toolName} execution failed: ${errorMessage}`,
       errorCode: 'EXECUTION_ERROR',
       executionTime,
     };
@@ -848,7 +848,7 @@ export class ExtensibilityManager extends EventEmitter {
     if (!tool) {
       return {
         success: false,
-        error: `工具 ${toolName} 未注册`,
+        error: `Tool ${toolName} is not registered`,
         errorCode: 'TOOL_NOT_FOUND',
       };
     }
@@ -866,7 +866,7 @@ export class ExtensibilityManager extends EventEmitter {
     if (this.currentExecutions >= this.config.maxConcurrentExecutions) {
       return {
         success: false,
-        error: '已达到最大并发执行数',
+        error: 'Maximum concurrent executions reached',
         errorCode: 'MAX_CONCURRENT_EXCEEDED',
       };
     }
@@ -939,7 +939,7 @@ export class ExtensibilityManager extends EventEmitter {
       await this.triggerToolHook('onError', hookContext);
 
       // 输出错误块
-      yield { type: 'error', content: result.error || '未知错误' };
+      yield { type: 'error', content: result.error || 'Unknown error' };
 
       return result;
     } finally {
@@ -1049,7 +1049,7 @@ export class ExtensibilityManager extends EventEmitter {
   clearAllTools(): void {
     this.customTools.clear();
     if (this.config.debug) {
-      console.log('已清除所有工具');
+      console.log('All tools cleared');
     }
   }
 

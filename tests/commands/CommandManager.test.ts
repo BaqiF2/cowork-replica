@@ -387,7 +387,7 @@ description: 项目级共享命令
     it('不存在的命令应抛出错误', async () => {
       await expect(
         commandManager.executeCommand('nonexistent')
-      ).rejects.toThrow('命令未找到');
+      ).rejects.toThrow('Command not found: nonexistent');
     });
   });
 

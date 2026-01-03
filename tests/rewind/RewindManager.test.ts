@@ -144,7 +144,7 @@ describe('RewindManager', () => {
       const result = await rewindManager.restoreSnapshot('nonexistent-id');
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('快照不存在');
+      expect(result.error).toContain('Snapshot not found: nonexistent-id');
     });
   });
 

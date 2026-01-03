@@ -465,13 +465,13 @@ export class CollaborationManager {
     // 导入技能
     if (!skipSkills && template.skills) {
       // 技能文件需要单独处理，这里只记录名称
-      console.log(`模板包含 ${template.skills.length} 个技能`);
+      console.log(`Template contains ${template.skills.length} skills`);
     }
 
     // 导入命令
     if (!skipCommands && template.commands) {
       // 命令文件需要单独处理，这里只记录名称
-      console.log(`模板包含 ${template.commands.length} 个命令`);
+      console.log(`Template contains ${template.commands.length} commands`);
     }
   }
 
@@ -490,7 +490,7 @@ export class CollaborationManager {
 
     // 验证模板格式
     if (!template.name || !template.config) {
-      throw new Error('无效的配置模板格式');
+      throw new Error('Invalid configuration template format');
     }
 
     await this.importConfigTemplate(template, options);
@@ -550,7 +550,7 @@ export class CollaborationManager {
         warnings.push({
           type: 'recommendation',
           path: 'model',
-          message: `建议使用官方模型名称: ${validModels.join(', ')}`,
+          message: `Recommended to use official model names: ${validModels.join(', ')}`,
         });
       }
     }
@@ -562,7 +562,7 @@ export class CollaborationManager {
         errors.push({
           type: 'invalid',
           path: 'permissionMode',
-          message: `无效的权限模式: ${config.permissionMode}`,
+          message: `Invalid permission mode: ${config.permissionMode}`,
         });
       }
 
@@ -570,7 +570,7 @@ export class CollaborationManager {
         warnings.push({
           type: 'recommendation',
           path: 'permissionMode',
-          message: '不建议在共享配置中使用 bypassPermissions 模式',
+          message: 'bypassPermissions mode is not recommended in shared config',
         });
       }
     }
@@ -582,7 +582,7 @@ export class CollaborationManager {
         errors.push({
           type: 'conflict',
           path: 'tools',
-          message: `工具同时出现在 allowedTools 和 disallowedTools 中: ${overlap.join(', ')}`,
+          message: `Tool appears in both allowedTools and disallowedTools: ${overlap.join(', ')}`,
         });
       }
     }
@@ -624,14 +624,14 @@ export class CollaborationManager {
         errors.push({
           type: 'invalid',
           path: `mcpServers.${name}.command`,
-          message: 'command 必须是字符串',
+          message: 'command must be a string',
         });
       }
       if (!Array.isArray(serverConfig.args)) {
         errors.push({
           type: 'invalid',
           path: `mcpServers.${name}.args`,
-          message: 'args 必须是数组',
+          message: 'args must be an array',
         });
       }
     }
@@ -643,14 +643,14 @@ export class CollaborationManager {
         errors.push({
           type: 'invalid',
           path: `mcpServers.${name}.transport`,
-          message: `无效的传输类型: ${transport}`,
+          message: `Invalid transport type: ${transport}`,
         });
       }
       if (typeof serverConfig.url !== 'string') {
         errors.push({
           type: 'invalid',
           path: `mcpServers.${name}.url`,
-          message: 'url 必须是字符串',
+          message: 'url must be a string',
         });
       }
     }
@@ -663,7 +663,7 @@ export class CollaborationManager {
           warnings.push({
             type: 'recommendation',
             path: `mcpServers.${name}.env.${key}`,
-            message: `建议使用环境变量引用而非硬编码值: \${${key}}`,
+            message: `Recommend using environment variable reference instead of hardcoded value: \${${key}}`,
           });
         }
       }
@@ -681,10 +681,10 @@ export class CollaborationManager {
 
     // 检查常见的敏感模式
     const sensitivePatterns = [
-      { pattern: /sk-[a-zA-Z0-9]{20,}/, name: 'API 密钥' },
+      { pattern: /sk-[a-zA-Z0-9]{20,}/, name: 'API Key' },
       { pattern: /ghp_[a-zA-Z0-9]{36}/, name: 'GitHub Token' },
-      { pattern: /password\s*[:=]\s*["'][^"']+["']/i, name: '密码' },
-      { pattern: /secret\s*[:=]\s*["'][^"']+["']/i, name: '密钥' },
+      { pattern: /password\s*[:=]\s*["'][^"']+["']/i, name: 'Password' },
+      { pattern: /secret\s*[:=]\s*["'][^"']+["']/i, name: 'Secret' },
     ];
 
     for (const { pattern, name } of sensitivePatterns) {
@@ -692,7 +692,7 @@ export class CollaborationManager {
         warnings.push({
           type: 'recommendation',
           path: 'config',
-          message: `配置中可能包含 ${name}，建议使用环境变量`,
+          message: `Config may contain ${name}, recommend using environment variables`,
         });
       }
     }

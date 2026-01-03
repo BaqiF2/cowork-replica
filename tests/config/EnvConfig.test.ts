@@ -59,7 +59,7 @@ describe('EnvConfig', () => {
 
     it('当环境变量不存在时应该抛出错误', () => {
       expect(() => EnvConfig.getRequiredString('NON_EXISTENT')).toThrow(
-        '必需的环境变量 NON_EXISTENT 未设置'
+        'Required environment variable NON_EXISTENT is not set'
       );
     });
   });

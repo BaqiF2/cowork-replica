@@ -293,7 +293,7 @@ export class StructuredLogger {
   logError(error: Error | string, context?: Record<string, unknown>): void {
     const errorData =
       error instanceof Error ? { message: error.message, stack: error.stack } : { message: error };
-    this.error('执行错误', { ...errorData, ...context }, 'error');
+    this.error('Execution error', { ...errorData, ...context }, 'error');
   }
 }
 
@@ -376,7 +376,7 @@ export class TimeoutManager {
 
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
-        reject(new TimeoutError(`操作超时 (${timeout}ms)`));
+        reject(new TimeoutError(`Operation timed out (${timeout}ms)`));
       }, timeout);
 
       promise

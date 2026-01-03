@@ -573,9 +573,9 @@ export class StreamingMessageProcessor {
     }
 
     this.outputHandler.writeError('');
-    this.outputHandler.writeError(`❌ 错误: ${error.message}`);
+    this.outputHandler.writeError(`❌ Error: ${error.message}`);
     if (error.code) {
-      this.outputHandler.writeError(`   错误码: ${error.code}`);
+      this.outputHandler.writeError(`   Error code: ${error.code}`);
     }
   }
 

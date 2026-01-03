@@ -361,7 +361,7 @@ export class RewindManager {
         success: false,
         restoredFiles: [],
         deletedFiles: [],
-        error: `快照不存在: ${snapshotId}`,
+        error: `Snapshot not found: ${snapshotId}`,
       };
     }
 
@@ -390,7 +390,7 @@ export class RewindManager {
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        errors.push(`恢复文件 ${filePath} 失败: ${errorMsg}`);
+        errors.push(`Failed to restore file ${filePath}: ${errorMsg}`);
       }
     }
 
@@ -584,6 +584,6 @@ export class RewindManager {
   ): Promise<Snapshot> {
     const filePaths = files.map((f) => f.path);
     const description = files.map((f) => f.description || f.path).join(', ');
-    return this.captureSnapshot(`修改文件: ${description}`, filePaths, messageUuid);
+    return this.captureSnapshot(`Modified files: ${description}`, filePaths, messageUuid);
   }
 }

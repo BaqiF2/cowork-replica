@@ -161,7 +161,7 @@ export class ImageHandler {
     try {
       await fs.access(absolutePath);
     } catch {
-      throw new ImageError(`图像文件不存在: ${filePath}`, ImageErrorCode.FILE_NOT_FOUND);
+      throw new ImageError(`Image file does not exist: ${filePath}`, ImageErrorCode.FILE_NOT_FOUND);
     }
 
     // 读取文件
@@ -170,7 +170,7 @@ export class ImageHandler {
       buffer = await fs.readFile(absolutePath);
     } catch (error) {
       throw new ImageError(
-        `无法读取图像文件: ${filePath} - ${error instanceof Error ? error.message : '未知错误'}`,
+        `Unable to read image file: ${filePath} - ${error instanceof Error ? error.message : 'unknown error'}`,
         ImageErrorCode.READ_ERROR
       );
     }
@@ -178,7 +178,7 @@ export class ImageHandler {
     // 检查文件大小
     if (buffer.length > this.options.maxSize) {
       throw new ImageError(
-        `图像文件过大: ${this.formatSize(buffer.length)}，最大允许 ${this.formatSize(this.options.maxSize)}`,
+        `Image file too large: ${this.formatSize(buffer.length)}, maximum allowed ${this.formatSize(this.options.maxSize)}`,
         ImageErrorCode.FILE_TOO_LARGE
       );
     }
@@ -187,14 +187,14 @@ export class ImageHandler {
     const format = this.detectFormat(buffer, filePath);
     if (!format) {
       throw new ImageError(
-        `不支持的图像格式。支持的格式: ${SUPPORTED_IMAGE_FORMATS.join(', ')}`,
+        `Unsupported image format. Supported formats: ${SUPPORTED_IMAGE_FORMATS.join(', ')}`,
         ImageErrorCode.UNSUPPORTED_FORMAT
       );
     }
 
     // 验证图像格式
     if (this.options.validateFormat && !this.validateImageData(buffer, format)) {
-      throw new ImageError(`无效的图像数据: ${filePath}`, ImageErrorCode.INVALID_IMAGE);
+      throw new ImageError(`Invalid image data: ${filePath}`, ImageErrorCode.INVALID_IMAGE);
     }
 
     // 编码为 Base64
@@ -226,7 +226,7 @@ export class ImageHandler {
     try {
       buffer = Buffer.from(cleanData, 'base64');
     } catch {
-      throw new ImageError('无效的 Base64 数据', ImageErrorCode.ENCODE_ERROR);
+      throw new ImageError('Invalid Base64 data', ImageErrorCode.ENCODE_ERROR);
     }
 
     // 检查大小
@@ -241,7 +241,7 @@ export class ImageHandler {
     const format = this.detectFormatFromBuffer(buffer);
     if (!format) {
       throw new ImageError(
-        `不支持的图像格式。支持的格式: ${SUPPORTED_IMAGE_FORMATS.join(', ')}`,
+        `Unsupported image format. Supported formats: ${SUPPORTED_IMAGE_FORMATS.join(', ')}`,
         ImageErrorCode.UNSUPPORTED_FORMAT
       );
     }
@@ -330,7 +330,7 @@ export class ImageHandler {
       } catch (error) {
         errors.push({
           reference,
-          error: error instanceof Error ? error.message : '未知错误',
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }

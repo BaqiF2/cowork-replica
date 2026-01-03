@@ -191,7 +191,7 @@ describe('错误处理', () => {
       
       expect(exitCode).toBe(2); // CONFIG_ERROR (无效参数)
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('参数错误')
+        expect.stringContaining('Argument error: Unknown option')
       );
       
       consoleErrorSpy.mockRestore();

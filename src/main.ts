@@ -231,7 +231,7 @@ export class Application {
       // 初始化日志记录器（使用安全管理器进行日志脱敏）
       this.logger = new Logger(options.verbose, this.securityManager);
       await this.logger.init();
-      await this.logger.info('应用程序启动', { args });
+      await this.logger.info('Application started', { args });
 
       // 初始化 CI/CD 支持
       this.initializeCISupport(options);
@@ -251,7 +251,7 @@ export class Application {
       // 在 CI 环境中记录环境信息
       if (this.ciSupport?.isCI()) {
         // 记录 CI 环境信息
-        this.ciLogger?.info('CI 环境检测', this.ciSupport.getSummary() as Record<string, unknown>);
+        this.ciLogger?.info('CI environment detected', this.ciSupport.getSummary() as Record<string, unknown>);
       }
 
       // 初始化应用程序
@@ -264,7 +264,7 @@ export class Application {
       } else {
         // 在 CI 环境中，如果没有提供查询内容，自动使用非交互模式
         if (this.ciSupport?.isCI()) {
-          console.error('错误: CI 环境中必须使用 -p 选项提供查询内容');
+          console.error('Error: Must use -p option to provide query content in CI environment');
           return ExitCodes.CONFIG_ERROR;
         }
         // 交互模式
@@ -303,7 +303,7 @@ export class Application {
    * 初始化应用程序
    */
   private async initialize(options: CLIOptions): Promise<void> {
-    await this.logger.debug('初始化应用程序...');
+    await this.logger.debug('Initializing application...');
 
     // 确保配置目录存在
     await this.configManager.ensureUserConfigDir();
@@ -342,7 +342,7 @@ export class Application {
     // 加载 MCP 服务器配置
     await this.loadMCPServers(workingDir);
 
-    await this.logger.debug('应用程序初始化完成');
+    await this.logger.debug('Application initialized');
   }
 
   /**
@@ -403,7 +403,7 @@ export class Application {
    * 加载扩展（技能、命令、代理、钩子）
    */
   private async loadExtensions(workingDir: string): Promise<void> {
-    await this.logger.debug('加载扩展...');
+    await this.logger.debug('Loading extensions...');
 
     // 技能目录
     const skillDirs = [
@@ -425,13 +425,13 @@ export class Application {
 
     // 加载扩展
     await Promise.all([
-      this.skillManager.loadSkills(skillDirs).catch((err) => this.logger.warn('加载技能失败', err)),
+      this.skillManager.loadSkills(skillDirs).catch((err) => this.logger.warn('Failed to load skills', err)),
       this.commandManager
         .loadCommands(commandDirs)
-        .catch((err) => this.logger.warn('加载命令失败', err)),
+        .catch((err) => this.logger.warn('Failed to load commands', err)),
       this.agentRegistry
         .loadAgents(agentDirs)
-        .catch((err) => this.logger.warn('加载代理失败', err)),
+        .catch((err) => this.logger.warn('Failed to load agents', err)),
     ]);
 
     // 加载钩子配置
@@ -445,7 +445,7 @@ export class Application {
       // 钩子配置文件不存在，忽略
     }
 
-    await this.logger.debug('扩展加载完成');
+    await this.logger.debug('Extensions loaded');
   }
 
   /**
@@ -457,7 +457,7 @@ export class Application {
     for (const configPath of mcpConfigPaths) {
       try {
         await this.mcpManager.loadServersFromConfig(configPath);
-        await this.logger.debug('MCP 服务器配置已加载', { path: configPath });
+        await this.logger.debug('MCP server config loaded', { path: configPath });
         break;
       } catch {
         // 配置文件不存在，继续尝试下一个
@@ -469,7 +469,7 @@ export class Application {
    * 运行交互模式
    */
   private async runInteractive(options: CLIOptions): Promise<number> {
-    await this.logger.info('启动交互模式');
+    await this.logger.info('Starting interactive mode');
 
     // 创建或恢复会话
     const session = await this.getOrCreateSession(options);
@@ -501,7 +501,7 @@ export class Application {
       await this.ui.start();
       return 0;
     } catch (error) {
-      await this.logger.error('交互模式错误', error);
+      await this.logger.error('Interactive mode error', error);
       return 1;
     }
   }
@@ -510,12 +510,12 @@ export class Application {
    * 运行非交互模式
    */
   private async runNonInteractive(options: CLIOptions): Promise<number> {
-    await this.logger.info('启动非交互模式');
+    await this.logger.info('Starting non-interactive mode');
 
-    // 获取查询内容
+    // 获取查询内容，如果 options.prompt 不存在或为空，则调用 this.readStdin() 方法从标准输入读取内容
     const prompt = options.prompt || (await this.readStdin());
     if (!prompt) {
-      console.error('错误: 未提供查询内容');
+      console.error('Error: No query content provided');
       return ExitCodes.CONFIG_ERROR;
     }
 
@@ -533,7 +533,7 @@ export class Application {
     // 启动超时计时
     if (this.ciSupport) {
       this.ciSupport.startExecution(() => {
-        this.ciLogger?.error('执行超时');
+        this.ciLogger?.error('Error: Execution timeout');
       });
     }
 
@@ -546,7 +546,7 @@ export class Application {
 
       // 检查是否超时
       if (this.ciSupport?.hasTimedOut()) {
-        console.error('错误: 执行超时');
+        console.error('Error: Execution timeout');
         return ExitCodes.TIMEOUT_ERROR;
       }
 
@@ -565,14 +565,14 @@ export class Application {
       // 停止超时计时
       this.ciSupport?.endExecution();
 
-      await this.logger.error('查询执行失败', error);
+      await this.logger.error('Query execution failed', error);
 
       // 记录错误（CI 模式）
       if (error instanceof Error) {
         this.ciLogger?.logError(error);
       }
 
-      console.error('错误:', error instanceof Error ? error.message : String(error));
+      console.error('Error:', error instanceof Error ? error.message : String(error));
 
       // 返回适当的退出码
       return CISupport.getExitCode(error instanceof Error ? error : String(error));
@@ -587,14 +587,14 @@ export class Application {
 
     // 恢复指定会话
     if (options.resume) {
-      await this.logger.debug('恢复会话', { sessionId: options.resume });
+      await this.logger.debug('resume session', { sessionId: options.resume });
       const session = await this.sessionManager.loadSession(options.resume);
       if (!session) {
-        throw new Error(`会话不存在: ${options.resume}`);
+        throw new Error(`Session does not exist: ${options.resume}`);
       }
       if (session.expired) {
-        await this.logger.warn('会话已过期', { sessionId: options.resume });
-        console.warn('警告: 会话已过期，将创建新会话');
+        await this.logger.warn('Session expired', { sessionId: options.resume });
+        console.warn('Warning: Session expired, creating new session');
         return this.sessionManager.createSession(workingDir);
       }
       return session;
@@ -602,17 +602,17 @@ export class Application {
 
     // 继续最近的会话
     if (options.continue) {
-      await this.logger.debug('继续最近的会话');
+      await this.logger.debug('continue recent session');
       const recentSession = await this.sessionManager.getRecentSession();
       if (recentSession) {
-        await this.logger.info('恢复最近会话', { sessionId: recentSession.id });
+        await this.logger.info('Resuming recent session', { sessionId: recentSession.id });
         return recentSession;
       }
-      await this.logger.info('没有可用的最近会话，创建新会话');
+      await this.logger.info('No recent session available, creating new session');
     }
 
     // 创建新会话
-    await this.logger.debug('创建新会话');
+    await this.logger.debug('create new session');
     const userConfig = await this.configManager.loadUserConfig();
     const projectConfig = await this.configManager.loadProjectConfig(workingDir);
 
@@ -632,7 +632,7 @@ export class Application {
     try {
       // 显示处理中状态
       if (this.ui) {
-        this.ui.displayProgress('正在处理...', 'running');
+        this.ui.displayProgress('Processing...', 'running');
       }
 
       // 执行查询
@@ -652,7 +652,7 @@ export class Application {
         this.ui.clearProgress();
         this.ui.displayError(error instanceof Error ? error.message : String(error));
       }
-      await this.logger.error('消息处理失败', error);
+      await this.logger.error('Message processing failed', error);
     }
   }
 
@@ -702,7 +702,7 @@ export class Application {
         if (customCmd) {
           await this.commandManager.executeCommand(cmdName, cmdArgs);
         } else if (this.ui) {
-          this.ui.displayError(`未知命令: ${cmdName}。输入 /help 查看可用命令。`);
+          this.ui.displayError(`Unknown command: ${cmdName}. Type /help for available commands.`);
         }
     }
   }
@@ -712,21 +712,21 @@ export class Application {
    */
   private showCommandHelp(): void {
     const helpText = `
-可用命令:
-  /help        - 显示此帮助信息
-  /sessions    - 列出所有会话
-  /config      - 显示当前配置
-  /permissions - 显示权限设置
-  /mcp         - 显示 MCP 服务器状态
-  /clear       - 清屏
-  /exit        - 退出程序
+Available commands:
+  /help        - Show this help information
+  /sessions    - List all sessions
+  /config      - Show current configuration
+  /permissions - Show permission settings
+  /mcp         - Show MCP server status
+  /clear       - Clear screen
+  /exit        - Exit program
 
-自定义命令:
+Custom commands:
 ${
   this.commandManager
     .listCommands()
     .map((c) => `  /${c.name} - ${c.description}`)
-    .join('\n') || '  (无)'
+    .join('\n') || '  (none)'
 }
 `.trim();
 
@@ -740,13 +740,13 @@ ${
     const sessions = await this.sessionManager.listSessions();
 
     if (sessions.length === 0) {
-      console.log('没有保存的会话');
+      console.log('No saved sessions');
       return;
     }
 
-    console.log('\n会话列表:');
+    console.log('\nSession list:');
     for (const session of sessions) {
-      const status = session.expired ? '(已过期)' : '';
+      const status = session.expired ? '(expired)' : '';
       const time = session.lastAccessedAt.toLocaleString();
       console.log(`  ${session.id} - ${time} ${status}`);
     }
@@ -761,7 +761,7 @@ ${
     const projectConfig = await this.configManager.loadProjectConfig(process.cwd());
     const merged = this.configManager.mergeConfigs(userConfig, projectConfig);
 
-    console.log('\n当前配置:');
+    console.log('\nCurrent configuration:');
     console.log(JSON.stringify(merged, null, 2));
     console.log('');
   }
@@ -772,11 +772,11 @@ ${
   private showPermissions(): void {
     const config = this.permissionManager.getConfig();
 
-    console.log('\n权限设置:');
-    console.log(`  模式: ${config.mode}`);
-    console.log(`  允许的工具: ${config.allowedTools?.join(', ') || '(全部)'}`);
-    console.log(`  禁止的工具: ${config.disallowedTools?.join(', ') || '(无)'}`);
-    console.log(`  跳过权限检查: ${config.allowDangerouslySkipPermissions ? '是' : '否'}`);
+    console.log('\nPermission settings:');
+    console.log(`  Mode: ${config.mode}`);
+    console.log(`  Allowed tools: ${config.allowedTools?.join(', ') || '(all)'}`);
+    console.log(`  Disallowed tools: ${config.disallowedTools?.join(', ') || '(none)'}`);
+    console.log(`  Skip permission checks: ${config.allowDangerouslySkipPermissions ? 'yes' : 'no'}`);
     console.log('');
   }
 
@@ -787,11 +787,11 @@ ${
     const servers = this.mcpManager.listServers();
 
     if (servers.length === 0) {
-      console.log('没有配置 MCP 服务器');
+      console.log('No MCP servers configured');
       return;
     }
 
-    console.log('\nMCP 服务器:');
+    console.log('\nMCP Servers:');
     for (const server of servers) {
       console.log(`  ${server}`);
     }
@@ -826,7 +826,7 @@ ${
 
     const queryResult = await this.messageRouter.routeMessage(message, session);
 
-    await this.logger.debug('查询构建完成', {
+    await this.logger.debug('Query built', {
       prompt: queryResult.prompt,
       model: queryResult.options.model,
     });
@@ -862,7 +862,7 @@ ${
 
       // 记录使用统计
       if (sdkResult.usage) {
-        await this.logger.info('Token 使用统计', {
+        await this.logger.info('Token usage statistics', {
           inputTokens: sdkResult.usage.inputTokens,
           outputTokens: sdkResult.usage.outputTokens,
           totalCostUsd: sdkResult.totalCostUsd,
@@ -872,14 +872,14 @@ ${
 
       // 处理错误结果 (Requirement 2.3)
       if (sdkResult.isError) {
-        throw new Error(sdkResult.errorMessage || '查询执行失败');
+        throw new Error(sdkResult.errorMessage || 'Query execution failed');
       }
 
       // 保存 SDK 会话 ID 以便后续恢复 (Requirement 3.2)
       if (sdkResult.sessionId && sdkResult.sessionId !== session.sdkSessionId) {
         session.sdkSessionId = sdkResult.sessionId;
         await this.sessionManager.saveSession(session);
-        await this.logger.debug('已保存 SDK 会话 ID', { sdkSessionId: sdkResult.sessionId });
+        await this.logger.debug('already save SDK session ID', { sdkSessionId: sdkResult.sessionId });
       }
 
       // 添加助手消息到会话，包含 usage 统计信息 (Requirement 2.2, 3.1, 3.3)
@@ -910,12 +910,12 @@ ${
    */
   private handleInterrupt(): void {
     this.isInterrupted = true;
-    this.logger.info('用户中断操作');
+    this.logger.info('User interrupted operation');
 
     // 调用 AbortController.abort() 中断正在进行的 SDK 查询 (Requirement 4.1)
     if (this.currentAbortController) {
       this.currentAbortController.abort();
-      this.logger.debug('已发送中断信号到 SDK 查询');
+      this.logger.debug('Interrupt signal sent to SDK query');
     }
 
     // 中断 SDKQueryExecutor（如果正在执行）
@@ -933,11 +933,11 @@ ${
    * 处理回退
    */
   private async handleRewind(_session: Session): Promise<void> {
-    await this.logger.info('打开回退菜单');
+    await this.logger.info('Opening rewind menu');
 
     if (!this.rewindManager) {
       if (this.ui) {
-        this.ui.displayWarning('回退管理器未初始化');
+        this.ui.displayWarning('Rewind manager not initialized');
       }
       return;
     }
@@ -947,7 +947,7 @@ ${
 
     if (snapshots.length === 0) {
       if (this.ui) {
-        this.ui.displayWarning('没有可用的回退点');
+        this.ui.displayWarning('No rewind points available');
       }
       return;
     }
@@ -967,13 +967,13 @@ ${
       if (selected) {
         try {
           await this.rewindManager.restoreSnapshot(selected.id);
-          this.ui.displaySuccess(`已回退到: ${selected.description}`);
-          await this.logger.info('回退成功', { snapshotId: selected.id });
+          this.ui.displaySuccess(`Reverted to: ${selected.description}`);
+          await this.logger.info('Rewind successful', { snapshotId: selected.id });
         } catch (error) {
           this.ui.displayError(
-            `回退失败: ${error instanceof Error ? error.message : String(error)}`
+            `Rewind failed: ${error instanceof Error ? error.message : String(error)}`
           );
-          await this.logger.error('回退失败', error);
+          await this.logger.error('Rewind failed', error);
         }
       }
     }
@@ -1061,7 +1061,7 @@ ${
     }
 
     if (error instanceof TimeoutError) {
-      console.error(`超时错误: ${error.message}`);
+      console.error(`Timeout error: ${error.message}`);
       this.ciLogger?.logError(error);
       return ExitCodes.TIMEOUT_ERROR;
     }
@@ -1069,8 +1069,8 @@ ${
     if (error instanceof Error) {
       // 网络错误处理
       if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
-        console.error('网络错误: 无法连接到服务器，请检查网络连接');
-        console.error('提示: 将自动重试...');
+        console.error('Network error: Unable to connect to server, please check network connection');
+        console.error('Hint: Will retry automatically...');
         this.ciLogger?.logError(error, { type: 'network' });
         return ExitCodes.NETWORK_ERROR;
       }
@@ -1081,12 +1081,12 @@ ${
         error.message.includes('401') ||
         error.message.includes('403')
       ) {
-        console.error('API 错误: 认证失败，请检查 ANTHROPIC_API_KEY 环境变量');
+        console.error('API error: Authentication failed, please check ANTHROPIC_API_KEY environment variable');
         this.ciLogger?.logError(error, { type: 'auth' });
         return ExitCodes.AUTH_ERROR;
       }
 
-      console.error(`错误: ${error.message}`);
+      console.error(`Error: ${error.message}`);
       this.ciLogger?.logError(error);
 
       // 详细模式下显示堆栈

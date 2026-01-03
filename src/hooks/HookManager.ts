@@ -182,7 +182,7 @@ export class HookManager {
     for (const event of Object.keys(config)) {
       if (!ALL_HOOK_EVENTS.includes(event as HookEvent)) {
         if (this.debug) {
-          console.warn(`未知的钩子事件类型: ${event}`);
+          console.warn(`Unknown hook event type: ${event}`);
         }
         continue;
       }
@@ -247,7 +247,7 @@ export class HookManager {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         if (this.debug) {
-          console.error(`钩子执行失败:`, error);
+          console.error(`Hook execution failed:`, error);
         }
         results.push({
           success: false,
@@ -371,7 +371,7 @@ export class HookManager {
 
     // 如果没有提示词处理器，只记录日志
     if (this.debug) {
-      console.log('执行提示词钩子:', expandedPrompt);
+      console.log('Executing prompt hook:', expandedPrompt);
     }
 
     return {
@@ -419,7 +419,7 @@ export class HookManager {
    */
   addHook(event: HookEvent, matcher: string, hook: Hook): void {
     if (!ALL_HOOK_EVENTS.includes(event)) {
-      throw new Error(`未知的钩子事件类型: ${event}`);
+      throw new Error(`Unknown hook event type: ${event}`);
     }
 
     if (!this.config[event]) {
@@ -556,12 +556,12 @@ export class HookManager {
     for (const [event, matchers] of Object.entries(config)) {
       // 检查事件类型
       if (!ALL_HOOK_EVENTS.includes(event as HookEvent)) {
-        errors.push(`未知的钩子事件类型: ${event}`);
+        errors.push(`Unknown hook event type: ${event}`);
         continue;
       }
 
       if (!Array.isArray(matchers)) {
-        errors.push(`事件 ${event} 的配置必须是数组`);
+        errors.push(`Event ${event} config must be an array`);
         continue;
       }
 
@@ -569,11 +569,11 @@ export class HookManager {
         const matcher = matchers[i];
 
         if (typeof matcher.matcher !== 'string') {
-          errors.push(`事件 ${event} 的第 ${i + 1} 个匹配器缺少 matcher 字段`);
+          errors.push(`Event ${event} matcher ${i + 1} missing 'matcher' field`);
         }
 
         if (!Array.isArray(matcher.hooks)) {
-          errors.push(`事件 ${event} 的第 ${i + 1} 个匹配器的 hooks 必须是数组`);
+          errors.push(`Event ${event} matcher ${i + 1} 'hooks' must be an array`);
           continue;
         }
 
@@ -582,19 +582,19 @@ export class HookManager {
 
           if (hook.type !== 'command' && hook.type !== 'prompt') {
             errors.push(
-              `事件 ${event} 的第 ${i + 1} 个匹配器的第 ${j + 1} 个钩子类型无效: ${hook.type}`
+              `Event ${event} matcher ${i + 1} hook ${j + 1} has invalid type: ${hook.type}`
             );
           }
 
           if (hook.type === 'command' && !hook.command) {
             errors.push(
-              `事件 ${event} 的第 ${i + 1} 个匹配器的第 ${j + 1} 个命令钩子缺少 command 字段`
+              `Event ${event} matcher ${i + 1} command hook ${j + 1} missing 'command' field`
             );
           }
 
           if (hook.type === 'prompt' && !hook.prompt) {
             errors.push(
-              `事件 ${event} 的第 ${i + 1} 个匹配器的第 ${j + 1} 个提示词钩子缺少 prompt 字段`
+              `Event ${event} matcher ${i + 1} prompt hook ${j + 1} missing 'prompt' field`
             );
           }
         }

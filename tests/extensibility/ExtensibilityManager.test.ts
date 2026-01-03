@@ -67,19 +67,19 @@ describe('ExtensibilityManager', () => {
       const tool = createSimpleTool();
       manager.registerTool(tool);
 
-      expect(() => manager.registerTool(tool)).toThrow('已注册');
+      expect(() => manager.registerTool(tool)).toThrow('Tool testTool is already registered');
     });
 
     it('应该拒绝无效的工具名称', () => {
       const tool = createSimpleTool('123invalid');
 
-      expect(() => manager.registerTool(tool)).toThrow('工具名称必须以字母开头');
+      expect(() => manager.registerTool(tool)).toThrow('Tool name must start with a letter and contain only letters, numbers, and underscores"');
     });
 
     it('应该拒绝空的工具名称', () => {
       const tool = createSimpleTool('');
 
-      expect(() => manager.registerTool(tool)).toThrow('工具名称必须是非空字符串');
+      expect(() => manager.registerTool(tool)).toThrow('Tool name must be a non-empty string"');
     });
 
     it('应该成功注销已注册的工具', () => {

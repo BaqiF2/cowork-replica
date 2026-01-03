@@ -59,7 +59,7 @@ describe('MCPManager', () => {
       const configPath = path.join(tempDir, 'nonexistent.json');
 
       await expect(mcpManager.loadServersFromConfig(configPath)).rejects.toThrow(
-        'MCP 配置文件不存在'
+        'MCP configuration file does not exist'
       );
     });
 
@@ -68,7 +68,7 @@ describe('MCPManager', () => {
       await fs.writeFile(configPath, 'invalid json');
 
       await expect(mcpManager.loadServersFromConfig(configPath)).rejects.toThrow(
-        'MCP 配置文件格式无效'
+        'MCP configuration file format invalid'
       );
     });
 
@@ -77,7 +77,7 @@ describe('MCPManager', () => {
       await fs.writeFile(configPath, JSON.stringify(['array']));
 
       await expect(mcpManager.loadServersFromConfig(configPath)).rejects.toThrow(
-        'MCP 配置必须是一个对象'
+        'MCP configuration must be an object'
       );
     });
 
@@ -93,7 +93,7 @@ describe('MCPManager', () => {
       await fs.writeFile(configPath, JSON.stringify(invalidConfig));
 
       await expect(strictManager.loadServersFromConfig(configPath)).rejects.toThrow(
-        'MCP 配置验证失败'
+        'MCP configuration validation failed:'
       );
     });
   });
@@ -171,7 +171,7 @@ describe('MCPManager', () => {
     it('应该抛出错误当名称为空时', () => {
       expect(() => {
         mcpManager.addServer('', { command: 'cmd', args: [] });
-      }).toThrow('服务器名称必须是非空字符串');
+      }).toThrow('Server name must be a non-empty string');
     });
 
     it('严格模式下应该验证配置', () => {
@@ -179,7 +179,7 @@ describe('MCPManager', () => {
 
       expect(() => {
         strictManager.addServer('invalid', {} as McpServerConfig);
-      }).toThrow('配置无效');
+      }).toThrow('Server \\"invalid\\" configuration invalid');
     });
   });
 

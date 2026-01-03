@@ -469,7 +469,7 @@ export class InteractiveUI extends EventEmitter {
           this.lastEscTime = 0;
           this.emit('rewind');
           this.onRewind().catch((err) => {
-            this.displayError(`回退失败: ${err.message}`);
+            this.displayError(`Rewind failed: ${err.message}`);
           });
         } else {
           // 单击 Esc - 中断当前操作
@@ -596,11 +596,11 @@ export class InteractiveUI extends EventEmitter {
   private getMessagePrefix(role: MessageRole): string {
     switch (role) {
       case 'user':
-        return this.colorize('👤 你:', 'green');
+        return this.colorize('👤 You:', 'green');
       case 'assistant':
         return this.colorize('🤖 Claude:', 'blue');
       case 'system':
-        return this.colorize('⚙️ 系统:', 'gray');
+        return this.colorize('⚙️ System:', 'gray');
       default:
         return '';
     }
