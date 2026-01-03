@@ -115,7 +115,17 @@ export interface SDKMessage {
   /** 助手消息内容 */
   message?: AssistantMessage;
   /** 结果子类型 */
-  subtype?: 'success' | 'error' | 'interrupted' | 'max_turns' | 'error_max_turns' | 'error_during_execution' | 'error_max_budget_usd' | 'error_max_structured_output_retries' | 'init' | 'compact_boundary';
+  subtype?:
+    | 'success'
+    | 'error'
+    | 'interrupted'
+    | 'max_turns'
+    | 'error_max_turns'
+    | 'error_during_execution'
+    | 'error_max_budget_usd'
+    | 'error_max_structured_output_retries'
+    | 'init'
+    | 'compact_boundary';
   /** 总花费（美元） */
   total_cost_usd?: number;
   /** 执行时长（毫秒） */
@@ -447,12 +457,12 @@ export class StreamingMessageProcessor {
     }
 
     const now = Date.now();
-    
+
     // 初始化 lastUpdateTime（如果是第一次调用）
     if (this.lastUpdateTime === 0) {
       this.lastUpdateTime = now;
     }
-    
+
     const timeSinceLastUpdate = now - this.lastUpdateTime;
 
     // 使用节流机制：只有当超过更新间隔或强制刷新时才输出

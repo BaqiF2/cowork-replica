@@ -360,7 +360,9 @@ export class ExtensibilityManager extends EventEmitter {
     }
 
     if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tool.name)) {
-      throw new Error('Tool name must start with a letter and contain only letters, numbers, and underscores');
+      throw new Error(
+        'Tool name must start with a letter and contain only letters, numbers, and underscores'
+      );
     }
 
     if (!tool.description || typeof tool.description !== 'string') {

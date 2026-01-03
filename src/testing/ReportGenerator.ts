@@ -68,7 +68,6 @@ export interface ReportOptions {
   includeStack?: boolean;
 }
 
-
 /**
  * 报告生成器类
  */
@@ -79,10 +78,7 @@ export class ReportGenerator {
    * @param options 报告选项
    * @returns 生成的报告内容
    */
-  async generate(
-    results: TestSuiteResult[],
-    options: ReportOptions
-  ): Promise<string> {
+  async generate(results: TestSuiteResult[], options: ReportOptions): Promise<string> {
     let content: string;
 
     switch (options.format) {
@@ -159,7 +155,6 @@ export class ReportGenerator {
     return xml;
   }
 
-
   /**
    * 生成 HTML 格式报告
    * @param results 测试套件结果列表
@@ -172,8 +167,7 @@ export class ReportGenerator {
     const totalFailed = results.reduce((sum, s) => sum + s.failed, 0);
     const totalSkipped = results.reduce((sum, s) => sum + s.skipped, 0);
     const totalTime = results.reduce((sum, s) => sum + s.duration, 0);
-    const passRate =
-      totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(1) : '0.0';
+    const passRate = totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(1) : '0.0';
 
     let html = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -269,7 +263,6 @@ export class ReportGenerator {
     return html;
   }
 
-
   /**
    * 生成 JSON 格式报告
    * @param results 测试套件结果列表
@@ -291,10 +284,7 @@ export class ReportGenerator {
         failed: totalFailed,
         skipped: totalSkipped,
         duration: totalDuration,
-        passRate:
-          totalTests > 0
-            ? Number(((totalPassed / totalTests) * 100).toFixed(2))
-            : 0,
+        passRate: totalTests > 0 ? Number(((totalPassed / totalTests) * 100).toFixed(2)) : 0,
       },
       suites: results.map((suite) => ({
         name: suite.name,
@@ -348,13 +338,27 @@ export class ReportGenerator {
       gray: '\x1b[90m',
     };
 
-    console.log('\n' + colors.bold + '═══════════════════════════════════════════════════════════════' + colors.reset);
+    console.log(
+      '\n' +
+        colors.bold +
+        '═══════════════════════════════════════════════════════════════' +
+        colors.reset
+    );
     console.log(colors.bold + '                         Test Report' + colors.reset);
-    console.log(colors.bold + '═══════════════════════════════════════════════════════════════' + colors.reset + '\n');
+    console.log(
+      colors.bold +
+        '═══════════════════════════════════════════════════════════════' +
+        colors.reset +
+        '\n'
+    );
 
     for (const suite of results) {
       console.log(colors.bold + `📦 ${suite.name}` + colors.reset);
-      console.log(colors.gray + `   ${suite.tests.length} tests | took ${this.formatDuration(suite.duration)}` + colors.reset);
+      console.log(
+        colors.gray +
+          `   ${suite.tests.length} tests | took ${this.formatDuration(suite.duration)}` +
+          colors.reset
+      );
       console.log('');
 
       for (const test of suite.tests) {
@@ -376,7 +380,9 @@ export class ReportGenerator {
             break;
         }
 
-        console.log(`   ${statusColor}${statusIcon}${colors.reset} ${test.name} ${colors.gray}(${this.formatDuration(test.duration)})${colors.reset}`);
+        console.log(
+          `   ${statusColor}${statusIcon}${colors.reset} ${test.name} ${colors.gray}(${this.formatDuration(test.duration)})${colors.reset}`
+        );
 
         if (test.status === 'failed' && test.error) {
           console.log(colors.red + `     └─ ${test.error}` + colors.reset);
@@ -396,7 +402,9 @@ export class ReportGenerator {
     }
 
     // Summary
-    console.log(colors.bold + '───────────────────────────────────────────────────────────────' + colors.reset);
+    console.log(
+      colors.bold + '───────────────────────────────────────────────────────────────' + colors.reset
+    );
     console.log(colors.bold + 'Summary:' + colors.reset);
     console.log(`  Total: ${totalTests}`);
     console.log(`  ${colors.green}Passed: ${totalPassed}${colors.reset}`);
@@ -407,9 +415,13 @@ export class ReportGenerator {
     const passRate = totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(1) : '0.0';
     const rateColor = totalFailed > 0 ? colors.red : colors.green;
     console.log(`  ${rateColor}Pass rate: ${passRate}%${colors.reset}`);
-    console.log(colors.bold + '═══════════════════════════════════════════════════════════════' + colors.reset + '\n');
+    console.log(
+      colors.bold +
+        '═══════════════════════════════════════════════════════════════' +
+        colors.reset +
+        '\n'
+    );
   }
-
 
   /**
    * 转义 XML 特殊字符

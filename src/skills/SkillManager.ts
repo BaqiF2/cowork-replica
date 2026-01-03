@@ -339,7 +339,7 @@ export class SkillManager {
    * 根据上下文匹配技能
    *
    * 匹配规则：
-   * 1. 如果技能有 triggers，检查上下文是否包含任一触发器
+   * 1. 如果技能有 triggers，检查上下文是否包含任一个触发器
    * 2. 如果技能有 description，检查上下文是否包含描述中的关键词
    *
    * @param context - 对话上下文或用户消息

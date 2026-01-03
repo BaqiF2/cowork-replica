@@ -77,10 +77,7 @@ export class TerminalEmulator {
     }
 
     if (this.ptyProcess) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PTY_CREATE_FAILED,
-        '终端会话已经启动'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PTY_CREATE_FAILED, '终端会话已经启动');
     }
 
     try {
@@ -136,17 +133,11 @@ export class TerminalEmulator {
    */
   write(data: string): void {
     if (!this.ptyProcess) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PROCESS_START_FAILED,
-        '终端会话未启动'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PROCESS_START_FAILED, '终端会话未启动');
     }
 
     if (this.isDisposed) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PROCESS_START_FAILED,
-        '终端模拟器已被销毁'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PROCESS_START_FAILED, '终端模拟器已被销毁');
     }
 
     this.ptyProcess.write(data);
@@ -160,10 +151,7 @@ export class TerminalEmulator {
   sendKey(key: SpecialKey): void {
     const sequence = SPECIAL_KEY_SEQUENCES[key];
     if (!sequence) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.INVALID_CONFIG,
-        `未知的特殊按键: ${key}`
-      );
+      throw new TerminalTestError(TerminalTestErrorType.INVALID_CONFIG, `未知的特殊按键: ${key}`);
     }
     this.write(sequence);
   }
@@ -241,10 +229,7 @@ export class TerminalEmulator {
     }
 
     if (!this.exitPromise) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PROCESS_START_FAILED,
-        '终端会话未启动'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PROCESS_START_FAILED, '终端会话未启动');
     }
 
     const timeoutMs = timeout ?? this.options.timeout ?? 30000;

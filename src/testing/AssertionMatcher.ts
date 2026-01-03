@@ -82,7 +82,11 @@ export class AssertionMatcher {
    * @param options - 断言选项
    * @returns 断言结果
    */
-  exactMatch(actual: string, expected: string, options?: Partial<AssertionOptions>): AssertionResult {
+  exactMatch(
+    actual: string,
+    expected: string,
+    options?: Partial<AssertionOptions>
+  ): AssertionResult {
     let processedActual = actual;
     let processedExpected = expected;
 
@@ -117,7 +121,11 @@ export class AssertionMatcher {
    * @param options - 断言选项
    * @returns 断言结果
    */
-  containsMatch(actual: string, expected: string, options?: Partial<AssertionOptions>): AssertionResult {
+  containsMatch(
+    actual: string,
+    expected: string,
+    options?: Partial<AssertionOptions>
+  ): AssertionResult {
     let processedActual = actual;
     let processedExpected = expected;
 
@@ -145,8 +153,12 @@ export class AssertionMatcher {
    * @param options - 断言选项
    * @returns 断言结果
    */
-  regexMatch(actual: string, pattern: RegExp, options?: Partial<AssertionOptions>): AssertionResult {
-    let processedActual = actual;
+  regexMatch(
+    actual: string,
+    pattern: RegExp,
+    options?: Partial<AssertionOptions>
+  ): AssertionResult {
+    const processedActual = actual;
     let processedPattern = pattern;
 
     // 处理大小写
@@ -161,9 +173,7 @@ export class AssertionMatcher {
       passed,
       actual,
       expected: pattern.toString(),
-      message: passed
-        ? undefined
-        : `正则匹配失败：实际输出不匹配模式 ${pattern.toString()}`,
+      message: passed ? undefined : `正则匹配失败：实际输出不匹配模式 ${pattern.toString()}`,
       diff: match ? `匹配内容: ${match[0]}` : undefined,
     };
   }
@@ -176,7 +186,11 @@ export class AssertionMatcher {
    * @param options - 断言选项
    * @returns 断言结果
    */
-  jsonMatch(actual: string, expected: object, _options?: Partial<AssertionOptions>): AssertionResult {
+  jsonMatch(
+    actual: string,
+    expected: object,
+    _options?: Partial<AssertionOptions>
+  ): AssertionResult {
     let parsedActual: unknown;
 
     try {
@@ -214,7 +228,11 @@ export class AssertionMatcher {
    * @param options - 断言选项
    * @returns 断言结果
    */
-  jsonSchemaMatch(actual: string, schema: object, _options?: Partial<AssertionOptions>): AssertionResult {
+  jsonSchemaMatch(
+    actual: string,
+    schema: object,
+    _options?: Partial<AssertionOptions>
+  ): AssertionResult {
     let parsedActual: unknown;
 
     try {
@@ -348,10 +366,7 @@ export class AssertionMatcher {
     if (keysA.length !== keysB.length) return false;
 
     return keysA.every((key) =>
-      this.deepEqual(
-        (a as Record<string, unknown>)[key],
-        (b as Record<string, unknown>)[key]
-      )
+      this.deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])
     );
   }
 

@@ -218,10 +218,7 @@ export class InteractionController {
    */
   private async handleSend(step: InteractionStep): Promise<string> {
     if (!this.terminal) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PROCESS_START_FAILED,
-        '终端未初始化'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PROCESS_START_FAILED, '终端未初始化');
     }
 
     if (typeof step.value !== 'string') {
@@ -240,10 +237,7 @@ export class InteractionController {
    */
   private async handleSendKey(step: InteractionStep): Promise<string> {
     if (!this.terminal) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PROCESS_START_FAILED,
-        '终端未初始化'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PROCESS_START_FAILED, '终端未初始化');
     }
 
     if (!this.isSpecialKey(step.value)) {
@@ -262,10 +256,7 @@ export class InteractionController {
    */
   private async handleWait(step: InteractionStep): Promise<string> {
     if (!this.terminal) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PROCESS_START_FAILED,
-        '终端未初始化'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PROCESS_START_FAILED, '终端未初始化');
     }
 
     if (typeof step.value !== 'string' && !(step.value instanceof RegExp)) {
@@ -285,10 +276,7 @@ export class InteractionController {
    */
   private async handleWaitForExit(step: InteractionStep): Promise<string> {
     if (!this.terminal) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PROCESS_START_FAILED,
-        '终端未初始化'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PROCESS_START_FAILED, '终端未初始化');
     }
 
     const timeout = step.timeout ?? this.options.defaultStepTimeout;
@@ -301,10 +289,7 @@ export class InteractionController {
    */
   private async handleAssert(step: InteractionStep): Promise<string> {
     if (!this.terminal) {
-      throw new TerminalTestError(
-        TerminalTestErrorType.PROCESS_START_FAILED,
-        '终端未初始化'
-      );
+      throw new TerminalTestError(TerminalTestErrorType.PROCESS_START_FAILED, '终端未初始化');
     }
 
     if (!step.assertion) {
@@ -334,9 +319,7 @@ export class InteractionController {
    * 处理延迟步骤
    */
   private async handleDelay(step: InteractionStep): Promise<void> {
-    const delay = typeof step.value === 'number' 
-      ? step.value 
-      : (step.timeout ?? 1000);
+    const delay = typeof step.value === 'number' ? step.value : (step.timeout ?? 1000);
 
     await new Promise((resolve) => setTimeout(resolve, delay));
   }

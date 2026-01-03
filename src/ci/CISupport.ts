@@ -90,7 +90,7 @@ export interface CIConfig {
 
 /**
  * 退出码定义
- * 
+ *
  * 根据 Requirements 8.1-8.5:
  * - 无效参数错误：退出码 2
  * - 认证错误：退出码 3
@@ -401,8 +401,6 @@ export class TimeoutError extends Error {
     this.name = 'TimeoutError';
   }
 }
-
-
 
 /**
  * CI 支持管理器

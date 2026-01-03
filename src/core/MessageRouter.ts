@@ -273,7 +273,7 @@ export class MessageRouter {
    * @param session - 当前会话
    * @returns 子代理定义映射
    */
-   getAgentDefinitions(session: Session): Record<string, AgentDefinition> {
+  getAgentDefinitions(session: Session): Record<string, AgentDefinition> {
     const { activeAgents, projectConfig } = session.context;
     const result: Record<string, AgentDefinition> = {};
 

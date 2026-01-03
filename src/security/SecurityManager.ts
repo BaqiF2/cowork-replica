@@ -144,7 +144,7 @@ const DEFAULT_SENSITIVE_PATTERNS: Array<{
 }> = [
   {
     type: 'api_key',
-    pattern: /(?:api[_-]?key|apikey)\s*[:=]\s*['"]?([a-zA-Z0-9_\-]{20,})['"]?/gi,
+    pattern: /(?:api[_-]?key|apikey)\s*[:=]\s*['"]?([a-zA-Z0-9_-]{20,})['"]?/gi,
     severity: 'critical',
     suggestion: '请使用环境变量存储 API 密钥，不要硬编码在代码中',
   },
@@ -162,13 +162,13 @@ const DEFAULT_SENSITIVE_PATTERNS: Array<{
   },
   {
     type: 'token',
-    pattern: /(?:bearer|token|auth)\s*[:=]\s*['"]?([a-zA-Z0-9_\-\.]{20,})['"]?/gi,
+    pattern: /(?:bearer|token|auth)\s*[:=]\s*['"]?([a-zA-Z0-9_.-]{20,})['"]?/gi,
     severity: 'high',
     suggestion: '请使用环境变量存储认证令牌',
   },
   {
     type: 'secret',
-    pattern: /(?:secret|client_secret)\s*[:=]\s*['"]?([a-zA-Z0-9_\-]{16,})['"]?/gi,
+    pattern: /(?:secret|client_secret)\s*[:=]\s*['"]?([a-zA-Z0-9_-]{16,})['"]?/gi,
     severity: 'critical',
     suggestion: '请使用环境变量或密钥管理服务存储密钥',
   },
@@ -180,7 +180,7 @@ const DEFAULT_SENSITIVE_PATTERNS: Array<{
   },
   {
     type: 'ssh_key',
-    pattern: /ssh-(?:rsa|ed25519|ecdsa)\s+[A-Za-z0-9+\/=]{40,}/g,
+    pattern: /ssh-(?:rsa|ed25519|ecdsa)\s+[A-Za-z0-9+/=]{40,}/g,
     severity: 'high',
     suggestion: '检测到 SSH 密钥，请确保这是公钥而非私钥',
   },
@@ -211,7 +211,7 @@ const DEFAULT_DANGEROUS_COMMANDS: Array<{
   // 破坏性命令
   {
     type: 'destructive',
-    pattern: /\brm\s+(-[rf]+\s+)*[\/~]/i,
+    pattern: /\brm\s+(-[rf]+\s+)*[/~]/i,
     riskLevel: 'critical',
     reason: '此命令可能删除重要文件或目录',
   },
@@ -606,14 +606,18 @@ export class SecurityManager {
 
     if (!value) {
       if (config.required) {
-        throw new Error(`Missing required API key. Please set environment variable ${config.envVarName}`);
+        throw new Error(
+          `Missing required API key. Please set environment variable ${config.envVarName}`
+        );
       }
       return null;
     }
 
     // 验证格式
     if (config.validationPattern && !config.validationPattern.test(value)) {
-      throw new Error(`Invalid API key format. Please check the value of environment variable ${config.envVarName}`);
+      throw new Error(
+        `Invalid API key format. Please check the value of environment variable ${config.envVarName}`
+      );
     }
 
     return value;

@@ -263,6 +263,7 @@ export class ANSIParser {
     const style: ANSIStyle = {};
 
     // 检查是否是 CSI SGR 序列 (ESC [ ... m)
+    // eslint-disable-next-line no-control-regex
     const sgrMatch = sequence.match(/\x1b\[([0-9;]*)m/);
     if (!sgrMatch) {
       return style;

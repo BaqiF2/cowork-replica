@@ -218,7 +218,9 @@ export class PermissionManager {
   async promptUser(tool: string, args: Record<string, unknown>): Promise<boolean> {
     if (!this.promptUserCallback) {
       // 如果没有设置回调，默认拒绝
-      console.warn(`Permission request: ${tool}, but user confirmation callback not set, denying by default`);
+      console.warn(
+        `Permission request: ${tool}, but user confirmation callback not set, denying by default`
+      );
       return false;
     }
 

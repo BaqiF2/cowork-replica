@@ -1178,7 +1178,8 @@ export class LanguageSupport {
         category: 'error_handling',
         title: '使用错误包装',
         description: '使用 fmt.Errorf 和 %w 包装错误，保留错误链',
-        example: 'if err != nil {\n    return fmt.Errorf("failed to process user %s: %w", userID, err)\n}',
+        example:
+          'if err != nil {\n    return fmt.Errorf("failed to process user %s: %w", userID, err)\n}',
         priority: 'medium',
       },
       {

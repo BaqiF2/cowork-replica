@@ -427,7 +427,7 @@ export class CommandManager {
    */
   async embedCommandOutputs(template: string): Promise<string> {
     // 匹配 !`command` 语法
-    const commandPattern = /!\`([^`]+)\`/g;
+    const commandPattern = /!`([^`]+)`/g;
     const matches = [...template.matchAll(commandPattern)];
 
     if (matches.length === 0) {

@@ -251,7 +251,10 @@ export class Application {
       // 在 CI 环境中记录环境信息
       if (this.ciSupport?.isCI()) {
         // 记录 CI 环境信息
-        this.ciLogger?.info('CI environment detected', this.ciSupport.getSummary() as Record<string, unknown>);
+        this.ciLogger?.info(
+          'CI environment detected',
+          this.ciSupport.getSummary() as Record<string, unknown>
+        );
       }
 
       // 初始化应用程序
@@ -425,7 +428,9 @@ export class Application {
 
     // 加载扩展
     await Promise.all([
-      this.skillManager.loadSkills(skillDirs).catch((err) => this.logger.warn('Failed to load skills', err)),
+      this.skillManager
+        .loadSkills(skillDirs)
+        .catch((err) => this.logger.warn('Failed to load skills', err)),
       this.commandManager
         .loadCommands(commandDirs)
         .catch((err) => this.logger.warn('Failed to load commands', err)),
@@ -703,7 +708,7 @@ export class Application {
         }
         break;
 
-      default:
+      default: {
         // 尝试执行自定义命令
         const customCmd = this.commandManager.getCommand(cmdName);
         if (customCmd) {
@@ -711,6 +716,7 @@ export class Application {
         } else if (this.ui) {
           this.ui.displayError(`Unknown command: ${cmdName}. Type /help for available commands.`);
         }
+      }
     }
   }
 
@@ -783,7 +789,9 @@ ${
     console.log(`  Mode: ${config.mode}`);
     console.log(`  Allowed tools: ${config.allowedTools?.join(', ') || '(all)'}`);
     console.log(`  Disallowed tools: ${config.disallowedTools?.join(', ') || '(none)'}`);
-    console.log(`  Skip permission checks: ${config.allowDangerouslySkipPermissions ? 'yes' : 'no'}`);
+    console.log(
+      `  Skip permission checks: ${config.allowDangerouslySkipPermissions ? 'yes' : 'no'}`
+    );
     console.log('');
   }
 
@@ -858,8 +866,12 @@ ${
         maxBudgetUsd: queryResult.options.maxBudgetUsd,
         maxThinkingTokens: queryResult.options.maxThinkingTokens,
         // mcpServers 类型需要转换，暂时使用类型断言
-        mcpServers: queryResult.options.mcpServers as Parameters<typeof this.sdkExecutor.execute>[0]['mcpServers'],
-        agents: queryResult.options.agents as Parameters<typeof this.sdkExecutor.execute>[0]['agents'],
+        mcpServers: queryResult.options.mcpServers as Parameters<
+          typeof this.sdkExecutor.execute
+        >[0]['mcpServers'],
+        agents: queryResult.options.agents as Parameters<
+          typeof this.sdkExecutor.execute
+        >[0]['agents'],
         sandbox: queryResult.options.sandbox,
         abortController: this.currentAbortController,
         // 会话恢复支持 (Requirement 3.2)
@@ -886,19 +898,23 @@ ${
       if (sdkResult.sessionId && sdkResult.sessionId !== session.sdkSessionId) {
         session.sdkSessionId = sdkResult.sessionId;
         await this.sessionManager.saveSession(session);
-        await this.logger.debug('already save SDK session ID', { sdkSessionId: sdkResult.sessionId });
+        await this.logger.debug('already save SDK session ID', {
+          sdkSessionId: sdkResult.sessionId,
+        });
       }
 
       // 添加助手消息到会话，包含 usage 统计信息 (Requirement 2.2, 3.1, 3.3)
       await this.sessionManager.addMessage(session, {
         role: 'assistant',
         content: sdkResult.response,
-        usage: sdkResult.usage ? {
-          inputTokens: sdkResult.usage.inputTokens,
-          outputTokens: sdkResult.usage.outputTokens,
-          totalCostUsd: sdkResult.totalCostUsd,
-          durationMs: sdkResult.durationMs,
-        } : undefined,
+        usage: sdkResult.usage
+          ? {
+              inputTokens: sdkResult.usage.inputTokens,
+              outputTokens: sdkResult.usage.outputTokens,
+              totalCostUsd: sdkResult.totalCostUsd,
+              durationMs: sdkResult.durationMs,
+            }
+          : undefined,
       });
 
       return sdkResult.response;
@@ -1076,7 +1092,9 @@ ${
     if (error instanceof Error) {
       // 网络错误处理
       if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
-        console.error('Network error: Unable to connect to server, please check your network connection');
+        console.error(
+          'Network error: Unable to connect to server, please check your network connection'
+        );
         console.error('Hint: Will retry automatically...');
         this.ciLogger?.logError(error, { type: 'network' });
         return ExitCodes.NETWORK_ERROR;
@@ -1088,7 +1106,9 @@ ${
         error.message.includes('401') ||
         error.message.includes('403')
       ) {
-        console.error('API error: Authentication failed, please check ANTHROPIC_API_KEY environment variable');
+        console.error(
+          'API error: Authentication failed, please check ANTHROPIC_API_KEY environment variable'
+        );
         this.ciLogger?.logError(error, { type: 'auth' });
         return ExitCodes.AUTH_ERROR;
       }

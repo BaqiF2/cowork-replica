@@ -19,7 +19,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import * as crypto from 'crypto';
-import {ProjectConfig, UserConfig} from '../config/SDKConfigLoader';
+import { ProjectConfig, UserConfig } from '../config/SDKConfigLoader';
 
 /**
  * 消息内容块类型
@@ -125,7 +125,7 @@ export interface SessionMetadata {
  * 会话过期时间（默认 5 小时，单位毫秒）
  * 可通过环境变量 SESSION_EXPIRY_HOURS 配置（单位：小时）
  */
-const SESSION_EXPIRY_MS = (parseInt(process.env.SESSION_EXPIRY_HOURS || '5', 10) * 60 * 60 * 1000);
+const SESSION_EXPIRY_MS = parseInt(process.env.SESSION_EXPIRY_HOURS || '5', 10) * 60 * 60 * 1000;
 
 /**
  * 会话管理器

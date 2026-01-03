@@ -766,7 +766,7 @@ export class CollaborationManager {
 
 /**
  * 认证配置接口
- * 
+ *
  * 注意：API 密钥由 Claude Agent SDK 自动从 Claude Code 配置中获取，
  * 不再需要在此处手动配置
  */

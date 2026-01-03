@@ -133,7 +133,6 @@ export interface FixtureContext {
   sessionsDir: string;
 }
 
-
 /**
  * 测试夹具类
  * 负责测试环境的准备和清理
@@ -487,11 +486,7 @@ export class TestFixture {
     // 创建钩子配置
     if (extensions.hooks) {
       const hooksPath = path.join(this.configDir, 'hooks.json');
-      await fs.promises.writeFile(
-        hooksPath,
-        JSON.stringify(extensions.hooks, null, 2),
-        'utf-8'
-      );
+      await fs.promises.writeFile(hooksPath, JSON.stringify(extensions.hooks, null, 2), 'utf-8');
     }
   }
 

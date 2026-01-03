@@ -433,7 +433,9 @@ claude-replica - Claude Code 智能代码助手命令行工具
   private parseNumber(value: string, optionName: string): number {
     const num = parseFloat(value);
     if (isNaN(num)) {
-      throw new CLIParseError(`Option ${optionName} requires a numeric value, but received: ${value}`);
+      throw new CLIParseError(
+        `Option ${optionName} requires a numeric value, but received: ${value}`
+      );
     }
     return num;
   }

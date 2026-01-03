@@ -109,8 +109,7 @@ const PermissionModeColors: Record<PermissionMode, keyof typeof Colors> = {
  * 权限模式显示名称映射
  */
 const PermissionModeLabels: Record<PermissionMode, string> = {
-  default: 'De' +
-    'fault',
+  default: 'De' + 'fault',
   acceptEdits: 'Accept Edits',
   bypassPermissions: 'Bypass Permissions',
   plan: 'Plan Mode',
@@ -179,6 +178,7 @@ export class InteractiveUI extends EventEmitter {
       terminal: true,
     });
 
+    // 检查当前输入流是否为标准输入流，检查标准输入是否连接到一个 TTY（终端）设备，如果上述条件都满足，则启用原始模式。
     // 设置原始模式以捕获 Esc 键
     if (this.input === process.stdin && process.stdin.isTTY) {
       process.stdin.setRawMode(true);

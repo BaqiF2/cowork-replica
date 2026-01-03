@@ -420,7 +420,10 @@ export class SDKQueryExecutor {
       };
     } catch (error) {
       // 处理 AbortError (Requirement 4.3)
-      if (error instanceof Error && (error.name === 'AbortError' || this.abortController?.signal.aborted)) {
+      if (
+        error instanceof Error &&
+        (error.name === 'AbortError' || this.abortController?.signal.aborted)
+      ) {
         return {
           response: accumulatedResponse,
           isError: true,
@@ -574,10 +577,7 @@ export class SDKQueryExecutor {
    * @param currentResponse - 当前累积的响应
    * @returns 处理结果
    */
-  processMessage(
-    message: SDKMessage,
-    currentResponse: string
-  ): { accumulatedResponse: string } {
+  processMessage(message: SDKMessage, currentResponse: string): { accumulatedResponse: string } {
     let accumulatedResponse = currentResponse;
 
     // 处理助手消息
@@ -615,7 +615,6 @@ export class SDKQueryExecutor {
     return textParts.join('');
   }
 }
-
 
 /**
  * 独立的选项映射函数
