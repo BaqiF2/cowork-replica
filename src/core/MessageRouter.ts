@@ -6,6 +6,7 @@
  *
  * 核心方法：
  * - routeMessage(): 将消息路由到 SDK 并构建查询选项
+ * - buildStreamMessage(): 构建流式消息（支持图像引用）
  * - buildSystemPrompt(): 构建系统提示词（包含 CLAUDE.md 和技能）
  * - buildQueryOptions(): 构建完整的 SDK 查询选项
  * - getEnabledToolNames(): 获取启用的工具列表
@@ -25,6 +26,12 @@ import {
 import { ToolRegistry } from '../tools/ToolRegistry';
 import { PermissionManager, CanUseTool, ToolUseParams } from '../permissions/PermissionManager';
 import { Session, Skill, ContentBlock } from './SessionManager';
+import { ImageHandler, ImageData } from '../image/ImageHandler';
+import {
+  StreamContentBlock,
+  TextContentBlock,
+  ImageContentBlock,
+} from '../sdk/SDKQueryExecutor';
 
 /**
  * 消息接口
@@ -92,6 +99,48 @@ export interface MessageRouterOptions {
   toolRegistry?: ToolRegistry;
   /** 权限管理器 */
   permissionManager: PermissionManager;
+  /** 图像处理器（可选，如果不提供则在需要时创建） */
+  imageHandler?: ImageHandler;
+}
+
+/**
+ * 流式消息构建结果
+ *
+ * 包含构建的内容块、处理后的文本、加载的图像和错误信息。
+ *
+ * 字段说明：
+ * - contentBlocks: SDK 可用的内容块数组（文本块 + 图像块）
+ *   - 可能为空（极端情况：空输入且无图像）
+ *   - 顺序：文本块在前，图像块在后（按原始顺序）
+ *
+ * - processedText: 移除所有图像引用后的纯文本
+ *   - 如果原始消息仅包含图像引用，此字段为空字符串
+ *   - 多余空白会被清理（连续空格变为单个空格）
+ *
+ * - images: 成功加载的图像数据列表
+ *   - 按原始文本中的出现顺序排列
+ *   - 长度可能小于引用数量（部分图像加载失败）
+ *   - 如果没有图像或全部失败，此数组为空
+ *
+ * - errors: 图像加载错误列表
+ *   - 每个错误包含引用字符串和错误消息
+ *   - 长度 > 0 表示至少有一个图像加载失败
+ *   - 如果没有错误，此数组为空
+ *
+ * 示例：
+ * - 成功场景：contentBlocks.length > 0, images.length > 0, errors.length = 0
+ * - 部分失败：contentBlocks.length > 0, images.length < 引用数, errors.length > 0
+ * - 全部失败：contentBlocks 仅含文本, images.length = 0, errors.length > 0
+ */
+export interface StreamMessageBuildResult {
+  /** 构建的内容块数组 */
+  contentBlocks: StreamContentBlock[];
+  /** 处理后的纯文本（移除图像引用后） */
+  processedText: string;
+  /** 加载的图像数据列表 */
+  images: ImageData[];
+  /** 图像处理错误列表 */
+  errors: Array<{ reference: string; error: string }>;
 }
 
 /**
@@ -99,13 +148,14 @@ export interface MessageRouterOptions {
  *
  * 可以通过环境变量 CLAUDE_REPLICA_DEFAULT_MODEL 进行配置
  */
-const DEFAULT_MODEL = process.env.CLAUDE_REPLICA_DEFAULT_MODEL || 'claude-sonnet-4-5-20250929';
+const DEFAULT_MODEL = process.env.CLAUDE_REPLICA_DEFAULT_MODEL || 'sonnet';
 
 /**
  * 消息路由器类
  *
  * 负责：
  * - 构建系统提示词（包含 CLAUDE.md 和技能）
+ * - 构建流式消息（包含图像处理）
  * - 获取启用的工具列表
  * - 创建权限处理函数
  * - 获取子代理定义
@@ -118,11 +168,195 @@ export class MessageRouter {
   private readonly toolRegistry: ToolRegistry;
   /** 权限管理器 */
   private readonly permissionManager: PermissionManager;
+  /** 图像处理器缓存（按工作目录索引） */
+  private readonly imageHandlerCache: Map<string, ImageHandler> = new Map();
+  /** 默认工作目录 */
+  private defaultWorkingDirectory: string = process.cwd();
 
   constructor(options: MessageRouterOptions) {
     this.configManager = options.configManager;
     this.toolRegistry = options.toolRegistry || new ToolRegistry();
     this.permissionManager = options.permissionManager;
+
+    // 如果提供了 imageHandler，将其存储为默认工作目录的缓存
+    if (options.imageHandler) {
+      this.imageHandlerCache.set(this.defaultWorkingDirectory, options.imageHandler);
+    }
+  }
+
+
+  /**
+   * 设置默认工作目录
+   *
+   * 用于图像路径解析。更新默认工作目录后，后续调用 getImageHandler()
+   * 不传参数时将使用新的工作目录。
+   *
+   * @param workingDirectory - 工作目录路径
+   */
+  setWorkingDirectory(workingDirectory: string): void {
+    this.defaultWorkingDirectory = workingDirectory;
+    // 无需预创建实例，getImageHandler() 会按需创建并缓存
+  }
+
+  /**
+   * 获取或创建图像处理器
+   *
+   * 采用缓存策略：每个工作目录对应一个 ImageHandler 实例。
+   * 这样可以避免频繁创建实例，同时支持多个工作目录。
+   *
+   * @param workingDirectory - 可选的工作目录，未提供时使用默认工作目录
+   * @returns 图像处理器实例
+   */
+  private getImageHandler(workingDirectory?: string): ImageHandler {
+    const dir = workingDirectory || this.defaultWorkingDirectory;
+
+    // 尝试从缓存获取
+    let handler = this.imageHandlerCache.get(dir);
+
+    // 如果缓存中不存在，创建新实例并缓存
+    if (!handler) {
+      handler = new ImageHandler(dir);
+      this.imageHandlerCache.set(dir, handler);
+    }
+
+    return handler;
+  }
+
+  /**
+   * 构建流式消息
+   *
+   * 解析消息中的图像引用（@./image.png 语法），构建包含文本和图像内容块的消息。
+   *
+   * 支持的图像引用语法：
+   * - @./image.png - 相对路径（相对于工作目录）
+   * - @/abs/path/image.png - 绝对路径
+   * - @image.png - 当前目录
+   *
+   * 内容块顺序规则：
+   * - 所有图像引用会被从文本中移除
+   * - 处理后的纯文本（如果非空）作为第一个文本块
+   * - 图像块按照它们在原始文本中的出现顺序依次添加
+   * - 注意：图像与文本片段的交错位置不会被保留
+   *   例如："Check @img1.png then @img2.png"
+   *        会变成 [text: "Check then"], [image: img1], [image: img2]
+   *
+   * 边缘情况处理：
+   *
+   * 1. 纯文本消息（无图像引用）
+   *    输入：  "Hello, Claude!"
+   *    输出：  contentBlocks: [{ type: 'text', text: 'Hello, Claude!' }]
+   *           images: []
+   *           errors: []
+   *
+   * 2. 纯图像消息（仅包含图像引用）
+   *    输入：  "@./image.png"
+   *    输出：  contentBlocks: [{ type: 'image', source: {...} }]
+   *           images: [ImageData]
+   *           errors: []
+   *           注意：不会有文本块，因为 processResult.text 为空
+   *
+   * 3. 文本+图像混合
+   *    输入：  "Check @./image.png please"
+   *    输出：  contentBlocks: [
+   *             { type: 'text', text: 'Check please' },
+   *             { type: 'image', source: {...} }
+   *           ]
+   *           images: [ImageData]
+   *           errors: []
+   *
+   * 4. 空消息或仅空白字符
+   *    输入：  "" 或 "   "
+   *    输出：  contentBlocks: [{ type: 'text', text: '' }] 或 [{ type: 'text', text: '   ' }]
+   *           images: []
+   *           errors: []
+   *           注意：保留原始消息，即使为空
+   *
+   * 5. 图像引用无效（文件不存在）
+   *    输入：  "Check @./nonexistent.png"
+   *    输出：  contentBlocks: [{ type: 'text', text: 'Check' }]
+   *           images: []
+   *           errors: [{ reference: '@./nonexistent.png', error: 'Image file does not exist: ...' }]
+   *           注意：失败的图像不会添加到 contentBlocks，但文本仍会处理
+   *
+   * 6. 多个图像引用（部分失败）
+   *    输入：  "Compare @./img1.png and @./nonexistent.png"
+   *    输出：  contentBlocks: [
+   *             { type: 'text', text: 'Compare and' },
+   *             { type: 'image', source: {...} }  // 仅 img1
+   *           ]
+   *           images: [ImageData]  // 仅 img1
+   *           errors: [{ reference: '@./nonexistent.png', error: '...' }]
+   *
+   * 7. 多个图像引用（全部成功）
+   *    输入：  "See @./img1.png and @./img2.png"
+   *    输出：  contentBlocks: [
+   *             { type: 'text', text: 'See and' },
+   *             { type: 'image', source: {...} },  // img1
+   *             { type: 'image', source: {...} }   // img2
+   *           ]
+   *           images: [ImageData, ImageData]  // 按原始顺序
+   *           errors: []
+   *
+   * @param rawMessage - 原始消息文本（可能包含图像引用）
+   * @param session - 会话对象（用于获取工作目录）
+   * @returns 流式消息构建结果
+   */
+  async buildStreamMessage(rawMessage: string, session: Session): Promise<StreamMessageBuildResult> {
+    const imageHandler = this.getImageHandler(session.workingDirectory);
+
+    // 处理图像引用
+    const processResult = await imageHandler.processTextWithImages(rawMessage);
+
+    // 构建内容块
+    const contentBlocks: StreamContentBlock[] = [];
+
+    // 添加文本块（如果有处理后的文本）
+    if (processResult.text.trim()) {
+      const textBlock: TextContentBlock = {
+        type: 'text',
+        text: processResult.text,
+      };
+      contentBlocks.push(textBlock);
+    } else if (processResult.images.length === 0) {
+      // 如果没有图像也没有文本，使用原始消息
+      const textBlock: TextContentBlock = {
+        type: 'text',
+        text: rawMessage,
+      };
+      contentBlocks.push(textBlock);
+    }
+
+    // 添加图像块
+    for (const imageData of processResult.images) {
+      const imageBlock: ImageContentBlock = {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: imageData.mimeType,
+          data: imageData.data,
+        },
+      };
+      contentBlocks.push(imageBlock);
+    }
+
+    return {
+      contentBlocks,
+      processedText: processResult.text,
+      images: processResult.images,
+      errors: processResult.errors,
+    };
+  }
+
+  /**
+   * 检查消息是否包含图像引用
+   *
+   * @param message - 消息文本
+   * @returns 是否包含图像引用
+   */
+  hasImageReferences(message: string): boolean {
+    const imageHandler = this.getImageHandler();
+    const references = imageHandler.extractImageReferences(message);
+    return references.length > 0;
   }
 
   /**

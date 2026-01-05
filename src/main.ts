@@ -54,7 +54,7 @@ import {
   type CIConfig,
   type TimeoutConfig,
 } from './ci/CISupport';
-import { SDKQueryExecutor, SDKErrorType, ERROR_MESSAGES } from './sdk';
+import { SDKQueryExecutor, SDKErrorType, ERROR_MESSAGES, StreamingQueryManager } from './sdk';
 
 /**
  * 应用程序版本号（从环境变量读取，默认 0.1.0）
@@ -188,17 +188,12 @@ export class Application {
   private rewindManager: RewindManager | null = null;
   private permissionManager!: PermissionManager;
   private messageRouter!: MessageRouter;
-  // 流式消息处理器，用于处理 SDK 返回的流式消息（将在 SDK 集成时使用）
-  // @ts-expect-error 预留变量，将在后续 SDK 集成中使用
-  private streamingProcessor!: StreamingMessageProcessor;
+  // @ts-expect-error 流式消息处理器，用于处理 SDK 返回的流式消息（保留引用以便未来扩展）
+  private streamingProcessor: StreamingMessageProcessor | null = null;
+  // 流式查询管理器，用于交互模式下的流式输入
+  private streamingQueryManager: StreamingQueryManager | null = null;
   private logger!: Logger;
   private ui: InteractiveUI | null = null;
-  // 当前会话引用，用于全局访问（将在后续功能中使用）
-  // @ts-expect-error 预留变量，将在后续功能中使用
-  private currentSession: Session | null = null;
-  // 中断标志，用于取消正在进行的操作（将在 SDK 集成时使用）
-  // @ts-expect-error 预留变量，将在后续功能中使用
-  private isInterrupted = false;
   // 当前的中断控制器，用于取消正在进行的 SDK 查询
   private currentAbortController: AbortController | null = null;
   // CI/CD 支持
@@ -330,8 +325,18 @@ export class Application {
       permissionManager: this.permissionManager,
     });
 
+    // 设置消息路由器的工作目录
+    this.messageRouter.setWorkingDirectory(workingDir);
+
     // 初始化流式消息处理器
     this.streamingProcessor = new StreamingMessageProcessor();
+
+    // 初始化流式查询管理器（用于交互模式）
+    // 注意：图像处理由 MessageRouter 内部管理，不需要单独的 workingDirectory
+    this.streamingQueryManager = new StreamingQueryManager({
+      messageRouter: this.messageRouter,
+      sdkExecutor: this.sdkExecutor,
+    });
 
     // 初始化回退管理器
     this.rewindManager = new RewindManager({
@@ -478,7 +483,12 @@ export class Application {
 
     // 创建或恢复会话
     const session = await this.getOrCreateSession(options);
-    this.currentSession = session;
+
+    // 启动流式查询会话
+    if (this.streamingQueryManager) {
+      this.streamingQueryManager.startSession(session);
+      await this.logger.debug('Started streaming query session');
+    }
 
     // 设置用户确认回调
     this.permissionManager.setPromptUserCallback(async (message: string) => {
@@ -533,7 +543,6 @@ export class Application {
 
     // 创建或恢复会话
     const session = await this.getOrCreateSession(options);
-    this.currentSession = session;
 
     // 记录执行开始（CI 模式）
     const startTime = Date.now();
@@ -633,6 +642,9 @@ export class Application {
 
   /**
    * 处理用户消息
+   *
+   * 在交互模式下，使用 StreamingQueryManager 进行流式输入处理
+   * 支持图像引用（@./image.png 语法）
    */
   private async handleUserMessage(message: string, session: Session): Promise<void> {
     // 检查是否是命令
@@ -642,22 +654,75 @@ export class Application {
     }
 
     try {
+      // 检查消息是否包含图像引用
+      const hasImages = this.messageRouter.hasImageReferences(message);
+      if (hasImages && this.ui) {
+        this.ui.displayInfo('正在处理图像引用...');
+      }
+
       // 显示处理中状态
       if (this.ui) {
         this.ui.displayProgress('Processing...', 'running');
       }
 
-      // 执行查询
-      const result = await this.executeQuery(message, session);
+      // 在交互模式下优先使用 StreamingQueryManager
+      let result: string;
+      if (this.streamingQueryManager && this.streamingQueryManager.getActiveSession()) {
+        const processResult = await this.streamingQueryManager.sendMessage(message);
 
-      // 清除进度指示器
-      if (this.ui) {
-        this.ui.clearProgress();
+        // 清除进度指示器
+        if (this.ui) {
+          this.ui.clearProgress();
+        }
+
+        // 处理图像错误提示
+        if (processResult.imageErrors && processResult.imageErrors.length > 0) {
+          for (const err of processResult.imageErrors) {
+            if (this.ui) {
+              this.ui.displayWarning(`图像加载失败: ${err.reference} - ${err.error}`);
+            }
+          }
+        }
+
+        if (!processResult.success) {
+          if (this.ui) {
+            this.ui.displayError(processResult.error || '消息处理失败');
+          }
+          return;
+        }
+
+        result = processResult.result?.response || '';
+
+        // 保存 SDK 会话 ID 以便后续恢复
+        if (processResult.result?.sessionId && processResult.result.sessionId !== session.sdkSessionId) {
+          session.sdkSessionId = processResult.result.sessionId;
+          await this.sessionManager.saveSession(session);
+        }
+      } else {
+        // 回退到传统执行方式
+        result = await this.executeQuery(message, session);
+
+        // 清除进度指示器
+        if (this.ui) {
+          this.ui.clearProgress();
+        }
       }
 
       // 显示结果
       if (this.ui && result) {
         this.ui.displayMessage(result, 'assistant');
+      }
+
+      // 添加消息到会话历史
+      await this.sessionManager.addMessage(session, {
+        role: 'user',
+        content: message,
+      });
+      if (result) {
+        await this.sessionManager.addMessage(session, {
+          role: 'assistant',
+          content: result,
+        });
       }
     } catch (error) {
       if (this.ui) {
@@ -926,14 +991,22 @@ ${
   /**
    * 处理中断
    *
-   * 当用户触发中断（Ctrl+C）时调用此方法
+   * 当用户触发中断（Ctrl+C 或 Esc）时调用此方法
    * 会中止当前正在进行的 SDK 查询并显示中断状态
+   * 消息队列中的后续消息不受影响，会继续处理
    *
-   * **验证: 需求 4.1, 4.2, 4.3**
+   * **验证: 需求 4.1, 4.2, 4.3, 流式输入需求**
    */
   private handleInterrupt(): void {
-    this.isInterrupted = true;
     this.logger.info('User interrupted operation');
+
+    // 优先中断 StreamingQueryManager（交互模式）
+    if (this.streamingQueryManager && this.streamingQueryManager.isProcessing()) {
+      const interrupted = this.streamingQueryManager.interruptSession();
+      if (interrupted) {
+        this.logger.debug('Interrupt signal sent to streaming query manager');
+      }
+    }
 
     // 调用 AbortController.abort() 中断正在进行的 SDK 查询 (Requirement 4.1)
     if (this.currentAbortController) {
@@ -949,6 +1022,14 @@ ${
     // 显示中断警告消息 (Requirement 4.3)
     if (this.ui) {
       this.ui.displayWarning(ERROR_MESSAGES[SDKErrorType.INTERRUPTED]);
+
+      // 如果有排队的消息，显示提示
+      if (this.streamingQueryManager) {
+        const queueLength = this.streamingQueryManager.getQueueLength();
+        if (queueLength > 0) {
+          this.ui.displayInfo(`消息队列中还有 ${queueLength} 条消息待处理`);
+        }
+      }
     }
   }
 

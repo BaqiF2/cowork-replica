@@ -3,7 +3,6 @@
  *
  * 测试图像处理器的核心功能：
  * - 图像文件加载
- * - Base64 编码/解码
  * - @ 语法解析
  * - 格式检测和验证
  * - 错误处理
@@ -186,41 +185,6 @@ describe('ImageHandler', () => {
     });
   });
 
-  describe('loadFromBase64', () => {
-    it('应该成功加载 Base64 编码的 PNG', () => {
-      const base64 = PNG_HEADER.toString('base64');
-
-      const result = handler.loadFromBase64(base64);
-
-      expect(result.format).toBe('png');
-      expect(result.mimeType).toBe('image/png');
-      expect(result.data).toBe(base64);
-    });
-
-    it('应该处理 Data URL 格式', () => {
-      const base64 = PNG_HEADER.toString('base64');
-      const dataUrl = `data:image/png;base64,${base64}`;
-
-      const result = handler.loadFromBase64(dataUrl);
-
-      expect(result.format).toBe('png');
-      expect(result.data).toBe(base64);
-    });
-
-    it('应该接受自定义 MIME 类型', () => {
-      const base64 = PNG_HEADER.toString('base64');
-
-      const result = handler.loadFromBase64(base64, 'image/custom');
-
-      expect(result.mimeType).toBe('image/custom');
-    });
-
-    it('应该在格式不支持时抛出错误', () => {
-      const invalidData = Buffer.from('not an image').toString('base64');
-
-      expect(() => handler.loadFromBase64(invalidData)).toThrow(ImageError);
-    });
-  });
 
   describe('parseImageReference', () => {
     beforeAll(async () => {
@@ -344,39 +308,6 @@ describe('ImageHandler', () => {
     });
   });
 
-  describe('toContentBlock', () => {
-    it('应该转换为正确的内容块格式', async () => {
-      const filePath = path.join(testDir, 'block.png');
-      await fs.writeFile(filePath, PNG_HEADER);
-
-      const imageData = await handler.loadFromFile('block.png');
-      const block = handler.toContentBlock(imageData);
-
-      expect(block.type).toBe('image');
-      expect(block.source.type).toBe('base64');
-      expect(block.source.media_type).toBe('image/png');
-      expect(block.source.data).toBe(imageData.data);
-    });
-  });
-
-  describe('toContentBlocks', () => {
-    it('应该转换多个图像为内容块数组', async () => {
-      const filePath1 = path.join(testDir, 'multi1.png');
-      const filePath2 = path.join(testDir, 'multi2.png');
-      await fs.writeFile(filePath1, PNG_HEADER);
-      await fs.writeFile(filePath2, PNG_HEADER);
-
-      const images = [
-        await handler.loadFromFile('multi1.png'),
-        await handler.loadFromFile('multi2.png'),
-      ];
-      const blocks = handler.toContentBlocks(images);
-
-      expect(blocks).toHaveLength(2);
-      expect(blocks[0].type).toBe('image');
-      expect(blocks[1].type).toBe('image');
-    });
-  });
 
   describe('isImagePath', () => {
     it('应该识别支持的图像格式', () => {
@@ -399,42 +330,6 @@ describe('ImageHandler', () => {
     });
   });
 
-  describe('isSupportedMimeType', () => {
-    it('应该识别支持的 MIME 类型', () => {
-      expect(handler.isSupportedMimeType('image/png')).toBe(true);
-      expect(handler.isSupportedMimeType('image/jpeg')).toBe(true);
-      expect(handler.isSupportedMimeType('image/gif')).toBe(true);
-      expect(handler.isSupportedMimeType('image/webp')).toBe(true);
-    });
-
-    it('应该拒绝不支持的 MIME 类型', () => {
-      expect(handler.isSupportedMimeType('image/svg+xml')).toBe(false);
-      expect(handler.isSupportedMimeType('application/pdf')).toBe(false);
-      expect(handler.isSupportedMimeType('text/plain')).toBe(false);
-    });
-  });
-
-  describe('getSupportedFormats', () => {
-    it('应该返回所有支持的格式', () => {
-      const formats = handler.getSupportedFormats();
-
-      expect(formats).toContain('png');
-      expect(formats).toContain('jpeg');
-      expect(formats).toContain('jpg');
-      expect(formats).toContain('gif');
-      expect(formats).toContain('webp');
-    });
-  });
-
-  describe('getMimeType', () => {
-    it('应该返回正确的 MIME 类型', () => {
-      expect(handler.getMimeType('png')).toBe('image/png');
-      expect(handler.getMimeType('jpeg')).toBe('image/jpeg');
-      expect(handler.getMimeType('jpg')).toBe('image/jpeg');
-      expect(handler.getMimeType('gif')).toBe('image/gif');
-      expect(handler.getMimeType('webp')).toBe('image/webp');
-    });
-  });
 
   describe('常量导出', () => {
     it('应该导出支持的格式列表', () => {

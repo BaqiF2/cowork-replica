@@ -5,7 +5,8 @@
  * - SDKQueryExecutor: SDK 查询执行器核心类
  *
  * 核心方法：
- * - execute(): 执行 SDK 查询并处理响应
+ * - execute(): 执行 SDK 查询并处理响应（兼容接口，内部使用流式实现）
+ * - executeStreaming(): 执行流式 SDK 查询，接受 AsyncGenerator 输入
  * - interrupt(): 中断正在进行的查询
  * - isRunning(): 检查是否有查询正在进行
  * - classifyError(): 分类 SDK 错误类型
@@ -25,6 +26,72 @@ import {
   type HookCallbackMatcher,
   type CanUseTool,
 } from '@anthropic-ai/claude-agent-sdk';
+
+/**
+ * 文本内容块
+ *
+ * 用于构建消息中的纯文本内容
+ */
+export interface TextContentBlock {
+  type: 'text';
+  text: string;
+}
+
+/**
+ * 图像内容块
+ *
+ * 用于构建消息中的图像内容，支持 Base64 编码
+ */
+export interface ImageContentBlock {
+  type: 'image';
+  source: {
+    type: 'base64';
+    media_type: string;
+    data: string;
+  };
+}
+
+/**
+ * 内容块联合类型
+ *
+ * 支持文本和图像两种类型的内容块
+ */
+export type StreamContentBlock = TextContentBlock | ImageContentBlock;
+
+/**
+ * 流式消息接口（应用内部使用）
+ *
+ * 定义应用内部使用的简化消息结构
+ */
+export interface StreamMessage {
+  type: 'user';
+  message: {
+    role: 'user';
+    content: string | StreamContentBlock[];
+  };
+}
+
+/**
+ * SDK 用户消息接口（符合 SDK 要求）
+ *
+ * 定义发送给 SDK 的完整消息结构，包含所有必需字段
+ */
+export interface SDKStreamMessage {
+  type: 'user';
+  session_id: string;
+  message: {
+    role: 'user';
+    content: string | StreamContentBlock[];
+  };
+  parent_tool_use_id: string | null;
+}
+
+/**
+ * 流式输入消息生成器类型
+ *
+ * 用于流式输入模式，按序列 yield 消息到 SDK
+ */
+export type StreamMessageGenerator = AsyncGenerator<StreamMessage, void, unknown>;
 
 /**
  * SDK 查询选项接口
@@ -312,7 +379,33 @@ export class SDKQueryExecutor {
   }
 
   /**
-   * 执行 SDK 查询
+   * 将内部 StreamMessage 生成器适配为 SDK 期望的格式
+   *
+   * SDK 要求流式消息包含 session_id 和 parent_tool_use_id 字段，
+   * 此方法将应用内部的简化消息格式转换为完整的 SDK 格式
+   *
+   * @param messageGenerator - 内部消息生成器
+   * @param sessionId - 当前会话 ID（可选）
+   * @returns 适配后的 SDK 消息生成器
+   */
+  private async *adaptMessageGenerator(
+    messageGenerator: StreamMessageGenerator,
+    sessionId?: string
+  ): AsyncGenerator<SDKStreamMessage, void, unknown> {
+    for await (const message of messageGenerator) {
+      yield {
+        type: 'user',
+        session_id: sessionId || '',
+        message: message.message,
+        parent_tool_use_id: null,
+      };
+    }
+  }
+
+  /**
+   * 执行 SDK 查询（兼容接口）
+   *
+   * 此方法保留单消息输入的兼容接口，内部转换为单条消息的流式执行
    *
    * @param options - 查询选项
    * @returns 查询结果
@@ -320,14 +413,36 @@ export class SDKQueryExecutor {
    * **验证: 需求 1.1, 1.3, 4.1, 4.2, 4.3**
    */
   async execute(options: SDKQueryOptions): Promise<SDKQueryResult> {
+    // 创建单消息生成器，将字符串 prompt 转换为流式消息
+    const messageGenerator = this.createSingleMessageGenerator(options.prompt);
+
+    // 使用流式执行方法处理
+    return this.executeStreaming(messageGenerator, options);
+  }
+
+  /**
+   * 执行流式 SDK 查询
+   *
+   * 接受 AsyncGenerator 作为输入，支持持久会话、图像上传、消息队列等高级功能
+   *
+   * @param messageGenerator - 消息生成器，按顺序 yield StreamMessage 到 SDK
+   * @param options - 查询选项（不包含 prompt，因为消息由生成器提供）
+   * @returns 查询结果
+   *
+   * **验证: 流式输入需求**
+   */
+  async executeStreaming(
+    messageGenerator: StreamMessageGenerator,
+    options: Omit<SDKQueryOptions, 'prompt'> & { prompt?: string }
+  ): Promise<SDKQueryResult> {
     // 标记开始执行
     this.isExecuting = true;
 
     // 创建或使用提供的 AbortController
     this.abortController = options.abortController || new AbortController();
 
-    // 映射选项到 SDK 格式
-    const sdkOptions = this.mapToSDKOptions(options);
+    // 映射选项到 SDK 格式（使用空字符串作为 prompt 占位）
+    const sdkOptions = this.mapToSDKOptions({ ...options, prompt: options.prompt || '' });
 
     // 累积响应文本
     let accumulatedResponse = '';
@@ -337,7 +452,7 @@ export class SDKQueryExecutor {
     let usage: { inputTokens: number; outputTokens: number } | undefined;
 
     try {
-      // 在开始前检查是否已被中断 (Requirement 4.2)
+      // 在开始前检查是否已被中断
       if (this.abortController.signal.aborted) {
         return {
           response: '',
@@ -346,15 +461,18 @@ export class SDKQueryExecutor {
         };
       }
 
-      // 调用 SDK query() 函数
+      // 创建适配器生成器，将内部 StreamMessage 转换为 SDK 期望的格式
+      const sdkMessageGenerator = this.adaptMessageGenerator(messageGenerator, sessionId);
+
+      // 调用 SDK query() 函数，使用流式输入模式
       const queryGenerator = query({
-        prompt: options.prompt,
+        prompt: sdkMessageGenerator,
         options: sdkOptions,
       });
 
       // 迭代处理消息流
       for await (const message of queryGenerator) {
-        // 检查是否被中断 (Requirement 4.2)
+        // 检查是否被中断
         if (this.abortController.signal.aborted) {
           return {
             response: accumulatedResponse,
@@ -419,7 +537,7 @@ export class SDKQueryExecutor {
         sessionId,
       };
     } catch (error) {
-      // 处理 AbortError (Requirement 4.3)
+      // 处理 AbortError
       if (
         error instanceof Error &&
         (error.name === 'AbortError' || this.abortController?.signal.aborted)
@@ -447,6 +565,26 @@ export class SDKQueryExecutor {
       this.isExecuting = false;
       this.abortController = null;
     }
+  }
+
+  /**
+   * 创建单消息生成器
+   *
+   * 将字符串 prompt 转换为单条消息的 AsyncGenerator，用于兼容接口
+   *
+   * @param prompt - 用户提示词（字符串或内容块数组）
+   * @returns 单消息生成器
+   */
+  private async *createSingleMessageGenerator(
+    prompt: string | StreamContentBlock[]
+  ): StreamMessageGenerator {
+    yield {
+      type: 'user',
+      message: {
+        role: 'user',
+        content: prompt,
+      },
+    };
   }
 
   /**

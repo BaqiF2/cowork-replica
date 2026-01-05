@@ -1,15 +1,15 @@
 /**
- * 文件功能：图像处理模块，负责处理图像的加载、编码、大小调整和格式验证
+ * 文件功能：图像处理模块，负责处理图像的加载、编码、格式验证和 @ 语法解析
  *
  * 核心类：
  * - ImageHandler: 图像处理器核心类
  *
  * 核心方法：
- * - loadImage(): 加载图像文件
- * - validateFormat(): 验证图像格式
- * - resizeImage(): 调整图像大小
- * - encodeImage(): 编码图像为 Base64
- * - processInput(): 处理用户输入的图像（语法、粘贴、拖放）
+ * - loadFromFile(): 从文件加载图像
+ * - parseImageReference(): 解析 @ 语法引用
+ * - extractImageReferences(): 从文本中提取图像引用
+ * - processTextWithImages(): 处理包含图像引用的文本
+ * - isImagePath(): 检查路径是否为图像文件
  */
 
 import * as fs from 'fs/promises';
@@ -210,51 +210,6 @@ export class ImageHandler {
     };
   }
 
-  /**
-   * 从 Base64 数据加载图像
-   *
-   * @param base64Data - Base64 编码的图像数据
-   * @param mimeType - MIME 类型（可选，将自动检测）
-   * @returns 图像数据
-   */
-  loadFromBase64(base64Data: string, mimeType?: string): ImageData {
-    // 移除可能的 data URL 前缀
-    const cleanData = this.stripDataUrlPrefix(base64Data);
-
-    // 解码 Base64
-    let buffer: Buffer;
-    try {
-      buffer = Buffer.from(cleanData, 'base64');
-    } catch {
-      throw new ImageError('Invalid Base64 data', ImageErrorCode.ENCODE_ERROR);
-    }
-
-    // 检查大小
-    if (buffer.length > this.options.maxSize) {
-      throw new ImageError(
-        `图像数据过大: ${this.formatSize(buffer.length)}，最大允许 ${this.formatSize(this.options.maxSize)}`,
-        ImageErrorCode.FILE_TOO_LARGE
-      );
-    }
-
-    // 检测格式
-    const format = this.detectFormatFromBuffer(buffer);
-    if (!format) {
-      throw new ImageError(
-        `Unsupported image format. Supported formats: ${SUPPORTED_IMAGE_FORMATS.join(', ')}`,
-        ImageErrorCode.UNSUPPORTED_FORMAT
-      );
-    }
-
-    const detectedMimeType = mimeType || IMAGE_MIME_TYPES[format];
-
-    return {
-      data: cleanData,
-      mimeType: detectedMimeType,
-      originalSize: buffer.length,
-      format,
-    };
-  }
 
   /**
    * 解析 @ 语法引用的图像
@@ -341,32 +296,6 @@ export class ImageHandler {
     return { text: processedText, images, errors };
   }
 
-  /**
-   * 将图像数据转换为消息内容块
-   *
-   * @param imageData - 图像数据
-   * @returns 图像内容块
-   */
-  toContentBlock(imageData: ImageData): ImageContentBlock {
-    return {
-      type: 'image',
-      source: {
-        type: 'base64',
-        media_type: imageData.mimeType,
-        data: imageData.data,
-      },
-    };
-  }
-
-  /**
-   * 将多个图像数据转换为消息内容块数组
-   *
-   * @param images - 图像数据数组
-   * @returns 图像内容块数组
-   */
-  toContentBlocks(images: ImageData[]): ImageContentBlock[] {
-    return images.map((img) => this.toContentBlock(img));
-  }
 
   /**
    * 检查路径是否是图像文件
@@ -379,32 +308,6 @@ export class ImageHandler {
     return SUPPORTED_IMAGE_FORMATS.includes(ext as ImageFormat);
   }
 
-  /**
-   * 检查 MIME 类型是否是支持的图像类型
-   *
-   * @param mimeType - MIME 类型
-   * @returns 是否是支持的图像类型
-   */
-  isSupportedMimeType(mimeType: string): boolean {
-    return Object.values(IMAGE_MIME_TYPES).includes(mimeType);
-  }
-
-  /**
-   * 获取支持的图像格式列表
-   */
-  getSupportedFormats(): readonly string[] {
-    return SUPPORTED_IMAGE_FORMATS;
-  }
-
-  /**
-   * 获取图像格式的 MIME 类型
-   *
-   * @param format - 图像格式
-   * @returns MIME 类型
-   */
-  getMimeType(format: ImageFormat): string {
-    return IMAGE_MIME_TYPES[format];
-  }
 
   /**
    * 解析文件路径
@@ -515,13 +418,6 @@ export class ImageHandler {
     }
   }
 
-  /**
-   * 移除 Data URL 前缀
-   */
-  private stripDataUrlPrefix(data: string): string {
-    const match = data.match(/^data:image\/[^;]+;base64,(.+)$/);
-    return match ? match[1] : data;
-  }
 
   /**
    * 格式化文件大小

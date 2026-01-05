@@ -13,7 +13,23 @@ export {
   createSDKError,
   getErrorMessage,
   mapToSDKOptions,
+  // 流式输入相关类型
+  TextContentBlock,
+  ImageContentBlock,
+  StreamContentBlock,
+  StreamMessage,
+  StreamMessageGenerator,
 } from './SDKQueryExecutor';
+
+// 流式查询管理器
+export {
+  StreamingQueryManager,
+  StreamingQueryManagerOptions,
+  StreamingSession,
+  StreamingSessionState,
+  QueuedMessage,
+  MessageProcessResult,
+} from './StreamingQueryManager';
 
 // 重新导出 SDK 类型以便其他模块使用
 export type {
