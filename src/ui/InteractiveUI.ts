@@ -316,22 +316,6 @@ export class InteractiveUI extends EventEmitter {
   }
 
   /**
-   * 显示 Brewing 状态
-   *
-   * Claude Code 风格：✻ Brewing… (信息)
-   * 表示 agent 正在等待或处理中
-   *
-   * @param info - 可选的附加信息
-   */
-  displayBrewing(info?: string): void {
-    const icon = this.colorize('✻', 'yellow');
-    const label = this.colorize('Brewing…', 'yellow');
-    const infoText = info ? this.colorize(` (${info})`, 'gray') : '';
-
-    this.writeLine(`${icon} ${label}${infoText}`);
-  }
-
-  /**
    * 显示 Computing 状态（带动画）
    *
    * Claude Code 风格：● Computing… (esc to interrupt)
@@ -380,15 +364,6 @@ export class InteractiveUI extends EventEmitter {
    */
   setProcessingState(processing: boolean): void {
     this.isProcessingMessage = processing;
-  }
-
-  /**
-   * 获取当前是否正在处理消息
-   *
-   * @returns 是否正在处理
-   */
-  isProcessing(): boolean {
-    return this.isProcessingMessage;
   }
 
   /**
@@ -584,32 +559,6 @@ export class InteractiveUI extends EventEmitter {
         this.writeLine(this.colorize(line, 'cyan'));
       } else {
         this.writeLine(line);
-      }
-    }
-  }
-
-  /**
-   * 显示分页内容
-   *
-   * @param content - 内容
-   * @param pageSize - 每页行数
-   */
-  async displayPaged(content: string, pageSize = 20): Promise<void> {
-    const lines = content.split('\n');
-    let currentLine = 0;
-
-    while (currentLine < lines.length) {
-      const pageLines = lines.slice(currentLine, currentLine + pageSize);
-      this.writeLine(pageLines.join('\n'));
-      currentLine += pageSize;
-
-      if (currentLine < lines.length) {
-        const remaining = lines.length - currentLine;
-        const continuePrompt = await this.promptConfirmation(`还有 ${remaining} 行，继续显示?`);
-
-        if (!continuePrompt) {
-          break;
-        }
       }
     }
   }
