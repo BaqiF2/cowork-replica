@@ -149,16 +149,16 @@ export class Application {
   private async loadExtensions(workingDir: string): Promise<void> {
     await this.logger.debug('Loading extensions...');
     const skillDirs = [
-      path.join(os.homedir(), '.claude-replica', 'skills'),
-      path.join(workingDir, '.claude-replica', 'skills'),
+      path.join(os.homedir(), '.claude', 'skills'),
+      path.join(workingDir, '.claude', 'skills'),
     ];
     const commandDirs = [
-      path.join(os.homedir(), '.claude-replica', 'commands'),
-      path.join(workingDir, '.claude-replica', 'commands'),
+      path.join(os.homedir(), '.claude', 'commands'),
+      path.join(workingDir, '.claude', 'commands'),
     ];
     const agentDirs = [
-      path.join(os.homedir(), '.claude-replica', 'agents'),
-      path.join(workingDir, '.claude-replica', 'agents'),
+      path.join(os.homedir(), '.claude', 'agents'),
+      path.join(workingDir, '.claude', 'agents'),
     ];
 
     await Promise.all([
@@ -173,7 +173,7 @@ export class Application {
         .catch((err) => this.logger.warn('Failed to load agents', err)),
     ]);
 
-    const hooksConfigPath = path.join(workingDir, '.claude-replica', 'hooks.json');
+    const hooksConfigPath = path.join(workingDir, '.claude', 'hooks.json');
     try {
       await fs.access(hooksConfigPath);
       const hooksContent = await fs.readFile(hooksConfigPath, 'utf-8');

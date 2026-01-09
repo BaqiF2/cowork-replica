@@ -205,7 +205,7 @@ export class SandboxManager {
     // 尝试多个可能的配置文件位置
     const possiblePaths = [
       path.join(directory, '.claude', 'settings.json'),
-      path.join(directory, '.claude-replica', 'settings.json'),
+      path.join(directory, '.claude', 'settings.json'),
       path.join(directory, 'sandbox.json'),
     ];
 

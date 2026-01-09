@@ -373,8 +373,8 @@ Skill content (Markdown)
 ```
 
 **Loading Paths**:
-- `~/.claude-replica/skills/` (user-level)
-- `.claude-replica/skills/` (project-level)
+- `~/.claude/skills/` (user-level)
+- `.claude/skills/` (project-level)
 
 **Core Methods**:
 - `loadSkills()`: Load all skills from directory
@@ -419,7 +419,7 @@ Agent prompt content
 
 **Purpose**: Event-driven automation
 
-**Configuration File**: `.claude-replica/hooks.json`
+**Configuration File**: `.claude/hooks.json`
 
 **Supported Events** (12 types):
 - PreToolUse / PostToolUse
@@ -450,9 +450,9 @@ Agent prompt content
 ### 6.1 Configuration Management (`src/config/ConfigManager.ts`)
 
 **Configuration Levels** (Priority: Local > Project > User):
-1. User: `~/.claude-replica/settings.json`
-2. Project: `.claude-replica/settings.json`
-3. Local: `.claude-replica/settings.local.json`
+1. User: `~/.claude/settings.json`
+2. Project: `.claude/settings.json`
+3. Local: `.claude/settings.local.json`
 
 **Merge Strategy**: `mergeConfigs()` deep merge
 

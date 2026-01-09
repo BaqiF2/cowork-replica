@@ -102,8 +102,8 @@
 
 #### 验收标准
 
-1. WHEN 用户首次运行工具 THEN THE System SHALL 在 ~/.claude-replica/ 创建用户级配置目录
-2. WHEN 在项目目录运行工具 THEN THE System SHALL 在 .claude-replica/ 创建项目级配置目录
+1. WHEN 用户首次运行工具 THEN THE System SHALL 在 ~/.claude/ 创建用户级配置目录
+2. WHEN 在项目目录运行工具 THEN THE System SHALL 在 .claude/ 创建项目级配置目录
 3. WHEN 存在多级配置 THEN THE System SHALL 按优先级合并配置(本地 > 项目 > 用户)
 4. WHEN 用户运行 `/config` 命令 THEN THE System SHALL 打开配置编辑界面
 5. WHEN 配置文件被修改 THEN THE System SHALL 重新加载配置

@@ -61,7 +61,7 @@ export interface SnapshotMetadata {
 export interface RewindManagerOptions {
   /** 工作目录 */
   workingDir: string;
-  /** 快照存储目录（可选，默认为 workingDir/.claude-replica/snapshots） */
+  /** 快照存储目录（可选，默认为 workingDir/.claude/snapshots） */
   snapshotsDir?: string;
   /** 最大快照数量（默认 50） */
   maxSnapshots?: number;
@@ -110,7 +110,7 @@ export class RewindManager {
   constructor(options: RewindManagerOptions) {
     this.workingDir = options.workingDir;
     this.snapshotsDir =
-      options.snapshotsDir || path.join(options.workingDir, '.claude-replica', 'snapshots');
+      options.snapshotsDir || path.join(options.workingDir, '.claude', 'snapshots');
     this.maxSnapshots = options.maxSnapshots || DEFAULT_MAX_SNAPSHOTS;
     this.debug = options.debug || false;
   }

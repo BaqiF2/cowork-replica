@@ -181,7 +181,7 @@ claude-replica sessions clean --older-than 7d
 
 #### 创建技能
 
-在 `.claude-replica/skills/` 目录创建 `.md` 文件：
+在 `.claude/skills/` 目录创建 `.md` 文件：
 
 ```markdown
 ---
@@ -221,8 +221,8 @@ tools:
 #### 技能目录
 
 技能可以放在以下位置：
-- 用户级：`~/.claude-replica/skills/`
-- 项目级：`.claude-replica/skills/`
+- 用户级：`~/.claude/skills/`
+- 项目级：`.claude/skills/`
 
 项目级技能优先于用户级技能。
 
@@ -232,7 +232,7 @@ tools:
 
 #### 创建命令
 
-在 `.claude-replica/commands/` 目录创建 `.md` 文件：
+在 `.claude/commands/` 目录创建 `.md` 文件：
 
 ```markdown
 ---
@@ -296,7 +296,7 @@ description: Git 提交摘要
 
 #### 创建子代理
 
-在 `.claude-replica/agents/` 目录创建 `.agent.md` 文件：
+在 `.claude/agents/` 目录创建 `.agent.md` 文件：
 
 ```markdown
 ---
@@ -344,7 +344,7 @@ tools:
 
 #### 配置钩子
 
-创建 `.claude-replica/hooks.json`：
+创建 `.claude/hooks.json`：
 
 ```json
 {
@@ -652,7 +652,7 @@ Claude Replica 自动检测以下 CI 环境：
 
 ### 2. 配置项目级设置
 
-创建 `.claude-replica/settings.json`：
+创建 `.claude/settings.json`：
 
 ```json
 {

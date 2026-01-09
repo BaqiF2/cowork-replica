@@ -86,9 +86,9 @@ ls ~/.claude/settings.json
 
 Claude Replica 支持多级配置：
 
-1. **用户级配置**: `~/.claude-replica/settings.json`
-2. **项目级配置**: `.claude-replica/settings.json`
-3. **本地配置**: `.claude-replica/settings.local.json`
+1. **用户级配置**: `~/.claude/settings.json`
+2. **项目级配置**: `.claude/settings.json`
+3. **本地配置**: `.claude/settings.local.json`
 
 配置优先级：本地 > 项目 > 用户
 
@@ -184,7 +184,7 @@ claude-replica -p "生成测试用例" --output-format json
 
 ### 技能 (Skills)
 
-在 `.claude-replica/skills/` 目录创建技能文件：
+在 `.claude/skills/` 目录创建技能文件：
 
 ```markdown
 ---
@@ -209,7 +209,7 @@ tools:
 
 ### 自定义命令 (Commands)
 
-在 `.claude-replica/commands/` 目录创建命令文件：
+在 `.claude/commands/` 目录创建命令文件：
 
 ```markdown
 ---
@@ -232,7 +232,7 @@ $ARGUMENTS
 
 ### 子代理 (Agents)
 
-在 `.claude-replica/agents/` 目录创建代理文件：
+在 `.claude/agents/` 目录创建代理文件：
 
 ```markdown
 ---
@@ -253,7 +253,7 @@ tools:
 
 ### 钩子 (Hooks)
 
-在 `.claude-replica/hooks.json` 配置钩子：
+在 `.claude/hooks.json` 配置钩子：
 
 ```json
 {

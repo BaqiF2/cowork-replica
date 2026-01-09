@@ -309,9 +309,9 @@ claude-replica
 **Preparation**:
 ```bash
 # Create skills directory and file
-mkdir -p .claude-replica/skills
+mkdir -p .claude/skills
 
-cat > .claude-replica/skills/javascript-expert.md << 'EOF'
+cat > .claude/skills/javascript-expert.md << 'EOF'
 ---
 name: javascript-expert
 description: JavaScript development expert
@@ -360,9 +360,9 @@ claude-replica -p "Help me write a JavaScript function to calculate Fibonacci se
 **Preparation**:
 ```bash
 # Create commands directory and file
-mkdir -p .claude-replica/commands
+mkdir -p .claude/commands
 
-cat > .claude-replica/commands/review.md << 'EOF'
+cat > .claude/commands/review.md << 'EOF'
 ---
 name: review
 description: Code review
@@ -407,9 +407,9 @@ claude-replica
 **Preparation**:
 ```bash
 # Create agents directory and file
-mkdir -p .claude-replica/agents
+mkdir -p .claude/agents
 
-cat > .claude-replica/agents/test-expert.agent.md << 'EOF'
+cat > .claude/agents/test-expert.agent.md << 'EOF'
 ---
 description: Testing expert, focused on writing high-quality tests
 model: sonnet
@@ -453,7 +453,7 @@ claude-replica -p "@test-expert Please write unit tests for src/index.js"
 **Preparation**:
 ```bash
 # Create hook configuration
-cat > .claude-replica/hooks.json << 'EOF'
+cat > .claude/hooks.json << 'EOF'
 {
   "PostToolUse": [
     {

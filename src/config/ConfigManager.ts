@@ -61,7 +61,7 @@ export class ConfigManager {
   constructor() {
     this.loader = new SDKConfigLoader();
     // 用户配置目录
-    this.userConfigDir = path.join(os.homedir(), '.claude-replica');
+    this.userConfigDir = path.join(os.homedir(), '.claude');
   }
 
   /**

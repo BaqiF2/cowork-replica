@@ -372,8 +372,8 @@ tools: [Read, Write]
 ```
 
 **加载路径**:
-- `~/.claude-replica/skills/` (用户级)
-- `.claude-replica/skills/` (项目级)
+- `~/.claude/skills/` (用户级)
+- `.claude/skills/` (项目级)
 
 **核心方法**:
 - `loadSkills()`: 从目录加载所有技能
@@ -418,7 +418,7 @@ tools: [Read, Grep]
 
 **作用**: 事件驱动的自动化
 
-**配置文件**: `.claude-replica/hooks.json`
+**配置文件**: `.claude/hooks.json`
 
 **支持的事件** (12 种):
 - PreToolUse / PostToolUse
@@ -449,9 +449,9 @@ tools: [Read, Grep]
 ### 6.1 配置管理 (`src/config/ConfigManager.ts`)
 
 **配置层级** (优先级: Local > Project > User):
-1. User: `~/.claude-replica/settings.json`
-2. Project: `.claude-replica/settings.json`
-3. Local: `.claude-replica/settings.local.json`
+1. User: `~/.claude/settings.json`
+2. Project: `.claude/settings.json`
+3. Local: `.claude/settings.local.json`
 
 **合并策略**: `mergeConfigs()` 深度合并
 

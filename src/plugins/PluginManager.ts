@@ -135,8 +135,8 @@ export class PluginManager {
   private readonly gitTimeout: number;
 
   constructor(config: PluginManagerConfig = {}) {
-    this.pluginsDir = config.pluginsDir ?? path.join(os.homedir(), '.claude-replica', 'plugins');
-    this.marketplaceUrl = config.marketplaceUrl ?? 'https://plugins.claude-replica.dev';
+    this.pluginsDir = config.pluginsDir ?? path.join(os.homedir(), '.claude', 'plugins');
+    this.marketplaceUrl = config.marketplaceUrl ?? 'https://plugins.claude.dev';
     this.debug = config.debug ?? false;
     this.gitTimeout = config.gitTimeout ?? 60000; // 默认 60 秒
   }

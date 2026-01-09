@@ -90,9 +90,9 @@ Authentication information is automatically loaded from the following locations 
 
 Claude Replica supports multi-level configuration:
 
-1. **User-level config**: `~/.claude-replica/settings.json`
-2. **Project-level config**: `.claude-replica/settings.json`
-3. **Local config**: `.claude-replica/settings.local.json`
+1. **User-level config**: `~/.claude/settings.json`
+2. **Project-level config**: `.claude/settings.json`
+3. **Local config**: `.claude/settings.local.json`
 
 Configuration priority: Local > Project > User
 
@@ -188,7 +188,7 @@ In interactive mode, use the following commands:
 
 ### Skills
 
-Create skill files in `.claude-replica/skills/` directory:
+Create skill files in `.claude/skills/` directory:
 
 ```markdown
 ---
@@ -213,7 +213,7 @@ You are a React development expert, specializing in:
 
 ### Custom Commands
 
-Create command files in `.claude-replica/commands/` directory:
+Create command files in `.claude/commands/` directory:
 
 ```markdown
 ---
@@ -236,7 +236,7 @@ Usage: `/review src/main.ts`
 
 ### Subagents
 
-Create agent files in `.claude-replica/agents/` directory:
+Create agent files in `.claude/agents/` directory:
 
 ```markdown
 ---
@@ -257,7 +257,7 @@ You are a testing expert responsible for:
 
 ### Hooks
 
-Configure hooks in `.claude-replica/hooks.json`:
+Configure hooks in `.claude/hooks.json`:
 
 ```json
 {

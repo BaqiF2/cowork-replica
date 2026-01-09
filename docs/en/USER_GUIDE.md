@@ -181,7 +181,7 @@ Skills are auto-loading domain knowledge modules that help AI better understand 
 
 #### Create Skill
 
-Create `.md` files in the `.claude-replica/skills/` directory:
+Create `.md` files in the `.claude/skills/` directory:
 
 ```markdown
 ---
@@ -221,8 +221,8 @@ You are a React development expert, specializing in:
 #### Skill Directory
 
 Skills can be placed in the following locations:
-- User-level: `~/.claude-replica/skills/`
-- Project-level: `.claude-replica/skills/`
+- User-level: `~/.claude/skills/`
+- Project-level: `.claude/skills/`
 
 Project-level skills take precedence over user-level skills.
 
@@ -232,7 +232,7 @@ Commands are reusable prompt templates.
 
 #### Create Command
 
-Create `.md` files in the `.claude-replica/commands/` directory:
+Create `.md` files in the `.claude/commands/` directory:
 
 ```markdown
 ---
@@ -296,7 +296,7 @@ Subagents are specialized AI instances used to handle specific types of tasks.
 
 #### Create Subagent
 
-Create `.agent.md` files in the `.claude-replica/agents/` directory:
+Create `.agent.md` files in the `.claude/agents/` directory:
 
 ```markdown
 ---
@@ -344,7 +344,7 @@ Hooks allow automatic execution of actions when specific events occur.
 
 #### Configure Hooks
 
-Create `.claude-replica/hooks.json`:
+Create `.claude/hooks.json`:
 
 ```json
 {
@@ -652,7 +652,7 @@ This is a React + TypeScript project...
 
 ### 2. Configure Project-level Settings
 
-Create `.claude-replica/settings.json`:
+Create `.claude/settings.json`:
 
 ```json
 {

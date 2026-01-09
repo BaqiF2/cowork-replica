@@ -309,9 +309,9 @@ claude-replica
 **准备**:
 ```bash
 # 创建技能目录和文件
-mkdir -p .claude-replica/skills
+mkdir -p .claude/skills
 
-cat > .claude-replica/skills/javascript-expert.md << 'EOF'
+cat > .claude/skills/javascript-expert.md << 'EOF'
 ---
 name: javascript-expert
 description: JavaScript 开发专家
@@ -360,9 +360,9 @@ claude-replica -p "帮我写一个 JavaScript 函数来计算斐波那契数列"
 **准备**:
 ```bash
 # 创建命令目录和文件
-mkdir -p .claude-replica/commands
+mkdir -p .claude/commands
 
-cat > .claude-replica/commands/review.md << 'EOF'
+cat > .claude/commands/review.md << 'EOF'
 ---
 name: review
 description: 代码审查
@@ -407,9 +407,9 @@ claude-replica
 **准备**:
 ```bash
 # 创建代理目录和文件
-mkdir -p .claude-replica/agents
+mkdir -p .claude/agents
 
-cat > .claude-replica/agents/test-expert.agent.md << 'EOF'
+cat > .claude/agents/test-expert.agent.md << 'EOF'
 ---
 description: 测试专家，专注于编写高质量测试
 model: sonnet
@@ -453,7 +453,7 @@ claude-replica -p "@test-expert 请为 src/index.js 编写单元测试"
 **准备**:
 ```bash
 # 创建钩子配置
-cat > .claude-replica/hooks.json << 'EOF'
+cat > .claude/hooks.json << 'EOF'
 {
   "PostToolUse": [
     {
@@ -909,7 +909,7 @@ claude-replica sessions
 rm -rf ~/claude-replica-e2e-test
 
 # 清理会话数据
-rm -rf ~/.claude-replica/sessions/*
+rm -rf ~/.claude/sessions/*
 
 # 清理日志
 rm -rf ~/.claude-replica/logs/*
