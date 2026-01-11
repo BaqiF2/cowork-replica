@@ -5,8 +5,8 @@
 基于 Claude Agent SDK 官方规范重构权限系统，实现持久权限显示、动态权限切换、canUseTool 回调、AskUserQuestion 支持，并清理旧代码以实现 UI 层与权限逻辑层的完全分离。
 
 ## Reference
-- Design: [design.md](./design.md)
-- Specification: [spec.md](./spec.md)
+- Design: [design.md](design.md)
+- Specification: [spec.md](spec.md)
 
 ## 任务
 
