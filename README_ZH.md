@@ -230,7 +230,7 @@ $ARGUMENTS
 
 使用：`/review src/main.ts`
 
-### 子代理 (Agents)
+### 子代理 (Subagents)
 
 在 `.claude/agents/` 目录创建代理文件：
 
@@ -286,6 +286,62 @@ tools:
   }
 }
 ```
+
+### 自定义工具（进程内 MCP）
+
+使用 Zod 模式定义 TypeScript 工具，并将它们注册为进程内 MCP 服务器。内置的计算器工具位于 `src/custom-tools/math/calculator.ts`，在 `src/main.ts` 中以模块名 `math/calculators` 注册（默认服务器名为 `custom-tools-math-calculators`）。
+
+工具定义示例：
+
+```ts
+import { z } from 'zod';
+import type { ToolDefinition, ToolResult } from '../custom-tools/types';
+
+const echoSchema = z.object({
+  message: z.string().min(1),
+});
+
+export const echoTool: ToolDefinition<typeof echoSchema, { message: string }, ToolResult> = {
+  name: 'echo',
+  description: 'Echo back the provided message.',
+  module: 'demo/echo',
+  schema: echoSchema,
+  handler: async ({ message }) => ({
+    content: [{ type: 'text', text: message }],
+  }),
+};
+```
+
+模块注册示例：
+
+```ts
+import { CustomToolManager } from './custom-tools';
+import { echoTool } from './custom-tools/demo/echo';
+
+const manager = new CustomToolManager();
+manager.registerModule('demo/echo', [echoTool]);
+const customServers = manager.createMcpServers();
+```
+
+使用示例：
+
+```bash
+claude-replica -p "使用计算器工具计算 (12.5 + 7.5) / 4，保留2位小数"
+```
+
+权限配置示例：
+
+```json
+{
+  "permissionMode": "default",
+  "allowedTools": [
+    "mcp__custom-tools-math-calculators__calculator",
+    "mcp__custom-tools-math-calculators__*"
+  ]
+}
+```
+
+MCP 工具名称格式为 `mcp__{server}__{tool}`。对于模块，服务器名称由 `CUSTOM_TOOL_SERVER_NAME_PREFIX` 和 `CUSTOM_TOOL_MODULE_SEPARATOR` 构建（默认为 `custom-tools` + `-`），因此 `math/calculators` 变成 `custom-tools-math-calculators`。
 
 ## 🔒 权限模式
 
@@ -409,7 +465,7 @@ claude-replica/
 
 ## 🤝 贡献
 
-欢迎贡献代码！请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解贡献指南。
+欢迎贡献代码！请阅读 [CONTRIBUTING_ZH.md](CONTRIBUTING_ZH.md) 了解贡献指南。
 
 ## 📄 许可证
 

@@ -345,7 +345,7 @@ Permission configuration example:
 }
 ```
 
-The MCP tool na必须调用 calculator 工具计算 1 + 1，只返回结果。me format is `mcp__{server}__{tool}`. For modules, the server name is built from `CUSTOM_TOOL_SERVER_NAME_PREFIX` and `CUSTOM_TOOL_MODULE_SEPARATOR` (default: `custom-tools` + `-`), so `math/calculators` becomes `custom-tools-math-calculators`.
+The MCP tool name format is `mcp__{server}__{tool}`. For modules, the server name is built from `CUSTOM_TOOL_SERVER_NAME_PREFIX` and `CUSTOM_TOOL_MODULE_SEPARATOR` (default: `custom-tools` + `-`), so `math/calculators` becomes `custom-tools-math-calculators`.
 
 ## 🔒 Permission Modes
 
