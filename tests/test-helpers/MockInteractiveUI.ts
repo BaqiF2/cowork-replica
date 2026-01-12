@@ -31,6 +31,15 @@ export class MockInteractiveUI {
     return sessions[0] || null;
   }
 
+  async showConfirmationMenu(
+    _title: string,
+    _options: Array<{ key: string; label: string; description?: string }>,
+    _defaultKey?: string
+  ): Promise<boolean> {
+    // Mock implementation: 默认不fork，继续原会话
+    return false;
+  }
+
   on(event: string, callback: (...args: any[]) => void): void {
     this.eventEmitter.on(event, callback);
   }

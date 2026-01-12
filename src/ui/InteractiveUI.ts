@@ -38,6 +38,8 @@ export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | '
 export interface InteractiveUIOptions {
   /** 消息处理回调 */
   onMessage: (message: string) => Promise<void>;
+  /** 命令处理回调 - 处理以 / 开头的命令 */
+  onCommand: (command: string) => Promise<void>;
   /** 中断回调 */
   onInterrupt: () => void;
   /** 回退回调 */
@@ -139,6 +141,7 @@ const PermissionModeEmojis: Record<PermissionMode, string> = {
  */
 export class InteractiveUI extends EventEmitter {
   private readonly onMessage: (message: string) => Promise<void>;
+  private readonly onCommand: (command: string) => Promise<void>;
   private readonly onInterrupt: () => void;
   private readonly onRewind: () => Promise<void>;
   private readonly onPermissionModeChange?: (mode: PermissionMode) => void | Promise<void>;
@@ -164,6 +167,7 @@ export class InteractiveUI extends EventEmitter {
   constructor(options: InteractiveUIOptions) {
     super();
     this.onMessage = options.onMessage;
+    this.onCommand = options.onCommand;
     this.onInterrupt = options.onInterrupt;
     this.onRewind = options.onRewind;
     this.onPermissionModeChange = options.onPermissionModeChange;
@@ -392,25 +396,24 @@ export class InteractiveUI extends EventEmitter {
    */
   async promptConfirmation(message: string): Promise<boolean> {
     return new Promise((resolve) => {
+      if (!this.rl) {
+        resolve(false);
+        return;
+      }
+
       const prompt = `${this.colorize('?', 'yellow')} ${message} ${this.colorize('(y/n)', 'gray')} `;
 
-      this.write(prompt);
+      this.rl.question(prompt, (answer) => {
+        const normalized = answer.trim().toLowerCase();
 
-      const handleKey = (key: Buffer) => {
-        const char = key.toString().toLowerCase();
-
-        if (char === 'y' || char === '\r' || char === '\n') {
-          this.writeLine(this.colorize('是', 'green'));
-          this.input.removeListener('data', handleKey);
+        if (normalized === 'y' || normalized === 'yes' || normalized === '') {
+          this.writeLine(this.colorize('✓ 是', 'green'));
           resolve(true);
-        } else if (char === 'n' || char === '\x1b') {
-          this.writeLine(this.colorize('否', 'red'));
-          this.input.removeListener('data', handleKey);
+        } else {
+          this.writeLine(this.colorize('✗ 否', 'red'));
           resolve(false);
         }
-      };
-
-      this.input.on('data', handleKey);
+      });
     });
   }
 
@@ -428,7 +431,7 @@ export class InteractiveUI extends EventEmitter {
 
     this.writeLine('');
     this.writeLine(this.colorize('═══ 回退菜单 ═══', 'bold'));
-    this.writeLine(this.colorize('选择要回退到的时间点:', 'gray'));
+    this.writeLine(this.colorize('选择要回退到的时间点 (输入 0 取消):', 'gray'));
     this.writeLine('');
 
     // 显示快照列表
@@ -443,34 +446,59 @@ export class InteractiveUI extends EventEmitter {
     });
 
     this.writeLine('');
-    this.writeLine(this.colorize('  [0] 取消', 'gray'));
-    this.writeLine('');
 
-    return new Promise((resolve) => {
-      const prompt = `${this.colorize('?', 'yellow')} 请选择 (0-${snapshots.length}): `;
-      this.write(prompt);
+    // 使用 readline（生产环境）或 raw listener（测试环境）
+    if (this.rl) {
+      // 生产环境：使用 readline 统一输入处理
+      while (true) {
+        const answer = await this.promptRaw(`${this.colorize('?', 'yellow')} 请选择 (0-${snapshots.length}): `);
 
-      const handleInput = (data: Buffer) => {
-        const input = data.toString().trim();
-        const num = parseInt(input, 10);
+        if (answer === null) {
+          return null;
+        }
 
-        if (input === '0' || input === '\x1b') {
-          this.writeLine(this.colorize('已取消', 'gray'));
-          this.input.removeListener('data', handleInput);
-          resolve(null);
+        const trimmed = answer.trim();
+        const num = parseInt(trimmed, 10);
+
+        if (trimmed === '0') {
+          this.writeLine(this.colorize('✗ 已取消', 'gray'));
+          return null;
         } else if (!isNaN(num) && num >= 1 && num <= snapshots.length) {
           const selected = snapshots[num - 1];
-          this.writeLine(this.colorize(`已选择: ${selected.description}`, 'green'));
-          this.input.removeListener('data', handleInput);
-          resolve(selected);
+          this.writeLine(this.colorize(`✓ 已选择: ${selected.description}`, 'green'));
+          return selected;
         } else {
-          this.writeLine(this.colorize('无效选择，请重试', 'red'));
-          this.write(prompt);
+          this.writeLine(this.colorize('✗ 无效选择，请重试', 'red'));
         }
-      };
+      }
+    } else {
+      // 测试环境：使用 raw listener（回退到旧实现）
+      return new Promise((resolve) => {
+        const prompt = `${this.colorize('?', 'yellow')} 请选择 (0-${snapshots.length}): `;
+        this.write(prompt);
 
-      this.input.on('data', handleInput);
-    });
+        const handleInput = (data: Buffer) => {
+          const input = data.toString().trim();
+          const num = parseInt(input, 10);
+
+          if (input === '0') {
+            this.writeLine(this.colorize('✗ 已取消', 'gray'));
+            this.input.removeListener('data', handleInput);
+            resolve(null);
+          } else if (!isNaN(num) && num >= 1 && num <= snapshots.length) {
+            const selected = snapshots[num - 1];
+            this.writeLine(this.colorize(`✓ 已选择: ${selected.description}`, 'green'));
+            this.input.removeListener('data', handleInput);
+            resolve(selected);
+          } else {
+            this.writeLine(this.colorize('✗ 无效选择，请重试', 'red'));
+            this.write(prompt);
+          }
+        };
+
+        this.input.on('data', handleInput);
+      });
+    }
   }
 
   /**
@@ -487,7 +515,7 @@ export class InteractiveUI extends EventEmitter {
 
     this.writeLine('');
     this.writeLine(this.colorize('═══ 会话菜单 ═══', 'bold'));
-    this.writeLine(this.colorize('选择要恢复的会话:', 'gray'));
+    this.writeLine(this.colorize('选择要恢复的会话 (输入 0 取消):', 'gray'));
     this.writeLine('');
 
     // 显示会话列表
@@ -512,35 +540,142 @@ export class InteractiveUI extends EventEmitter {
     });
 
     this.writeLine('');
-    this.writeLine(this.colorize('  [0] 取消', 'gray'));
-    this.writeLine('');
 
-    return new Promise((resolve) => {
-      const prompt = `${this.colorize('?', 'yellow')} 请选择 (0-${sessions.length}): `;
-      this.write(prompt);
+    // 使用 readline（生产环境）或 raw listener（测试环境）
+    if (this.rl) {
+      // 生产环境：使用 readline 统一输入处理
+      while (true) {
+        const answer = await this.promptRaw(`${this.colorize('?', 'yellow')} 请选择 (0-${sessions.length}): `);
 
-      const handleInput = (data: Buffer) => {
-        const input = data.toString().trim();
-        const num = parseInt(input, 10);
+        if (answer === null) {
+          return null;
+        }
 
-        if (input === '0' || input === '\x1b') {
-          this.writeLine(this.colorize('已取消', 'gray'));
-          this.input.removeListener('data', handleInput);
-          resolve(null);
+        const trimmed = answer.trim();
+        const num = parseInt(trimmed, 10);
+
+        if (trimmed === '0') {
+          this.writeLine(this.colorize('✗ 已取消', 'gray'));
+          return null;
         } else if (!isNaN(num) && num >= 1 && num <= sessions.length) {
           const selected = sessions[num - 1];
           const sessionIdShort = selected.id.substring(0, 8);
-          this.writeLine(this.colorize(`已选择会话: ${sessionIdShort}`, 'green'));
-          this.input.removeListener('data', handleInput);
-          resolve(selected);
+          this.writeLine(this.colorize(`✓ 已选择会话: ${sessionIdShort}`, 'green'));
+          return selected;
         } else {
-          this.writeLine(this.colorize('无效选择，请重试', 'red'));
-          this.write(prompt);
+          this.writeLine(this.colorize('✗ 无效选择，请重试', 'red'));
         }
-      };
+      }
+    } else {
+      // 测试环境：使用 raw listener（回退到旧实现）
+      return new Promise((resolve) => {
+        const prompt = `${this.colorize('?', 'yellow')} 请选择 (0-${sessions.length}): `;
+        this.write(prompt);
 
-      this.input.on('data', handleInput);
+        const handleInput = (data: Buffer) => {
+          const input = data.toString().trim();
+          const num = parseInt(input, 10);
+
+          if (input === '0') {
+            this.writeLine(this.colorize('✗ 已取消', 'gray'));
+            this.input.removeListener('data', handleInput);
+            resolve(null);
+          } else if (!isNaN(num) && num >= 1 && num <= sessions.length) {
+            const selected = sessions[num - 1];
+            const sessionIdShort = selected.id.substring(0, 8);
+            this.writeLine(this.colorize(`✓ 已选择会话: ${sessionIdShort}`, 'green'));
+            this.input.removeListener('data', handleInput);
+            resolve(selected);
+          } else {
+            this.writeLine(this.colorize('✗ 无效选择，请重试', 'red'));
+            this.write(prompt);
+          }
+        };
+
+        this.input.on('data', handleInput);
+      });
+    }
+  }
+
+  /**
+   * 显示确认菜单
+   *
+   * @param title - 菜单标题
+   * @param options - 选项列表
+   * @param defaultKey - 默认选择的键
+   * @returns 选择的键
+   */
+  async showConfirmationMenu(
+    title: string,
+    options: Array<{ key: string; label: string; description?: string }>,
+    defaultKey?: string
+  ): Promise<boolean> {
+    this.writeLine('');
+    this.writeLine(this.colorize(`═══ ${title} ═══`, 'bold'));
+    this.writeLine('');
+
+    // 显示选项
+    options.forEach((option) => {
+      const key = option.key.toLowerCase();
+      const isDefault = defaultKey && key === defaultKey.toLowerCase();
+      const prefix = isDefault ? this.colorize('▶', 'green') : ' ';
+      const keyColor = this.colorize(`[${key}]`, 'cyan');
+
+      this.writeLine(`  ${prefix} ${keyColor} ${option.label}`);
+      if (option.description) {
+        this.writeLine(`      ${this.colorize(option.description, 'gray')}`);
+      }
     });
+
+    this.writeLine('');
+
+    // 使用 readline（生产环境）或 raw listener（测试环境）
+    if (this.rl) {
+      while (true) {
+        const answer = await this.promptRaw(`${this.colorize('?', 'yellow')} 请选择 (${options.map(o => o.key).join('/')}): `);
+
+        if (answer === null) {
+          return false;
+        }
+
+        const trimmed = answer.trim().toLowerCase();
+        const matchedOption = options.find(o => o.key.toLowerCase() === trimmed);
+
+        if (matchedOption) {
+          return matchedOption.key === 'n' || matchedOption.key === 'N';
+        } else if (defaultKey && trimmed === '') {
+          return defaultKey === 'n' || defaultKey === 'N';
+        } else {
+          this.writeLine(this.colorize('✗ 无效选择，请重试', 'red'));
+        }
+      }
+    } else {
+      // 测试环境：使用 raw listener
+      return new Promise((resolve) => {
+        const prompt = `${this.colorize('?', 'yellow')} 请选择 (${options.map(o => o.key).join('/')}): `;
+        this.write(prompt);
+
+        const handleInput = (data: Buffer) => {
+          const input = data.toString().trim().toLowerCase();
+          const matchedOption = options.find(o => o.key.toLowerCase() === input);
+
+          if (matchedOption) {
+            this.writeLine(this.colorize(`✓ 已选择: ${matchedOption.label}`, 'green'));
+            this.input.removeListener('data', handleInput);
+            resolve(matchedOption.key === 'n' || matchedOption.key === 'N');
+          } else if (defaultKey && input === '') {
+            this.writeLine(this.colorize(`✓ 已选择: ${options.find(o => o.key === defaultKey)?.label}`, 'green'));
+            this.input.removeListener('data', handleInput);
+            resolve(defaultKey === 'n' || defaultKey === 'N');
+          } else {
+            this.writeLine(this.colorize('✗ 无效选择，请重试', 'red'));
+            this.write(prompt);
+          }
+        };
+
+        this.input.on('data', handleInput);
+      });
+    }
   }
 
   /**
@@ -652,7 +787,7 @@ export class InteractiveUI extends EventEmitter {
 
         // 处理特殊命令（命令总是立即处理，不进入队列）
         if (trimmedInput.startsWith('/')) {
-          this.emit('command', trimmedInput);
+          await this.onCommand(trimmedInput);
           continue;
         }
 
@@ -712,6 +847,35 @@ export class InteractiveUI extends EventEmitter {
 
       this.rl.question(promptStr, (answer) => {
         // 移除 close 监听器，避免累积
+        this.rl?.removeListener('close', closeHandler);
+        resolve(answer);
+      });
+    });
+  }
+
+  /**
+   * 使用 readline 获取原始输入
+   *
+   * 类似于 prompt()，但允许自定义提示字符串。
+   * 用于菜单和确认对话框等需要特殊提示的场景。
+   *
+   * @param promptStr - 提示字符串
+   * @returns 用户输入，如果关闭则返回 null
+   */
+  private promptRaw(promptStr: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      if (!this.rl || !this.isRunning) {
+        resolve(null);
+        return;
+      }
+
+      const closeHandler = () => {
+        resolve(null);
+      };
+
+      this.rl.once('close', closeHandler);
+
+      this.rl.question(promptStr, (answer) => {
         this.rl?.removeListener('close', closeHandler);
         resolve(answer);
       });

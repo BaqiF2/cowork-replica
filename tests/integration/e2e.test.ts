@@ -806,6 +806,7 @@ describe('端到端集成测试', () => {
         }),
         endSession: jest.fn(),
         startSession: jest.fn(),
+        setForkSession: jest.fn(),
       };
       Object.defineProperty(app, 'streamingQueryManager', {
         value: mockStreamingQueryManager,

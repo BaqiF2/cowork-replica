@@ -258,6 +258,8 @@ export class StreamingQueryManager {
 
   /** 当前活跃的流式会话 */
   private activeSession: StreamingSession | null = null;
+  /** 会话分叉标志 - 是否要创建新分支（生成新SDK会话ID） */
+  private forkSession: boolean = false;
   /** 工具调用映射（用于关联 tool_use 和 tool_result） */
   private toolUseMap: Map<string, ToolUseInfo> = new Map();
   /** 活跃消息生成器 - 支持运行时消息注入 */
@@ -288,6 +290,11 @@ export class StreamingQueryManager {
    * @returns 流式会话
    */
   startSession(session: Session): StreamingSession {
+    // 添加调试日志
+    if (process.env.DEBUG_SESSION) {
+      console.log(`[StreamingQueryManager] startSession: sessionId=${session.id}, previousActiveSession=${this.activeSession?.session.id || 'none'}`);
+    }
+
     // 如果已有活跃会话，先结束
     if (this.activeSession) {
       this.endSession();
@@ -305,6 +312,13 @@ export class StreamingQueryManager {
     this.liveGenerator = new LiveMessageGenerator();
     this.executionPromise = null;
     this.lastResult = null;
+    this.queryInstance = null;
+    this.messageRouter.setQueryInstance(null);
+
+    // 添加调试日志
+    if (process.env.DEBUG_SESSION) {
+      console.log(`[StreamingQueryManager] startSession completed: sessionId=${session.id}, executionPromise=${this.executionPromise}, queryInstance=${this.queryInstance ? 'exists' : 'null'}`);
+    }
 
     return streamingSession;
   }
@@ -316,6 +330,15 @@ export class StreamingQueryManager {
    */
   getActiveSession(): StreamingSession | null {
     return this.activeSession;
+  }
+
+  /**
+   * 设置会话分叉标志
+   *
+   * @param fork - 是否要创建新分支（生成新SDK会话ID）
+   */
+  setForkSession(fork: boolean): void {
+    this.forkSession = fork;
   }
 
   /**
@@ -337,6 +360,11 @@ export class StreamingQueryManager {
     }
 
     try {
+      // 添加调试日志
+      if (process.env.DEBUG_SESSION) {
+        console.log(`[StreamingQueryManager] sendMessage: sessionId=${this.activeSession.session.id}, executionPromise=${this.executionPromise ? 'exists' : 'null'}`);
+      }
+
       // 使用 MessageRouter 构建流式消息（处理图像引用）
       const buildResult = await this.messageRouter.buildStreamMessage(
         rawMessage,
@@ -370,6 +398,10 @@ export class StreamingQueryManager {
 
       // 如果尚未启动执行，启动 SDK 执行循环
       if (!this.executionPromise) {
+        // 添加调试日志
+        if (process.env.DEBUG_SESSION) {
+          console.log(`[StreamingQueryManager] Starting new execution for session: ${this.activeSession.session.id}`);
+        }
         this.executionPromise = this.startExecution();
       }
 
@@ -459,6 +491,13 @@ export class StreamingQueryManager {
    * 清理会话资源，停止消息生成器，中断任何进行中的处理
    */
   endSession(): void {
+    const sessionId = this.activeSession?.session.id;
+
+    // 添加调试日志
+    if (process.env.DEBUG_SESSION) {
+      console.log(`[StreamingQueryManager] endSession: sessionId=${sessionId}, executionPromise=${this.executionPromise ? 'exists' : 'null'}, queryInstance=${this.queryInstance ? 'exists' : 'null'}`);
+    }
+
     if (this.liveGenerator) {
       // 清空队列并记录警告（如果有未处理消息）
       const clearedCount = this.liveGenerator.clearQueue();
@@ -476,7 +515,14 @@ export class StreamingQueryManager {
     }
     this.executionPromise = null;
     this.lastResult = null;
+    this.queryInstance = null;
+    this.messageRouter.setQueryInstance(null);
     this.toolUseMap.clear();
+
+    // 添加调试日志
+    if (process.env.DEBUG_SESSION) {
+      console.log(`[StreamingQueryManager] endSession completed: sessionId=${sessionId}, all references cleared`);
+    }
   }
 
   /**
@@ -535,6 +581,9 @@ export class StreamingQueryManager {
       throw new Error('No active streaming session');
     }
 
+    const sessionId = this.activeSession.session.sdkSessionId;
+    const hasExistingSession = !!sessionId;
+
     try {
       // 构建查询选项
       const queryOptions = await this.messageRouter.buildQueryOptions(this.activeSession.session);
@@ -562,18 +611,39 @@ export class StreamingQueryManager {
         enableFileCheckpointing: queryOptions.enableFileCheckpointing,
         sandbox: queryOptions.sandbox,
         abortController: this.activeSession.abortController,
-        resume: this.activeSession.session.sdkSessionId,
+        resume: sessionId,
+        forkSession: this.forkSession,
         // 传递消息回调，用于实时输出工具调用信息
         onMessage: (message) => this.handleSDKMessage(message),
         // 保存 query 实例的回调
         onQueryCreated: (queryInstance) => {
           this.queryInstance = queryInstance;
           this.messageRouter.setQueryInstance(queryInstance);
+
+          // 添加调试日志
+          if (process.env.DEBUG_SESSION) {
+            console.log(`[StreamingQueryManager] New Query instance created: ${queryInstance?.sessionId || 'unknown'} (resume: ${hasExistingSession ? 'yes' : 'no'})`);
+          }
         },
       });
 
       // 保存结果
       this.lastResult = sdkResult;
+
+      // 保存 SDK 会话 ID 到会话对象（如果存在且不同）
+      if (this.activeSession && sdkResult && sdkResult.sessionId && sdkResult.sessionId !== this.activeSession.session.sdkSessionId) {
+        this.activeSession.session.sdkSessionId = sdkResult.sessionId;
+
+        // 添加调试日志
+        if (process.env.DEBUG_SESSION) {
+          console.log(`[StreamingQueryManager] Saved SDK session ID: ${sdkResult.sessionId} for session: ${this.activeSession.session.id}`);
+        }
+      } else {
+        // 添加调试日志
+        if (process.env.DEBUG_SESSION) {
+          console.log(`[StreamingQueryManager] SDK session ID not saved: sdkResult=${!!sdkResult}, sessionId=${sdkResult?.sessionId}, current=${this.activeSession?.session.sdkSessionId}`);
+        }
+      }
 
       // 恢复空闲状态
       if (this.activeSession) {

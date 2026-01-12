@@ -55,17 +55,20 @@ function createTestUI(
   input: ReturnType<typeof createMockInput>;
   output: ReturnType<typeof createMockOutput>;
   onMessage: jest.Mock;
+  onCommand: jest.Mock;
   onInterrupt: jest.Mock;
   onRewind: jest.Mock;
 } {
   const input = createMockInput();
   const output = createMockOutput();
   const onMessage = jest.fn().mockResolvedValue(undefined);
+  const onCommand = jest.fn().mockResolvedValue(undefined);
   const onInterrupt = jest.fn();
   const onRewind = jest.fn().mockResolvedValue(undefined);
 
   const ui = new InteractiveUI({
     onMessage,
+    onCommand,
     onInterrupt,
     onRewind,
     input,
@@ -74,7 +77,7 @@ function createTestUI(
     ...overrides,
   });
 
-  return { ui, input, output, onMessage, onInterrupt, onRewind };
+  return { ui, input, output, onMessage, onCommand, onInterrupt, onRewind };
 }
 
 describe('InteractiveUI', () => {
@@ -743,7 +746,7 @@ describe('InteractiveUI', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      input.emit('data', Buffer.from('1'));
+      input.emit('data', Buffer.from('1\n'));
 
       const result = await resultPromise;
 
@@ -781,45 +784,15 @@ describe('InteractiveUI', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      input.emit('data', Buffer.from('0'));
+      input.emit('data', Buffer.from('0\n'));
 
       const result = await resultPromise;
 
       expect(result).toBeNull();
     });
 
-    it('应支持Esc键取消', async () => {
-      const { ui, input } = createTestUI();
-      const now = new Date();
-      const sessions: Session[] = [
-        {
-          id: 'session-1',
-          createdAt: now,
-          lastAccessedAt: now,
-          messages: [],
-          context: {} as any,
-          expired: false,
-          workingDirectory: '/test',
-          stats: {
-            messageCount: 5,
-            totalInputTokens: 100,
-            totalOutputTokens: 50,
-            totalCostUsd: 0.01,
-            lastMessagePreview: '预览',
-          },
-        },
-      ];
-
-      const resultPromise = ui.showSessionMenu(sessions);
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      input.emit('data', Buffer.from('\x1b'));
-
-      const result = await resultPromise;
-
-      expect(result).toBeNull();
-    });
+    // 注意: Esc 键取消已移除，现在只支持输入 0 取消
+    // 这是为了简化输入处理，统一使用 readline.question()
 
     it('应处理无效输入并重新等待', async () => {
       const { ui, input } = createTestUI();
@@ -848,12 +821,12 @@ describe('InteractiveUI', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // 发送无效输入
-      input.emit('data', Buffer.from('abc'));
+      input.emit('data', Buffer.from('abc\n'));
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // 发送有效输入
-      input.emit('data', Buffer.from('1'));
+      input.emit('data', Buffer.from('1\n'));
 
       const result = await resultPromise;
 

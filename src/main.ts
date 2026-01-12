@@ -250,6 +250,9 @@ export class Application {
           this.ui!.setProcessingState(false);
         }
       },
+      onCommand: async (command: string) => {
+        await this.handleCommand(command, session);
+      },
       onInterrupt: () => this.handleInterrupt(),
       onRewind: async () => await this.handleRewind(session),
       onPermissionModeChange: (mode: PermissionMode) => this.permissionManager.setMode(mode),
@@ -258,11 +261,6 @@ export class Application {
           this.streamingQueryManager.queueMessage(message);
         }
       },
-    });
-
-    // Handle slash commands
-    this.ui.on('command', async (command: string) => {
-      await this.handleCommand(command, session);
     });
 
     this.streamingQueryManager = new StreamingQueryManager({
@@ -399,10 +397,17 @@ export class Application {
         return;
       }
 
-      await this.sessionManager.addMessage(session, {
+      // 获取当前活跃会话（可能被 resume/fork 更新）
+      const activeSession = this.streamingQueryManager!.getActiveSession();
+      const currentSession = activeSession?.session || session;
+
+      await this.sessionManager.addMessage(currentSession, {
         role: 'user',
         content: message,
       });
+
+      // 保存会话（包含可能的 sdkSessionId 更新）
+      await this.sessionManager.saveSession(currentSession);
     } catch (error) {
       if (this.ui) {
         this.ui.stopComputing();
@@ -563,6 +568,23 @@ Available commands:
     }
 
     try {
+      // 检查选中的会话是否可以恢复
+      const hasValidSdkSession = !!selectedSession.sdkSessionId;
+      const forkIndicator = selectedSession.parentSessionId ? ' 🔀' : '';
+
+      // 询问用户是否要创建新分支（仅在有有效SDK会话ID时询问）
+      let forkSession = false;
+      if (hasValidSdkSession && this.ui) {
+        forkSession = await this.ui.showConfirmationMenu(
+          `选择会话恢复方式`,
+          [
+            { key: 'c', label: '继续原会话 (使用相同SDK会话)', description: '保持SDK会话ID，继续在原会话中对话' },
+            { key: 'n', label: '创建新分支 (生成新SDK会话)', description: '创建新分支，拥有独立的SDK会话ID' },
+          ],
+          'c'
+        );
+      }
+
       // 保存当前会话
       if (this.streamingQueryManager) {
         const activeSession = this.streamingQueryManager.getActiveSession();
@@ -577,9 +599,19 @@ Available commands:
       // 切换到选中的会话
       this.streamingQueryManager?.startSession(selectedSession);
 
+      // 设置forkSession标志
+      this.streamingQueryManager?.setForkSession(forkSession);
+
       // 显示成功消息
-      const forkIndicator = selectedSession.parentSessionId ? ' 🔀' : '';
-      console.log(`\nResumed session: ${selectedSession.id}${forkIndicator}`);
+      if (hasValidSdkSession) {
+        if (forkSession) {
+          console.log(`\nCreated new branch from session: ${selectedSession.id}${forkIndicator}`);
+        } else {
+          console.log(`\nResumed session: ${selectedSession.id}${forkIndicator}`);
+        }
+      } else {
+        console.log(`\nContinuing session: ${selectedSession.id}${forkIndicator} (new SDK session)`);
+      }
     } catch (error) {
       console.error(
         `Failed to resume session: ${error instanceof Error ? error.message : String(error)}`

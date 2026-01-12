@@ -817,10 +817,12 @@ describe('handleResumeCommand 方法', () => {
       getActiveSession: jest.fn(() => null),
       endSession: jest.fn(),
       startSession: jest.fn(),
+      setForkSession: jest.fn(),
     };
 
     mockUI = {
       showSessionMenu: jest.fn(),
+      showConfirmationMenu: jest.fn(),
     };
 
     // 创建应用程序实例
@@ -865,10 +867,12 @@ describe('handleResumeCommand 方法', () => {
       const mockForkedSession = {
         id: 'session-456',
         parentSessionId: 'session-123',
+        sdkSessionId: 'sdk-session-456', // 添加有效的 SDK 会话 ID
       };
 
       mockSessionManager.listRecentSessions.mockResolvedValue([mockForkedSession]);
       mockUI.showSessionMenu.mockResolvedValue(mockForkedSession);
+      mockUI.showConfirmationMenu.mockResolvedValue(false); // 不fork，继续原会话
       mockStreamingQueryManager.getActiveSession.mockReturnValue(null);
 
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
@@ -1015,10 +1019,12 @@ describe('handleForkCommand 方法', () => {
       getActiveSession: jest.fn(() => null),
       endSession: jest.fn(),
       startSession: jest.fn(),
+      setForkSession: jest.fn(),
     };
 
     mockUI = {
       showSessionMenu: jest.fn(),
+      showConfirmationMenu: jest.fn(),
     };
 
     // 创建应用程序实例
