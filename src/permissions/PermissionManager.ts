@@ -253,20 +253,6 @@ export class PermissionManager {
   }
 
   /**
-   * 请求用户确认
-   *
-   * @param tool 工具名称
-   * @returns 用户是否批准
-   */
-  async promptUser(tool: string, _args: Record<string, unknown>): Promise<boolean> {
-    // TODO: 这个方法将在后续任务中被重构，暂时保留默认拒绝逻辑
-    console.warn(
-      `Permission request: ${tool}, but user confirmation callback not set, denying by default`
-    );
-    return false;
-  }
-
-  /**
    * 请求用户确认工具使用
    */
   private async promptUserForTool(
@@ -396,54 +382,6 @@ export class PermissionManager {
    */
   getConfig(): Readonly<PermissionConfig> {
     return { ...this.config };
-  }
-
-
-  /**
-   * 添加工具到黑名单
-   *
-   * @param tool 工具名称
-   */
-  addToDisallowedTools(tool: string): void {
-    if (!this.config.disallowedTools) {
-      this.config.disallowedTools = [];
-    }
-    if (!this.config.disallowedTools.includes(tool)) {
-      this.config.disallowedTools.push(tool);
-    }
-  }
-
-  /**
-   * 从黑名单移除工具
-   *
-   * @param tool 工具名称
-   */
-  removeFromDisallowedTools(tool: string): void {
-    if (this.config.disallowedTools) {
-      this.config.disallowedTools = this.config.disallowedTools.filter((t) => t !== tool);
-    }
-  }
-
-
-  /**
-   * 检查工具是否被允许（不执行用户确认）
-   *
-   * @param tool 工具名称
-   * @returns 是否被允许
-   */
-  isToolAllowed(tool: string): boolean {
-    // 检查黑名单
-    if (this.isToolInList(tool, this.config.disallowedTools)) {
-      return false;
-    }
-
-    // 检查白名单
-    if (this.config.allowedTools && this.config.allowedTools.length > 0) {
-      return this.isToolInList(tool, this.config.allowedTools);
-    }
-
-    // 默认允许
-    return true;
   }
 
   /**

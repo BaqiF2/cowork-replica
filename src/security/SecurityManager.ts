@@ -794,20 +794,6 @@ export class SecurityManager {
     this.config = { ...this.config, ...config };
   }
 
-  /**
-   * 获取敏感文件模式列表
-   */
-  getSensitiveFilePatterns(): string[] {
-    return [...this.config.sensitiveFiles.patterns];
-  }
-
-  /**
-   * 获取敏感目录列表
-   */
-  getSensitiveDirectories(): string[] {
-    return [...this.config.sensitiveFiles.directories];
-  }
-
   // ==================== 私有方法 ====================
 
   /**
