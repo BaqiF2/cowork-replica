@@ -13,7 +13,7 @@
 
 import { ToolRegistry } from '../tools/ToolRegistry';
 import { PermissionUIFactory } from '../ui/factories/PermissionUIFactory';
-import { PermissionUI } from './PermissionUI';
+import { PermissionUI, QuestionInput } from './PermissionUI';
 import { PermissionResult, SDKCanUseTool } from './types';
 
 const MCP_TOOL_PREFIX = 'mcp__';
@@ -316,7 +316,7 @@ export class PermissionManager {
 
     try {
       // 调用 UI 层收集用户答案
-      const answers = await this.permissionUI.promptUserQuestions(inputObj.questions as any);
+      const answers = await this.permissionUI.promptUserQuestions(inputObj.questions as QuestionInput[]);
 
       // 构建 PermissionResult with updatedInput
       return {

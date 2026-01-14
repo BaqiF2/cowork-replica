@@ -178,16 +178,6 @@ export class HookManager {
    * @param config 钩子配置
    */
   loadHooks(config: HookConfig): void {
-    // 验证配置中的事件类型
-    for (const event of Object.keys(config)) {
-      if (!ALL_HOOK_EVENTS.includes(event as HookEvent)) {
-        if (this.debug) {
-          console.warn(`Unknown hook event type: ${event}`);
-        }
-        continue;
-      }
-    }
-
     this.config = { ...config };
   }
 

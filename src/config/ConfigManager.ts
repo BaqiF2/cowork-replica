@@ -23,6 +23,7 @@ import {
   McpServerConfig,
   AgentDefinition,
   SandboxSettings,
+  UIConfig,
 } from './SDKConfigLoader';
 
 // 重新导出类型
@@ -36,6 +37,7 @@ export {
   McpServerConfig,
   AgentDefinition,
   SandboxSettings,
+  UIConfig,
 };
 
 /**

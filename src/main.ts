@@ -44,10 +44,8 @@ import { Logger } from './logging/Logger';
 import { ConfigBuilder } from './config/ConfigBuilder';
 import { ErrorHandler } from './errors/ErrorHandler';
 import { CustomToolManager } from './custom-tools';
-import { calculatorTool } from './custom-tools/math';
 
 const VERSION = process.env.VERSION || '0.1.0';
-const CUSTOM_TOOL_MODULE_NAME = process.env.CUSTOM_TOOL_MODULE_NAME ?? 'math/calculators';
 
 /**
  * 会话保留数量（默认 10）
@@ -68,6 +66,7 @@ export class Application {
   private readonly outputFormatter: OutputFormatter;
   private readonly securityManager: SecurityManager;
   private readonly sdkExecutor: SDKQueryExecutor;
+  private readonly customToolManager: CustomToolManager;
 
   private rewindManager: RewindManager | null = null;
   private permissionManager!: PermissionManager;
@@ -92,6 +91,10 @@ export class Application {
     this.outputFormatter = new OutputFormatter();
     this.securityManager = new SecurityManager();
     this.sdkExecutor = new SDKQueryExecutor();
+    this.customToolManager = new CustomToolManager({
+      serverNamePrefix: process.env.CUSTOM_TOOL_SERVER_NAME_PREFIX,
+      serverVersion: process.env.CUSTOM_TOOL_SERVER_VERSION,
+    });
     this.logger = new Logger(this.securityManager);
   }
 
@@ -150,11 +153,7 @@ export class Application {
     // Create UI factory from configuration (default to terminal)
     const uiFactory = UIFactoryRegistry.create(permissionConfig.ui);
 
-    this.permissionManager = new PermissionManager(
-      permissionConfig,
-      uiFactory,
-      this.toolRegistry
-    );
+    this.permissionManager = new PermissionManager(permissionConfig, uiFactory, this.toolRegistry);
 
     this.messageRouter = new MessageRouter({
       configManager: this.configManager,
@@ -169,54 +168,35 @@ export class Application {
     await this.rewindManager.initialize();
 
     await this.loadCustomExtensions(workingDir);
-    await this.initializeCustomTools();
+    await this.customToolManager.initialize();
+
+    const customMcpServers = this.customToolManager.createMcpServers();
+    if (Object.keys(customMcpServers).length > 0) {
+      this.sdkExecutor.setCustomMcpServers(customMcpServers);
+      await this.logger.info('Custom tool MCP servers registered', {
+        servers: Object.keys(customMcpServers),
+      });
+    } else {
+      await this.logger.warn('No custom MCP servers created');
+    }
+
     await this.loadMCPServers(workingDir);
 
     // 自动清理旧会话，保留最近 N 个会话
     await this.cleanOldSessions();
 
-    await this.logger.debug('Application initialized');
+    await this.logger.info('Application initialized');
   }
 
   private async loadCustomExtensions(workingDir: string): Promise<void> {
-    await this.logger.debug('Loading extensions...');
-
     const hooksConfigPath = path.join(workingDir, '.claude', 'hooks.json');
     try {
       await fs.access(hooksConfigPath);
       const hooksContent = await fs.readFile(hooksConfigPath, 'utf-8');
       this.hookManager.loadHooks(JSON.parse(hooksContent));
-    } catch {
-      // 钩子配置文件不存在，忽略
-    }
+    } catch {}
 
-    await this.logger.debug('Extensions loaded');
-  }
-
-  private async initializeCustomTools(): Promise<void> {
-    const customToolManager = new CustomToolManager();
-    const registration = customToolManager.registerModule(CUSTOM_TOOL_MODULE_NAME, [
-      calculatorTool,
-    ]);
-
-    if (!registration.valid) {
-      await this.logger.error('Custom tool module registration failed', {
-        module: CUSTOM_TOOL_MODULE_NAME,
-        errors: registration.errors,
-      });
-      return;
-    }
-
-    const customMcpServers = customToolManager.createMcpServers();
-    if (!Object.keys(customMcpServers).length) {
-      await this.logger.warn('No custom MCP servers created', { module: CUSTOM_TOOL_MODULE_NAME });
-      return;
-    }
-
-    this.sdkExecutor.setCustomMcpServers(customMcpServers);
-    await this.logger.info('Custom tool MCP servers registered', {
-      servers: Object.keys(customMcpServers),
-    });
+    await this.logger.info('Extensions loaded');
   }
 
   private async loadMCPServers(workingDir: string): Promise<void> {
@@ -229,7 +209,6 @@ export class Application {
       await this.logger.debug('MCP server config loaded', { path: configPath });
     } catch {
       expandedConfig = this.mcpManager.getExpandedServersConfig();
-      // 配置文件不存在或无效，忽略
     } finally {
       this.messageRouter.setMcpServers(expandedConfig);
     }

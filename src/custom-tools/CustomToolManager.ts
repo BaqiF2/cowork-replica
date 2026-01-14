@@ -38,12 +38,52 @@ export class CustomToolManager {
   private readonly serverNamePrefix: string;
   private readonly serverVersion: string;
   private readonly moduleSeparator: string;
+  private initialized: boolean = false;
 
   constructor(options: CustomToolManagerOptions = {}, registry?: CustomToolRegistry) {
     this.registry = registry ?? new CustomToolRegistry();
     this.serverNamePrefix = options.serverNamePrefix ?? DEFAULT_SERVER_NAME_PREFIX;
     this.serverVersion = options.serverVersion ?? DEFAULT_SERVER_VERSION;
     this.moduleSeparator = DEFAULT_MODULE_SEPARATOR;
+  }
+
+  /**
+   * Initialize the custom tool manager.
+   *
+   * Loads tool modules from configuration and registers built-in tools.
+   * This method is idempotent - calling it multiple times has no effect after the first call.
+   */
+  async initialize(): Promise<void> {
+    if (this.initialized) {
+      return;
+    }
+
+    // Register built-in tools (for backward compatibility)
+    await this.registerBuiltInTools();
+
+    this.initialized = true;
+  }
+
+  /**
+   * Register built-in custom tools.
+   * This maintains backward compatibility with the previous hardcoded approach.
+   */
+  private async registerBuiltInTools(): Promise<void> {
+    try {
+      // Import and register the calculator tool
+      // This is done lazily to avoid circular dependencies
+      const module = await import('./math/index');
+      const { calculatorTool } = module;
+      const moduleName = process.env.CUSTOM_TOOL_MODULE_NAME ?? 'math/calculators';
+
+      const registration = this.registerModule(moduleName, [calculatorTool]);
+      if (!registration.valid) {
+        console.warn('Failed to register built-in custom tools:', registration.errors);
+      }
+    } catch (error) {
+      // Log error but don't throw - this allows the app to continue without custom tools
+      console.warn('Failed to register built-in custom tools:', error);
+    }
   }
 
   registerTool(tool: ToolDefinition): ValidationResult {

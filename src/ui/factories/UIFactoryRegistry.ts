@@ -82,17 +82,13 @@ export class UIFactoryRegistry {
    * @returns Factory instance (defaults to TerminalPermissionUIFactory if config is null/undefined)
    */
   static create(config?: UIConfig): PermissionUIFactory {
-    // If no config provided, return default terminal factory
     if (!config) {
       return new TerminalPermissionUIFactory();
     }
 
-    // Validate config type
-    if (!config.type || typeof config.type !== 'string') {
+    if (!config.type) {
       throw new Error('UI config must include a valid type string');
     }
-
-    // Get and return the registered factory for this type
     return this.get(config.type);
   }
 

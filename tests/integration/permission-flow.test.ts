@@ -145,11 +145,29 @@ describe('Permission Flow Integration Tests', () => {
     });
   });
 
+  beforeEach(() => {
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+  });
+
+  // Helper function to set up mock UI
+  const setupMockUI = (mockImplementation: {
+    promptToolPermission?: jest.Mock;
+    promptUserQuestions?: jest.Mock;
+  } = {}) => {
+    const mockUI = {
+      promptToolPermission: mockImplementation.promptToolPermission || jest.fn(),
+      promptUserQuestions: mockImplementation.promptUserQuestions || jest.fn(),
+    };
+    (permissionManager as any).permissionUI = mockUI;
+    return mockUI;
+  };
+
   describe('Complete Permission Flow', () => {
     it('should handle full permission workflow: user input → tool trigger → panel display → user approval → execution', async () => {
       // Mock user approval
-      jest.spyOn(permissionUIFactory, 'promptToolPermission').mockResolvedValue({
-        approved: true,
+      const mockUI = setupMockUI({
+        promptToolPermission: jest.fn().mockResolvedValue({ approved: true }),
       });
 
       // Create canUseTool handler
@@ -167,7 +185,7 @@ describe('Permission Flow Integration Tests', () => {
       }
 
       // Verify UI was called
-      expect(permissionUIFactory.promptToolPermission).toHaveBeenCalledWith(
+      expect(mockUI.promptToolPermission).toHaveBeenCalledWith(
         expect.objectContaining({
           toolName: 'Bash',
           input: { command: 'echo test' },
@@ -177,9 +195,11 @@ describe('Permission Flow Integration Tests', () => {
 
     it('should handle user denial workflow', async () => {
       // Mock user denial
-      jest.spyOn(permissionUIFactory, 'promptToolPermission').mockResolvedValue({
-        approved: false,
-        reason: 'User rejected the operation',
+      setupMockUI({
+        promptToolPermission: jest.fn().mockResolvedValue({
+          approved: false,
+          reason: 'User rejected the operation',
+        }),
       });
 
       // Create canUseTool handler
@@ -216,7 +236,7 @@ describe('Permission Flow Integration Tests', () => {
 
     it('should respect whitelist and always allow', async () => {
       // Configure whitelist
-      const promptSpy = jest.spyOn(permissionUIFactory, 'promptToolPermission');
+      const mockUI = setupMockUI();
 
       permissionManager = new PermissionManager(
         {
@@ -233,12 +253,12 @@ describe('Permission Flow Integration Tests', () => {
 
       // Should allow without prompting
       expect(result.behavior).toBe('allow');
-      expect(promptSpy).not.toHaveBeenCalled();
+      expect(mockUI.promptToolPermission).not.toHaveBeenCalled();
     });
 
     it('should respect blacklist and always deny', async () => {
       // Configure blacklist
-      const promptSpy = jest.spyOn(permissionUIFactory, 'promptToolPermission');
+      const mockUI = setupMockUI();
 
       permissionManager = new PermissionManager(
         {
@@ -255,12 +275,12 @@ describe('Permission Flow Integration Tests', () => {
 
       // Should deny without prompting
       expect(result.behavior).toBe('deny');
-      expect(promptSpy).not.toHaveBeenCalled();
+      expect(mockUI.promptToolPermission).not.toHaveBeenCalled();
     });
 
     it('should auto-approve Write/Edit in acceptEdits mode', async () => {
       // Set acceptEdits mode
-      const promptSpy = jest.spyOn(permissionUIFactory, 'promptToolPermission');
+      const mockUI = setupMockUI();
 
       permissionManager.setMode('acceptEdits');
 
@@ -276,12 +296,12 @@ describe('Permission Flow Integration Tests', () => {
       expect(editResult.behavior).toBe('allow');
 
       // Should not prompt
-      expect(promptSpy).not.toHaveBeenCalled();
+      expect(mockUI.promptToolPermission).not.toHaveBeenCalled();
     });
 
     it('should auto-approve all tools in bypassPermissions mode', async () => {
       // Set bypass mode
-      const promptSpy = jest.spyOn(permissionUIFactory, 'promptToolPermission');
+      const mockUI = setupMockUI();
 
       permissionManager.setMode('bypassPermissions');
 
@@ -296,7 +316,7 @@ describe('Permission Flow Integration Tests', () => {
       expect(writeResult.behavior).toBe('allow');
 
       // Should not prompt
-      expect(promptSpy).not.toHaveBeenCalled();
+      expect(mockUI.promptToolPermission).not.toHaveBeenCalled();
     });
   });
 
@@ -306,7 +326,9 @@ describe('Permission Flow Integration Tests', () => {
       const mockAnswers = {
         'Which option do you prefer?': 'Option A',
       };
-      jest.spyOn(permissionUIFactory, 'promptUserQuestions').mockResolvedValue(mockAnswers);
+      const mockUI = setupMockUI({
+        promptUserQuestions: jest.fn().mockResolvedValue(mockAnswers),
+      });
 
       // Create canUseTool handler
       const canUseTool = permissionManager.createCanUseToolHandler();
@@ -342,7 +364,7 @@ describe('Permission Flow Integration Tests', () => {
       }
 
       // Verify UI was called
-      expect(permissionUIFactory.promptUserQuestions).toHaveBeenCalledWith(questions);
+      expect(mockUI.promptUserQuestions).toHaveBeenCalledWith(questions);
     });
 
     it('should handle multi-select questions', async () => {
@@ -350,7 +372,9 @@ describe('Permission Flow Integration Tests', () => {
       const mockAnswers = {
         'Which features do you want?': 'Feature A, Feature B',
       };
-      jest.spyOn(permissionUIFactory, 'promptUserQuestions').mockResolvedValue(mockAnswers);
+      setupMockUI({
+        promptUserQuestions: jest.fn().mockResolvedValue(mockAnswers),
+      });
 
       const canUseTool = permissionManager.createCanUseToolHandler();
 
@@ -386,7 +410,9 @@ describe('Permission Flow Integration Tests', () => {
         'Question 1?': 'Answer 1',
         'Question 2?': 'Answer 2',
       };
-      jest.spyOn(permissionUIFactory, 'promptUserQuestions').mockResolvedValue(mockAnswers);
+      setupMockUI({
+        promptUserQuestions: jest.fn().mockResolvedValue(mockAnswers),
+      });
 
       const canUseTool = permissionManager.createCanUseToolHandler();
 
@@ -448,21 +474,23 @@ describe('Permission Flow Integration Tests', () => {
 
     it('should apply new mode to next tool call after switch', async () => {
       // Start in default mode - requires permission
-      jest.spyOn(permissionUIFactory, 'promptToolPermission').mockResolvedValue({ approved: true });
+      const mockUI = setupMockUI({
+        promptToolPermission: jest.fn().mockResolvedValue({ approved: true }),
+      });
 
       const canUseTool = permissionManager.createCanUseToolHandler();
       const signal = new AbortController().signal;
 
       // First call in default mode - should prompt
       await canUseTool('Bash', { command: 'echo test' }, { signal, toolUseID: 'test-id-13' });
-      expect(permissionUIFactory.promptToolPermission).toHaveBeenCalledTimes(1);
+      expect(mockUI.promptToolPermission).toHaveBeenCalledTimes(1);
 
       // Switch to bypass mode
       await streamingQueryManager.setPermissionMode('bypassPermissions');
 
       // Second call in bypass mode - should not prompt
       await canUseTool('Bash', { command: 'echo test2' }, { signal, toolUseID: 'test-id-14' });
-      expect(permissionUIFactory.promptToolPermission).toHaveBeenCalledTimes(1); // Still 1, no new call
+      expect(mockUI.promptToolPermission).toHaveBeenCalledTimes(1); // Still 1, no new call
     });
 
     it('should cycle through all permission modes', async () => {
@@ -480,7 +508,7 @@ describe('Permission Flow Integration Tests', () => {
 
     it('should maintain mode across multiple tool calls', async () => {
       // Set to bypassPermissions
-      const promptSpy = jest.spyOn(permissionUIFactory, 'promptToolPermission');
+      const mockUI = setupMockUI();
 
       await streamingQueryManager.setPermissionMode('bypassPermissions');
 
@@ -495,7 +523,7 @@ describe('Permission Flow Integration Tests', () => {
       }
 
       // No prompts should occur
-      expect(promptSpy).not.toHaveBeenCalled();
+      expect(mockUI.promptToolPermission).not.toHaveBeenCalled();
     });
 
     it('should handle rapid mode switches', async () => {
@@ -513,7 +541,8 @@ describe('Permission Flow Integration Tests', () => {
 
   describe('Edge Cases and Error Handling', () => {
     it('should handle empty AskUserQuestion input', async () => {
-      jest.spyOn(permissionUIFactory, 'promptUserQuestions').mockResolvedValue({});
+      // Spy on the UI instance methods
+      const promptSpy = jest.spyOn((permissionManager as any).permissionUI, 'promptUserQuestions').mockResolvedValue({});
 
       const canUseTool = permissionManager.createCanUseToolHandler();
       const signal = new AbortController().signal;
@@ -528,11 +557,13 @@ describe('Permission Flow Integration Tests', () => {
       if (result.behavior === 'allow') {
         expect(result.updatedInput).toHaveProperty('answers', {});
       }
+
+      promptSpy.mockRestore();
     });
 
     it('should handle UI errors gracefully', async () => {
       // Mock UI error
-      jest.spyOn(permissionUIFactory, 'promptToolPermission').mockRejectedValue(new Error('UI Error'));
+      const promptSpy = jest.spyOn((permissionManager as any).permissionUI, 'promptToolPermission').mockRejectedValue(new Error('UI Error'));
 
       const canUseTool = permissionManager.createCanUseToolHandler();
       const signal = new AbortController().signal;
@@ -541,10 +572,12 @@ describe('Permission Flow Integration Tests', () => {
       await expect(
         canUseTool('Bash', { command: 'echo test' }, { signal, toolUseID: 'test-id-16' })
       ).rejects.toThrow();
+
+      promptSpy.mockRestore();
     });
 
     it('should preserve tool input structure in updatedInput', async () => {
-      jest.spyOn(permissionUIFactory, 'promptToolPermission').mockResolvedValue({ approved: true });
+      const promptSpy = jest.spyOn((permissionManager as any).permissionUI, 'promptToolPermission').mockResolvedValue({ approved: true });
 
       const canUseTool = permissionManager.createCanUseToolHandler();
       const signal = new AbortController().signal;
@@ -561,6 +594,8 @@ describe('Permission Flow Integration Tests', () => {
       if (result.behavior === 'allow') {
         expect(result.updatedInput).toEqual(complexInput);
       }
+
+      promptSpy.mockRestore();
     });
   });
 });
