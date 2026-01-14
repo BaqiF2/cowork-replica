@@ -164,11 +164,12 @@ export class Application {
 
     this.streamingProcessor = new StreamingMessageProcessor();
 
+    await this.customToolManager.initialize();
+
     this.rewindManager = new RewindManager({ workingDir });
     await this.rewindManager.initialize();
 
     await this.loadCustomExtensions(workingDir);
-    await this.customToolManager.initialize();
 
     const customMcpServers = this.customToolManager.createMcpServers();
     if (Object.keys(customMcpServers).length > 0) {

@@ -57,28 +57,55 @@ export class CustomToolManager {
     if (this.initialized) {
       return;
     }
-
-    // Register built-in tools (for backward compatibility)
     await this.registerBuiltInTools();
-
     this.initialized = true;
   }
 
   /**
    * Register built-in custom tools.
+   * Loads tools from multiple folders specified by CUSTOM_TOOL_MODULES environment variable.
    * This maintains backward compatibility with the previous hardcoded approach.
    */
   private async registerBuiltInTools(): Promise<void> {
     try {
-      // Import and register the calculator tool
-      // This is done lazily to avoid circular dependencies
-      const module = await import('./math/index');
-      const { calculatorTool } = module;
-      const moduleName = process.env.CUSTOM_TOOL_MODULE_NAME ?? 'math/calculators';
+      // Parse the CUSTOM_TOOL_MODULES environment variable (comma-separated list)
+      // Default to 'math' for backward compatibility
+      const modulesEnv = process.env.CUSTOM_TOOL_MODULES ?? 'math';
+      const folderNames = modulesEnv.split(',').map(name => name.trim()).filter(Boolean);
 
-      const registration = this.registerModule(moduleName, [calculatorTool]);
-      if (!registration.valid) {
-        console.warn('Failed to register built-in custom tools:', registration.errors);
+      // Process each folder
+      for (const folderName of folderNames) {
+        try {
+          // Dynamically import the module from the folder
+          const modulePath = `./${folderName}/index`;
+          const module = await import(modulePath);
+
+          // Extract tools from the module (filter for valid tool definitions)
+          const tools = Object.values(module).filter((tool):
+            tool is ToolDefinition =>
+            typeof tool === 'object' &&
+            tool !== null &&
+            'name' in tool &&
+            'description' in tool &&
+            'module' in tool &&
+            'schema' in tool &&
+            'handler' in tool
+          );
+
+          if (tools.length === 0) {
+            console.warn(`No tools found in module: ${folderName}`);
+            continue;
+          }
+
+          // Register the module with the folder name as moduleName
+          const registration = this.registerModule(folderName, tools as ToolDefinition[]);
+          if (!registration.valid) {
+            console.warn(`Failed to register tools from ${folderName}:`, registration.errors);
+          }
+        } catch (error) {
+          // Log error but don't throw - allows app to continue with other modules
+          console.warn(`Failed to load tools from folder ${folderName}:`, error);
+        }
       }
     } catch (error) {
       // Log error but don't throw - this allows the app to continue without custom tools
