@@ -53,6 +53,13 @@ class MockUIFactory implements UIFactory {
       blankLine: (_count?: number) => undefined,
     };
   }
+
+  createPermissionUI(): PermissionUI {
+    return {
+      promptToolPermission: async () => ({ approved: true }),
+      promptUserQuestions: async () => ({}),
+    } as PermissionUI;
+  }
 }
 
 describe('UIFactoryRegistry', () => {
@@ -370,6 +377,126 @@ describe('UIFactoryRegistry', () => {
         registryModule.UIFactoryRegistry.registerUIFactory('mock', new MockUIFactory());
         const factory = registryModule.UIFactoryRegistry.createUIFactory();
         expect(factory).toBeInstanceOf(MockUIFactory);
+      });
+    });
+
+    it('should default to terminal when env is unset at creation time', () => {
+      jest.isolateModules(() => {
+        delete process.env[envKey];
+        const registryModule = require('../../src/ui/factories/UIFactoryRegistry') as {
+          UIFactoryRegistry: typeof UIFactoryRegistry;
+        };
+        const terminalModule = require('../../src/ui/factories/TerminalUIFactory') as {
+          TerminalUIFactory: typeof TerminalUIFactory;
+        };
+        const factory = registryModule.UIFactoryRegistry.createUIFactory();
+        expect(factory).toBeInstanceOf(terminalModule.TerminalUIFactory);
+      });
+    });
+
+    it('should throw error when env value is invalid', () => {
+      jest.isolateModules(() => {
+        process.env[envKey] = 'invalid';
+        const registryModule = require('../../src/ui/factories/UIFactoryRegistry') as {
+          UIFactoryRegistry: typeof UIFactoryRegistry;
+        };
+
+        expect(() => registryModule.UIFactoryRegistry.createUIFactory()).toThrow(
+          'Invalid CLAUDE_UI_TYPE: "invalid". Supported types: terminal'
+        );
+      });
+    });
+  });
+
+  describe('createUIFactory singleton', () => {
+    const envKey = 'CLAUDE_UI_TYPE';
+    let originalEnv: string | undefined;
+
+    beforeEach(() => {
+      originalEnv = process.env[envKey];
+    });
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env[envKey];
+      } else {
+        process.env[envKey] = originalEnv;
+      }
+    });
+
+    it('should create once and return the same instance on repeated calls', () => {
+      let createdCount = 0;
+
+      jest.isolateModules(() => {
+        delete process.env[envKey];
+        jest.doMock('../../src/ui/factories/TerminalUIFactory', () => ({
+          TerminalUIFactory: jest.fn().mockImplementation(() => {
+            createdCount += 1;
+            return {
+              createParser: jest.fn(),
+              createOutput: jest.fn(),
+              createPermissionUI: jest.fn(),
+            };
+          }),
+        }));
+
+        const registryModule = require('../../src/ui/factories/UIFactoryRegistry') as {
+          UIFactoryRegistry: typeof UIFactoryRegistry;
+        };
+
+        expect(createdCount).toBe(0);
+
+        const firstFactory = registryModule.UIFactoryRegistry.createUIFactory();
+        const secondFactory = registryModule.UIFactoryRegistry.createUIFactory();
+
+        expect(firstFactory).toBe(secondFactory);
+        expect(createdCount).toBe(1);
+      });
+    });
+  });
+
+  describe('createUIFactory resetForTesting', () => {
+    const envKey = 'CLAUDE_UI_TYPE';
+    let originalEnv: string | undefined;
+
+    beforeEach(() => {
+      originalEnv = process.env[envKey];
+    });
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env[envKey];
+      } else {
+        process.env[envKey] = originalEnv;
+      }
+    });
+
+    it('should create a new instance after resetForTesting', () => {
+      let createdCount = 0;
+
+      jest.isolateModules(() => {
+        delete process.env[envKey];
+        jest.doMock('../../src/ui/factories/TerminalUIFactory', () => ({
+          TerminalUIFactory: jest.fn().mockImplementation(() => {
+            createdCount += 1;
+            return {
+              createParser: jest.fn(),
+              createOutput: jest.fn(),
+              createPermissionUI: jest.fn(),
+            };
+          }),
+        }));
+
+        const registryModule = require('../../src/ui/factories/UIFactoryRegistry') as {
+          UIFactoryRegistry: typeof UIFactoryRegistry;
+        };
+
+        const firstFactory = registryModule.UIFactoryRegistry.createUIFactory();
+        registryModule.UIFactoryRegistry.resetForTesting();
+        const secondFactory = registryModule.UIFactoryRegistry.createUIFactory();
+
+        expect(firstFactory).not.toBe(secondFactory);
+        expect(createdCount).toBe(2);
       });
     });
   });

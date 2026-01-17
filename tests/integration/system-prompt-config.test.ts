@@ -14,7 +14,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { MessageRouter } from '../../src/core/MessageRouter';
 import { SessionManager, Session } from '../../src/core/SessionManager';
-import { ConfigManager } from '../../src/config/ConfigManager';
 import { ToolRegistry } from '../../src/tools/ToolRegistry';
 import { PermissionManager } from '../../src/permissions/PermissionManager';
 import { MockPermissionUIFactory } from '../test-helpers/MockPermissionUI';
@@ -23,7 +22,6 @@ describe('系统提示词配置集成测试', () => {
   let testDir: string;
   let claudeDir: string;
   let sessionManager: SessionManager;
-  let configManager: ConfigManager;
   let toolRegistry: ToolRegistry;
   let permissionManager: PermissionManager;
 
@@ -51,7 +49,6 @@ describe('系统提示词配置集成测试', () => {
     await fs.mkdir(sessionsDir, { recursive: true });
 
     sessionManager = new SessionManager(sessionsDir);
-    configManager = new ConfigManager();
     toolRegistry = new ToolRegistry();
     permissionManager = new PermissionManager({ mode: 'default' }, new MockPermissionUIFactory(), toolRegistry);
   });
@@ -76,7 +73,6 @@ describe('系统提示词配置集成测试', () => {
 
     const session = await sessionManager.createSession(testDir);
     const messageRouter = new MessageRouter({
-      configManager,
       toolRegistry,
       permissionManager,
     });

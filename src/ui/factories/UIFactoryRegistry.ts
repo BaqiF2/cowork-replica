@@ -43,6 +43,8 @@ export class UIFactoryRegistry {
   private static factories: Map<string, PermissionUIFactory> = new Map();
   /** Internal registry of UIFactory instances by type */
   private static uiFactories: Map<string, UIFactory> = new Map();
+  /** Cached UIFactory singleton instance */
+  private static uiFactoryInstance: UIFactory | null = null;
 
   /**
    * Register a UI factory for a specific type
@@ -125,15 +127,53 @@ export class UIFactoryRegistry {
    * @returns UIFactory instance
    */
   static createUIFactory(config?: UIConfig): UIFactory {
-    if (config == null) {
-      return this.getUIFactory(DEFAULT_UI_FACTORY_TYPE);
+    if (this.uiFactoryInstance) {
+      return this.uiFactoryInstance;
     }
 
-    if (!config.type) {
+    if (config && !config.type) {
       throw new Error('UI config must include a valid type string');
     }
 
-    return this.getUIFactory(config.type);
+    const resolvedType = config?.type ?? DEFAULT_UI_FACTORY_TYPE;
+    this.uiFactoryInstance = this.createUIFactoryInstance(resolvedType, {
+      validateEnv: config == null,
+    });
+    return this.uiFactoryInstance;
+  }
+
+  static resetForTesting(): void {
+    this.uiFactoryInstance = null;
+  }
+
+  private static createUIFactoryInstance(
+    type: string,
+    options?: { validateEnv?: boolean }
+  ): UIFactory {
+    if (options?.validateEnv) {
+      const supportedTypes = this.getSupportedUIFactoryTypes();
+      if (!supportedTypes.includes(type)) {
+        throw new Error(
+          `Invalid CLAUDE_UI_TYPE: "${type}". Supported types: ${supportedTypes.join(', ')}`
+        );
+      }
+    }
+
+    if (this.uiFactories.has(type)) {
+      return this.getUIFactory(type);
+    }
+
+    if (type === 'terminal') {
+      return new TerminalUIFactory();
+    }
+
+    return this.getUIFactory(type);
+  }
+
+  private static getSupportedUIFactoryTypes(): string[] {
+    const supportedTypes = new Set<string>(this.uiFactories.keys());
+    supportedTypes.add('terminal');
+    return Array.from(supportedTypes).sort();
   }
 
   private static getUIFactory(type: string): UIFactory {
@@ -175,9 +215,9 @@ export class UIFactoryRegistry {
   static clear(): void {
     this.factories.clear();
     this.uiFactories.clear();
+    this.resetForTesting();
   }
 }
 
 // Register default terminal factory on module load
 UIFactoryRegistry.register('terminal', new TerminalPermissionUIFactory());
-UIFactoryRegistry.registerUIFactory('terminal', new TerminalUIFactory());

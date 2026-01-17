@@ -12,7 +12,6 @@
  */
 
 import { MessageRouter, MessageRouterOptions, Message } from '../../src/core/MessageRouter';
-import { ConfigManager } from '../../src/config/ConfigManager';
 import { ToolRegistry } from '../../src/tools/ToolRegistry';
 import { PermissionManager, PermissionConfig } from '../../src/permissions/PermissionManager';
 import { Session, SessionContext } from '../../src/core/SessionManager';
@@ -39,24 +38,13 @@ function createMockSession(overrides: Partial<Session> = {}): Session {
   };
 }
 
-// 模拟配置管理器
-function createMockConfigManager(claudeMd: string | null = null): ConfigManager {
-  const configManager = new ConfigManager();
-  
-  // 模拟 loadClaudeMd 方法
-  jest.spyOn(configManager, 'loadClaudeMd').mockResolvedValue(claudeMd);
-  
-  return configManager;
-}
 
 describe('MessageRouter', () => {
   let toolRegistry: ToolRegistry;
-  let configManager: ConfigManager;
   let permissionManager: PermissionManager;
 
   beforeEach(() => {
     toolRegistry = new ToolRegistry();
-    configManager = createMockConfigManager();
     
     const permissionConfig: PermissionConfig = {
       mode: 'default',
@@ -67,8 +55,7 @@ describe('MessageRouter', () => {
   describe('构造函数', () => {
     it('应该使用提供的选项创建 MessageRouter 实例', () => {
       const options: MessageRouterOptions = {
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       };
 
@@ -80,8 +67,7 @@ describe('MessageRouter', () => {
 
     it('应该使用默认的 ToolRegistry 如果未提供', () => {
       const options: MessageRouterOptions = {
-        configManager,
-        permissionManager,
+          permissionManager,
       };
 
       const router = new MessageRouter(options);
@@ -93,8 +79,7 @@ describe('MessageRouter', () => {
   describe('getSystemPromptOptions', () => {
     it('应该返回 claude_code 预设（无技能场景）', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -111,8 +96,7 @@ describe('MessageRouter', () => {
   describe('buildAppendPrompt', () => {
     it('应该返回 undefined', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -126,8 +110,7 @@ describe('MessageRouter', () => {
   describe('getSettingSources', () => {
     it('应该返回 ["project"]', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -140,8 +123,7 @@ describe('MessageRouter', () => {
   describe('getEnabledToolNames', () => {
     it('应该返回默认工具列表', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -158,8 +140,7 @@ describe('MessageRouter', () => {
 
     it('应该根据配置的 allowedTools 返回工具列表', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -181,8 +162,7 @@ describe('MessageRouter', () => {
 
     it('应该根据配置的 disallowedTools 过滤工具', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -205,8 +185,7 @@ describe('MessageRouter', () => {
 
     it('应该保留允许列表中的 MCP 工具名称', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -229,8 +208,7 @@ describe('MessageRouter', () => {
 
     it('应该默认包含 Skill 工具', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -244,8 +222,7 @@ describe('MessageRouter', () => {
   describe('createPermissionHandler', () => {
     it('应该创建有效的权限处理函数', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -265,8 +242,7 @@ describe('MessageRouter', () => {
       );
 
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager: bypassPermissionManager,
       });
 
@@ -293,8 +269,7 @@ describe('MessageRouter', () => {
       );
 
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager: bypassPermissionManager,
       });
 
@@ -324,8 +299,7 @@ describe('MessageRouter', () => {
       );
 
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager: restrictedPermissionManager,
       });
 
@@ -348,8 +322,7 @@ describe('MessageRouter', () => {
   describe('getAgentDefinitions', () => {
     it('应该返回预设代理当没有活动代理时', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -361,8 +334,7 @@ describe('MessageRouter', () => {
 
     it('应该返回活动代理的定义', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -394,8 +366,7 @@ describe('MessageRouter', () => {
 
     it('应该正确转换多个代理', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -433,8 +404,7 @@ describe('MessageRouter', () => {
   describe('buildQueryOptions', () => {
     it('应该构建有效的 QueryOptions', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -459,8 +429,7 @@ describe('MessageRouter', () => {
 
     it('应该使用默认模型当未指定时', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -472,8 +441,7 @@ describe('MessageRouter', () => {
 
     it('应该使用 SDK 预设格式的 systemPrompt（无技能）', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -488,8 +456,7 @@ describe('MessageRouter', () => {
 
     it('应该包含 settingSources 字段', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -501,8 +468,7 @@ describe('MessageRouter', () => {
 
     it('应该包含权限模式', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -524,8 +490,7 @@ describe('MessageRouter', () => {
 
     it('应该包含 MCP 服务器配置', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -553,8 +518,7 @@ describe('MessageRouter', () => {
 
     it('应该包含子代理定义', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -583,8 +547,7 @@ describe('MessageRouter', () => {
   describe('routeMessage', () => {
     it('应该返回 QueryResult 对象', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -605,8 +568,7 @@ describe('MessageRouter', () => {
 
     it('应该处理带有 ContentBlock 的消息', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -628,8 +590,7 @@ describe('MessageRouter', () => {
 
     it('应该正确设置工作目录', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -660,7 +621,6 @@ describe('MessageRouter', () => {
 
 describe('MessageRouter - 流式消息构建', () => {
   let toolRegistry: ToolRegistry;
-  let configManager: ConfigManager;
   let permissionManager: PermissionManager;
   let fs: typeof import('fs/promises');
   let path: typeof import('path');
@@ -675,7 +635,6 @@ describe('MessageRouter - 流式消息构建', () => {
 
   beforeEach(async () => {
     toolRegistry = new ToolRegistry();
-    configManager = createMockConfigManager();
     permissionManager = new PermissionManager({ mode: 'default' }, new MockPermissionUIFactory(), toolRegistry);
 
     // 创建临时目录用于测试
@@ -692,8 +651,7 @@ describe('MessageRouter - 流式消息构建', () => {
   describe('buildStreamMessage', () => {
     it('应该构建纯文本消息', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -734,8 +692,7 @@ describe('MessageRouter - 流式消息构建', () => {
       await fs.writeFile(imagePath, imageBuffer);
 
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -766,8 +723,7 @@ describe('MessageRouter - 流式消息构建', () => {
 
     it('应该在图像文件不存在时返回错误', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -810,8 +766,7 @@ describe('MessageRouter - 流式消息构建', () => {
       await fs.writeFile(imagePath2, imageBuffer);
 
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -837,8 +792,7 @@ describe('MessageRouter - 流式消息构建', () => {
   describe('hasImageReferences', () => {
     it('应该检测到图像引用', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -849,8 +803,7 @@ describe('MessageRouter - 流式消息构建', () => {
 
     it('应该在没有图像引用时返回 false', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -863,8 +816,7 @@ describe('MessageRouter - 流式消息构建', () => {
   describe('setWorkingDirectory', () => {
     it('应该更新工作目录', () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -878,18 +830,15 @@ describe('MessageRouter - 流式消息构建', () => {
 
 describe('MessageRouter - Options 接口构建', () => {
   let toolRegistry: ToolRegistry;
-  let configManager: ConfigManager;
   let permissionManager: PermissionManager;
 
   beforeEach(() => {
     toolRegistry = new ToolRegistry();
-    configManager = createMockConfigManager();
     permissionManager = new PermissionManager({ mode: 'default' }, new MockPermissionUIFactory(), toolRegistry);
   });
 
   it('应该包含所有必需的 Options 字段', async () => {
     const router = new MessageRouter({
-      configManager,
       toolRegistry,
       permissionManager,
     });
@@ -907,7 +856,6 @@ describe('MessageRouter - Options 接口构建', () => {
 
   it('应该正确处理沙箱配置', async () => {
     const router = new MessageRouter({
-      configManager,
       toolRegistry,
       permissionManager,
     });
@@ -936,7 +884,6 @@ describe('MessageRouter - Options 接口构建', () => {
 
   it('应该正确处理 maxTurns 和 maxBudgetUsd', async () => {
     const router = new MessageRouter({
-      configManager,
       toolRegistry,
       permissionManager,
     });
@@ -962,7 +909,6 @@ describe('MessageRouter - Options 接口构建', () => {
 
 describe('MessageRouter - 边缘情况和缓存测试', () => {
   let toolRegistry: ToolRegistry;
-  let configManager: ConfigManager;
   let permissionManager: PermissionManager;
   let fs: typeof import('fs/promises');
   let path: typeof import('path');
@@ -977,7 +923,6 @@ describe('MessageRouter - 边缘情况和缓存测试', () => {
 
   beforeEach(async () => {
     toolRegistry = new ToolRegistry();
-    configManager = createMockConfigManager();
     permissionManager = new PermissionManager({ mode: 'default' }, new MockPermissionUIFactory(), toolRegistry);
 
     // 创建临时目录用于测试
@@ -994,8 +939,7 @@ describe('MessageRouter - 边缘情况和缓存测试', () => {
   describe('工作目录缓存', () => {
     it('应该为相同工作目录重用 ImageHandler', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -1011,8 +955,7 @@ describe('MessageRouter - 边缘情况和缓存测试', () => {
 
     it('应该在 setWorkingDirectory 后使用新的工作目录', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -1031,8 +974,7 @@ describe('MessageRouter - 边缘情况和缓存测试', () => {
   describe('空消息处理', () => {
     it('应该处理空字符串消息', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -1048,8 +990,7 @@ describe('MessageRouter - 边缘情况和缓存测试', () => {
 
     it('应该处理仅空白字符的消息', async () => {
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -1082,8 +1023,7 @@ describe('MessageRouter - 边缘情况和缓存测试', () => {
       await fs.writeFile(imagePath, imageBuffer);
 
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -1123,8 +1063,7 @@ describe('MessageRouter - 边缘情况和缓存测试', () => {
       await fs.writeFile(image3Path, imageBuffer);
 
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -1166,8 +1105,7 @@ describe('MessageRouter - 边缘情况和缓存测试', () => {
       await fs.writeFile(validImagePath, imageBuffer);
 
       const router = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 

@@ -11,6 +11,8 @@
 
 import { TerminalOutput } from '../TerminalOutput';
 import { TerminalParser } from '../TerminalParser';
+import { PermissionUIImpl } from '../PermissionUIImpl';
+import type { PermissionUI } from '../../permissions/PermissionUI';
 import { UIFactory } from './UIFactory';
 
 /**
@@ -25,5 +27,12 @@ export class TerminalUIFactory implements UIFactory {
 
   createOutput(): TerminalOutput {
     return new TerminalOutput();
+  }
+
+  createPermissionUI(
+    output: NodeJS.WritableStream = process.stdout,
+    input: NodeJS.ReadableStream = process.stdin
+  ): PermissionUI {
+    return new PermissionUIImpl(output, input);
   }
 }

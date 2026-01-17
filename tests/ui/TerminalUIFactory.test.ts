@@ -4,6 +4,7 @@ import ts from 'typescript';
 
 import { TerminalOutput } from '../../src/ui/TerminalOutput';
 import { TerminalParser } from '../../src/ui/TerminalParser';
+import { PermissionUIImpl } from '../../src/ui/PermissionUIImpl';
 import { TerminalUIFactory } from '../../src/ui/factories/TerminalUIFactory';
 
 const TERMINAL_UI_FACTORY_PATH = path.join(
@@ -12,7 +13,7 @@ const TERMINAL_UI_FACTORY_PATH = path.join(
 );
 const TERMINAL_UI_FACTORY_ENCODING = 'utf-8';
 const EXPECTED_IMPORT_COUNT = parseInt(
-  process.env.TERMINAL_UI_FACTORY_IMPORT_COUNT || '3',
+  process.env.TERMINAL_UI_FACTORY_IMPORT_COUNT || '5',
   10
 );
 
@@ -51,11 +52,24 @@ describe('TerminalUIFactory', () => {
     expect(output).toBeInstanceOf(TerminalOutput);
   });
 
-  it('depends only on UIFactory, TerminalParser, and TerminalOutput', () => {
+  it('creates PermissionUIImpl instances', () => {
+    const factory = new TerminalUIFactory();
+    const permissionUI = factory.createPermissionUI();
+
+    expect(permissionUI).toBeInstanceOf(PermissionUIImpl);
+  });
+
+  it('depends only on UIFactory, TerminalParser, TerminalOutput, PermissionUIImpl, and PermissionUI', () => {
     const importSpecifiers = getImportSpecifiers();
     expect(importSpecifiers).toHaveLength(EXPECTED_IMPORT_COUNT);
     expect(importSpecifiers).toEqual(
-      ['../TerminalOutput', '../TerminalParser', './UIFactory'].sort()
+      [
+        '../PermissionUIImpl',
+        '../TerminalOutput',
+        '../TerminalParser',
+        './UIFactory',
+        '../../permissions/PermissionUI',
+      ].sort()
     );
   });
 });

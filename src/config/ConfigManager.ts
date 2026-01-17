@@ -27,7 +27,6 @@ import {
   McpServerConfig,
   AgentDefinition,
   SandboxSettings,
-  UIConfig,
 } from './SDKConfigLoader';
 import type { PermissionConfig } from '../permissions/PermissionManager';
 
@@ -42,7 +41,6 @@ export {
   McpServerConfig,
   AgentDefinition,
   SandboxSettings,
-  UIConfig,
 };
 
 /**

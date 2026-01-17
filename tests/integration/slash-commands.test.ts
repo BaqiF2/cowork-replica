@@ -13,7 +13,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { MessageRouter } from '../../src/core/MessageRouter';
 import { SessionManager } from '../../src/core/SessionManager';
-import { ConfigManager } from '../../src/config/ConfigManager';
 import { ToolRegistry } from '../../src/tools/ToolRegistry';
 import { PermissionManager } from '../../src/permissions/PermissionManager';
 import { MockPermissionUIFactory } from '../test-helpers/MockPermissionUI';
@@ -21,7 +20,6 @@ import { MockPermissionUIFactory } from '../test-helpers/MockPermissionUI';
 describe('SDK Native Slash Commands Integration Tests', () => {
   let tempDir: string;
   let sessionManager: SessionManager;
-  let configManager: ConfigManager;
   let toolRegistry: ToolRegistry;
   let permissionManager: PermissionManager;
   let commandsDir: string;
@@ -29,7 +27,6 @@ describe('SDK Native Slash Commands Integration Tests', () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'slash-commands-test-'));
     sessionManager = new SessionManager(path.join(tempDir, 'sessions'));
-    configManager = new ConfigManager();
     toolRegistry = new ToolRegistry();
     permissionManager = new PermissionManager({ mode: 'default' }, new MockPermissionUIFactory(), toolRegistry);
 
@@ -188,8 +185,7 @@ If --dry-run is specified, only simulate the deployment.`;
     it('should return project-only settingSources for SDK commands discovery', async () => {
       await sessionManager.createSession(tempDir);
       const messageRouter = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 
@@ -204,8 +200,7 @@ If --dry-run is specified, only simulate the deployment.`;
     it('should include Skill tool in allowed tools for command invocation', async () => {
       const session = await sessionManager.createSession(tempDir);
       const messageRouter = new MessageRouter({
-        configManager,
-        toolRegistry,
+          toolRegistry,
         permissionManager,
       });
 

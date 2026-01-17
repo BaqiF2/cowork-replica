@@ -11,6 +11,7 @@
 
 import type { OutputInterface } from '../OutputInterface';
 import type { ParserInterface } from '../ParserInterface';
+import type { PermissionUI } from '../../permissions/PermissionUI';
 
 /**
  * UI Factory Interface
@@ -31,4 +32,16 @@ export interface UIFactory {
    * @returns OutputInterface instance
    */
   createOutput(): OutputInterface;
+
+  /**
+   * Create a permission UI instance
+   *
+   * @param output Output stream (optional, defaults to process.stdout)
+   * @param input Input stream (optional, defaults to process.stdin)
+   * @returns PermissionUI instance
+   */
+  createPermissionUI(
+    output?: NodeJS.WritableStream,
+    input?: NodeJS.ReadableStream
+  ): PermissionUI;
 }

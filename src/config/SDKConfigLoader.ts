@@ -172,16 +172,6 @@ export interface SDKOptions {
 }
 
 /**
- * UI 配置接口
- */
-export interface UIConfig {
-  /** UI type (e.g., 'terminal', 'web', 'gui') */
-  type: string;
-  /** UI options (optional, factory-specific) */
-  options?: Record<string, unknown>;
-}
-
-/**
  * 项目配置接口
  */
 export interface ProjectConfig {
@@ -199,8 +189,6 @@ export interface ProjectConfig {
   sandbox?: SandboxSettings;
   enableFileCheckpointing?: boolean;
   projectName?: string;
-  /** UI 配置（可选） */
-  ui?: UIConfig;
 }
 
 /**
@@ -285,7 +273,6 @@ export class SDKConfigLoader {
       hooks: json.hooks,
       sandbox: json.sandbox,
       enableFileCheckpointing: json.enableFileCheckpointing,
-      ui: json.ui,
     };
   }
 

@@ -2,7 +2,7 @@
  * Configuration Backward Compatibility Tests
  *
  * Tests that the configuration system maintains backward compatibility
- * when the UI configuration field is added.
+ * when legacy UI configuration fields appear in settings.
  */
 
 import { SDKConfigLoader } from '../../src/config/SDKConfigLoader';
@@ -42,11 +42,12 @@ describe('Config Backward Compatibility', () => {
 
       const loader = new SDKConfigLoader();
       const config = await loader.loadProjectConfig(tempDir);
+      const configWithUIResult = config as { ui?: unknown };
 
       expect(config.model).toBe('claude-3-5-sonnet-20241022');
       expect(config.permissionMode).toBe('acceptEdits');
       expect(config.maxTurns).toBe(10);
-      expect(config.ui).toBeUndefined();
+      expect(configWithUIResult.ui).toBeUndefined();
     });
 
     it('should have undefined ui when not specified', async () => {
@@ -57,13 +58,14 @@ describe('Config Backward Compatibility', () => {
 
       const loader = new SDKConfigLoader();
       const config = await loader.loadProjectConfig(tempDir);
+      const configWithUIResult = config as { ui?: unknown };
 
-      expect(config.ui).toBeUndefined();
+      expect(configWithUIResult.ui).toBeUndefined();
     });
   });
 
   describe('Config with ui field', () => {
-    it('should parse configuration with ui field', async () => {
+    it('should ignore configuration ui field', async () => {
       const configWithUI = {
         model: 'claude-3-5-sonnet-20241022',
         permissionMode: 'acceptEdits',
@@ -80,13 +82,12 @@ describe('Config Backward Compatibility', () => {
 
       const loader = new SDKConfigLoader();
       const config = await loader.loadProjectConfig(tempDir);
+      const configWithUIResult = config as { ui?: unknown };
 
-      expect(config.ui).toBeDefined();
-      expect(config.ui?.type).toBe('terminal');
-      expect(config.ui?.options?.theme).toBe('dark');
+      expect(configWithUIResult.ui).toBeUndefined();
     });
 
-    it('should parse ui with minimal configuration', async () => {
+    it('should ignore minimal ui configuration', async () => {
       const configWithMinimalUI = {
         ui: {
           type: 'terminal',
@@ -98,10 +99,9 @@ describe('Config Backward Compatibility', () => {
 
       const loader = new SDKConfigLoader();
       const config = await loader.loadProjectConfig(tempDir);
+      const configWithUIResult = config as { ui?: unknown };
 
-      expect(config.ui).toBeDefined();
-      expect(config.ui?.type).toBe('terminal');
-      expect(config.ui?.options).toBeUndefined();
+      expect(configWithUIResult.ui).toBeUndefined();
     });
   });
 
@@ -121,15 +121,16 @@ describe('Config Backward Compatibility', () => {
 
       const loader = new SDKConfigLoader();
       const config = await loader.loadProjectConfig(tempDir);
+      const configWithUIResult = config as { ui?: unknown };
 
       expect(config.model).toBe('claude-3-5-sonnet-20241022');
       expect(config.permissionMode).toBe('default');
       expect(config.allowedTools).toEqual(['Read', 'Write']);
       expect(config.disallowedTools).toEqual(['Delete']);
-      expect(config.ui).toBeUndefined();
+      expect(configWithUIResult.ui).toBeUndefined();
     });
 
-    it('should handle all fields including ui', async () => {
+    it('should handle all fields and ignore ui', async () => {
       const fullConfigWithUI = {
         model: 'claude-3-5-sonnet-20241022',
         permissionMode: 'acceptEdits',
@@ -149,15 +150,13 @@ describe('Config Backward Compatibility', () => {
 
       const loader = new SDKConfigLoader();
       const config = await loader.loadProjectConfig(tempDir);
+      const configWithUIResult = config as { ui?: unknown };
 
       expect(config.model).toBe('claude-3-5-sonnet-20241022');
       expect(config.permissionMode).toBe('acceptEdits');
       expect(config.allowedTools).toEqual(['Read', 'Write']);
       expect(config.disallowedTools).toEqual(['Delete']);
-      expect(config.ui).toBeDefined();
-      expect(config.ui?.type).toBe('terminal');
-      expect(config.ui?.options?.theme).toBe('dark');
-      expect(config.ui?.options?.timeout).toBe(5000);
+      expect(configWithUIResult.ui).toBeUndefined();
     });
   });
 });

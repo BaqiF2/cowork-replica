@@ -23,6 +23,9 @@ const EXIT_CODE_SUCCESS = parseInt(process.env.EXIT_CODE_SUCCESS || '0', 10);
 const EXIT_CODE_GENERAL_ERROR = parseInt(process.env.EXIT_CODE_GENERAL_ERROR || '1', 10);
 const EXIT_CODE_CONFIG_ERROR = parseInt(process.env.EXIT_CODE_CONFIG_ERROR || '2', 10);
 
+/** Timeout for reading stdin in milliseconds. Prevents indefinite blocking when 'end' event doesn't fire. */
+const STDIN_READ_TIMEOUT_MS = parseInt(process.env.STDIN_READ_TIMEOUT_MS || '1000', 10);
+
 export class NonInteractiveRunner implements ApplicationRunner {
   constructor(
     private readonly output: OutputInterface,
@@ -126,7 +129,20 @@ export class NonInteractiveRunner implements ApplicationRunner {
     }
   }
 
+  /**
+   * Reads data from standard input (stdin) for pipe input scenarios.
+   *
+   * This method handles non-interactive input such as:
+   * - `echo "query" | claude-replica`
+   * - `cat file.txt | claude-replica`
+   *
+   * @returns The trimmed stdin content, or null if:
+   *          - stdin is a TTY (no pipe input)
+   *          - an error occurs during reading
+   *          - no data is received
+   */
   private async readStdin(): Promise<string | null> {
+    // If stdin is a TTY, there's no piped input available
     if (process.stdin.isTTY) {
       return null;
     }
@@ -135,21 +151,27 @@ export class NonInteractiveRunner implements ApplicationRunner {
       let data = '';
 
       process.stdin.setEncoding('utf-8');
+
+      // Accumulate data chunks as they arrive
       process.stdin.on('data', (chunk) => {
         data += chunk;
       });
 
+      // Resolve when stdin stream ends (pipe closed)
       process.stdin.on('end', () => {
         resolve(data.trim() || null);
       });
 
+      // Handle read errors gracefully by returning null
       process.stdin.on('error', () => {
         resolve(null);
       });
 
+      // Timeout protection: resolve after 1 second to prevent indefinite blocking
+      // This handles edge cases where 'end' event may not fire
       setTimeout(() => {
         resolve(data.trim() || null);
-      }, 1000);
+      }, STDIN_READ_TIMEOUT_MS);
     });
   }
 

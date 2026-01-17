@@ -14,6 +14,7 @@ jest.mock('@anthropic-ai/claude-agent-sdk', () => ({
 import type { OutputInterface } from '../../src/ui/OutputInterface';
 import type { ParserInterface } from '../../src/ui/ParserInterface';
 import type { UIFactory } from '../../src/ui/factories/UIFactory';
+import type { PermissionUI } from '../../src/permissions/PermissionUI';
 import { CLIParseError } from '../../src/cli/CLIParser';
 import { Application } from '../../src/main';
 
@@ -54,6 +55,13 @@ class StubUIFactory implements UIFactory {
 
   createOutput(): OutputInterface {
     return this.output;
+  }
+
+  createPermissionUI(): PermissionUI {
+    return {
+      promptToolPermission: async () => ({ approved: true }),
+      promptUserQuestions: async () => ({}),
+    };
   }
 }
 

@@ -2,7 +2,7 @@
  * UI Factory 完整流程集成测试
  *
  * 测试场景：
- * - 完整流程：配置 → UIFactoryRegistry.create() → PermissionManager → 权限检查
+ * - 完整流程：配置 → UIFactoryRegistry.createUIFactory() → PermissionManager → 权限检查
  * - 默认配置场景（无 ui 字段）- 向后兼容性
  * - 自定义配置场景（带 ui 字段）
  * - 系统启动和运行流程
@@ -67,24 +67,59 @@ jest.mock('@anthropic-ai/claude-agent-sdk', () => {
 });
 
 import { PermissionManager } from '../../src/permissions/PermissionManager';
-import { PermissionConfig, UIConfig } from '../../src/permissions/PermissionManager';
-import { TerminalPermissionUIFactory } from '../../src/ui/factories/TerminalPermissionUIFactory';
-import { UIFactoryRegistry } from '../../src/ui/factories/UIFactoryRegistry';
+import { PermissionConfig } from '../../src/permissions/PermissionManager';
+import { TerminalUIFactory } from '../../src/ui/factories/TerminalUIFactory';
+import { UIFactoryRegistry, UIConfig } from '../../src/ui/factories/UIFactoryRegistry';
+import type { UIFactory } from '../../src/ui/factories/UIFactory';
 import { ToolRegistry } from '../../src/tools/ToolRegistry';
 import { PermissionUI } from '../../src/permissions/PermissionUI';
 
 // Mock factory for testing custom UI types
-class CustomPermissionUIFactory implements PermissionUI {
+class CustomPermissionUI implements PermissionUI {
   promptToolPermission = jest.fn().mockResolvedValue({ approved: true });
   promptUserQuestions = jest.fn().mockResolvedValue({});
 }
 
-class MockPermissionUIFactory {
+class MockUIFactory implements UIFactory {
+  createParser(): {
+    parse: () => { help: boolean; version: boolean; debug: boolean };
+    getHelpText: () => string;
+    getVersionText: () => string;
+  } {
+    return {
+      parse: () => ({
+        help: false,
+        version: false,
+        debug: false,
+      }),
+      getHelpText: () => 'mock help',
+      getVersionText: () => 'mock version',
+    };
+  }
+
+  createOutput(): {
+    info: () => void;
+    warn: () => void;
+    error: () => void;
+    success: () => void;
+    section: () => void;
+    blankLine: () => void;
+  } {
+    return {
+      info: () => undefined,
+      warn: () => undefined,
+      error: () => undefined,
+      success: () => undefined,
+      section: () => undefined,
+      blankLine: () => undefined,
+    };
+  }
+
   createPermissionUI(
     _output?: NodeJS.WritableStream,
     _input?: NodeJS.ReadableStream
   ): PermissionUI {
-    return new CustomPermissionUIFactory();
+    return new CustomPermissionUI();
   }
 }
 
@@ -95,10 +130,8 @@ describe('UI Factory Complete Flow Integration Tests', () => {
     toolRegistry = new ToolRegistry();
     // Clear registry before each test
     UIFactoryRegistry.clear();
-    // Register default terminal factory
-    UIFactoryRegistry.register('terminal', new TerminalPermissionUIFactory());
     // Register custom factory for testing
-    UIFactoryRegistry.register('custom', new MockPermissionUIFactory());
+    UIFactoryRegistry.registerUIFactory('custom', new MockUIFactory());
   });
 
   afterAll(() => {
@@ -115,14 +148,14 @@ describe('UI Factory Complete Flow Integration Tests', () => {
         disallowedTools: [],
       };
 
-      // 2. 使用 UIFactoryRegistry.create() 创建工厂（无配置传入）
-      const uiFactory = UIFactoryRegistry.create(undefined);
+      // 2. 使用 UIFactoryRegistry.createUIFactory() 创建工厂（无配置传入）
+      const uiFactory = UIFactoryRegistry.createUIFactory(undefined);
 
       // 3. 创建 PermissionManager
       const permissionManager = new PermissionManager(defaultConfig, uiFactory, toolRegistry);
 
       // 4. 验证工厂类型
-      expect(uiFactory).toBeInstanceOf(TerminalPermissionUIFactory);
+      expect(uiFactory).toBeInstanceOf(TerminalUIFactory);
 
       // 5. 测试权限检查流程 - 使用危险工具（如 Write）来触发权限检查
       const canUseTool = permissionManager.createCanUseToolHandler();
@@ -158,23 +191,23 @@ describe('UI Factory Complete Flow Integration Tests', () => {
         mode: 'default',
         allowedTools: [],
         disallowedTools: [],
-        ui: {
-          type: 'custom',
-          options: {
-            theme: 'dark',
-            timeout: 5000,
-          },
+      };
+      const customUIConfig: UIConfig = {
+        type: 'custom',
+        options: {
+          theme: 'dark',
+          timeout: 5000,
         },
       };
 
-      // 2. 使用 UIFactoryRegistry.create() 创建工厂（传入自定义配置）
-      const uiFactory = UIFactoryRegistry.create(customConfig.ui);
+      // 2. 使用 UIFactoryRegistry.createUIFactory() 创建工厂（传入自定义配置）
+      const uiFactory = UIFactoryRegistry.createUIFactory(customUIConfig);
 
       // 3. 创建 PermissionManager
       const permissionManager = new PermissionManager(customConfig, uiFactory, toolRegistry);
 
       // 4. 验证工厂类型
-      expect(uiFactory).toBeInstanceOf(MockPermissionUIFactory);
+      expect(uiFactory).toBeInstanceOf(MockUIFactory);
 
       // 5. 测试权限检查流程
       const canUseTool = permissionManager.createCanUseToolHandler();
@@ -194,12 +227,12 @@ describe('UI Factory Complete Flow Integration Tests', () => {
 
     it('空配置场景（null/undefined）', async () => {
       // 测试 null 配置
-      const uiFactory1 = UIFactoryRegistry.create(null as unknown as UIConfig);
-      expect(uiFactory1).toBeInstanceOf(TerminalPermissionUIFactory);
+      const uiFactory1 = UIFactoryRegistry.createUIFactory(null as unknown as UIConfig);
+      expect(uiFactory1).toBeInstanceOf(TerminalUIFactory);
 
       // 测试 undefined 配置
-      const uiFactory2 = UIFactoryRegistry.create(undefined);
-      expect(uiFactory2).toBeInstanceOf(TerminalPermissionUIFactory);
+      const uiFactory2 = UIFactoryRegistry.createUIFactory(undefined);
+      expect(uiFactory2).toBeInstanceOf(TerminalUIFactory);
     });
 
     it('未知 ui.type 应抛出错误', () => {
@@ -208,7 +241,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
       };
 
       expect(() => {
-        UIFactoryRegistry.create(unknownConfig);
+        UIFactoryRegistry.createUIFactory(unknownConfig);
       }).toThrow('UI factory not found for type: unknown-type');
     });
   });
@@ -220,13 +253,13 @@ describe('UI Factory Complete Flow Integration Tests', () => {
         permissionMode: 'acceptEdits' as const,
         allowedTools: ['Read', 'Write'], // Write 在白名单中
         disallowedTools: ['Bash'],
-        ui: {
-          type: 'terminal',
-        },
+      };
+      const uiConfig: UIConfig = {
+        type: 'terminal',
       };
 
-      // 1. 模拟 main.ts 中的流程：UIFactoryRegistry.create(permissionConfig.ui)
-      const uiFactory = UIFactoryRegistry.create(projectConfig.ui);
+      // 1. 模拟 main.ts 中的流程：UIFactoryRegistry.createUIFactory()
+      const uiFactory = UIFactoryRegistry.createUIFactory(uiConfig);
 
       // 2. 创建 PermissionManager
       const permissionManager = new PermissionManager(
@@ -234,7 +267,6 @@ describe('UI Factory Complete Flow Integration Tests', () => {
           mode: projectConfig.permissionMode,
           allowedTools: projectConfig.allowedTools,
           disallowedTools: projectConfig.disallowedTools,
-          ui: projectConfig.ui,
         },
         uiFactory,
         toolRegistry
@@ -276,7 +308,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
     });
 
     it('运行时权限模式切换', async () => {
-      const uiFactory = UIFactoryRegistry.create({ type: 'terminal' });
+      const uiFactory = UIFactoryRegistry.createUIFactory({ type: 'terminal' });
 
       const permissionManager = new PermissionManager(
         {
@@ -306,7 +338,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
     });
 
     it('多工具连续调用流程', async () => {
-      const uiFactory = UIFactoryRegistry.create({ type: 'terminal' });
+      const uiFactory = UIFactoryRegistry.createUIFactory({ type: 'terminal' });
 
       const permissionManager = new PermissionManager(
         {
@@ -357,7 +389,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
       };
 
       // 使用旧的配置创建 PermissionManager
-      const uiFactory = UIFactoryRegistry.create(undefined); // 没有 ui 配置
+      const uiFactory = UIFactoryRegistry.createUIFactory(undefined); // 没有 ui 配置
 
       const permissionManager = new PermissionManager(
         legacyConfig as PermissionConfig,
@@ -366,7 +398,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
       );
 
       // 验证默认使用 terminal 工厂
-      expect(uiFactory).toBeInstanceOf(TerminalPermissionUIFactory);
+      expect(uiFactory).toBeInstanceOf(TerminalUIFactory);
 
       // 验证功能正常
       const canUseTool = permissionManager.createCanUseToolHandler();
@@ -393,7 +425,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
         disallowedTools: [],
       };
 
-      let uiFactory = UIFactoryRegistry.create(undefined);
+      let uiFactory = UIFactoryRegistry.createUIFactory(undefined);
       let permissionManager = new PermissionManager(
         oldConfig as PermissionConfig,
         uiFactory,
@@ -401,19 +433,20 @@ describe('UI Factory Complete Flow Integration Tests', () => {
       );
 
       // 验证旧配置工作正常
-      expect(uiFactory).toBeInstanceOf(TerminalPermissionUIFactory);
+      expect(uiFactory).toBeInstanceOf(TerminalUIFactory);
 
       // 第二阶段：新配置（有 ui 字段）
+      UIFactoryRegistry.resetForTesting();
       const newConfig = {
         mode: 'acceptEdits' as const,
         allowedTools: [],
         disallowedTools: [],
-        ui: {
-          type: 'custom',
-        },
+      };
+      const newUIConfig: UIConfig = {
+        type: 'custom',
       };
 
-      uiFactory = UIFactoryRegistry.create(newConfig.ui);
+      uiFactory = UIFactoryRegistry.createUIFactory(newUIConfig);
       permissionManager = new PermissionManager(
         newConfig as PermissionConfig,
         uiFactory,
@@ -421,7 +454,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
       );
 
       // 验证新配置工作正常
-      expect(uiFactory).toBeInstanceOf(MockPermissionUIFactory);
+      expect(uiFactory).toBeInstanceOf(MockUIFactory);
       expect(permissionManager.getMode()).toBe('acceptEdits');
     });
   });
@@ -433,13 +466,13 @@ describe('UI Factory Complete Flow Integration Tests', () => {
       };
 
       expect(() => {
-        UIFactoryRegistry.create(invalidConfig);
+        UIFactoryRegistry.createUIFactory(invalidConfig);
       }).toThrow('UI config must include a valid type string');
     });
 
     it('工厂创建失败时应抛出适当错误', () => {
       // 确保自定义工厂已注册
-      UIFactoryRegistry.register('custom', new MockPermissionUIFactory());
+      UIFactoryRegistry.registerUIFactory('custom', new MockUIFactory());
 
       // 使用有效配置
       const validConfig: UIConfig = {
@@ -447,7 +480,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
       };
 
       expect(() => {
-        const factory = UIFactoryRegistry.create(validConfig);
+        const factory = UIFactoryRegistry.createUIFactory(validConfig);
         // 尝试创建 UI 实例（可能会失败）
         factory.createPermissionUI();
       }).not.toThrow();
@@ -455,7 +488,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
 
     it('权限检查在工厂创建失败时应正确处理', async () => {
       // 这个测试验证的是当 UI 方法调用失败时的处理
-      const uiFactory = UIFactoryRegistry.create({ type: 'terminal' });
+      const uiFactory = UIFactoryRegistry.createUIFactory({ type: 'terminal' });
 
       const permissionManager = new PermissionManager(
         {
@@ -488,7 +521,7 @@ describe('UI Factory Complete Flow Integration Tests', () => {
 
   describe('性能验证', () => {
     it('工厂创建无明显性能开销', async () => {
-      const uiFactory = UIFactoryRegistry.create({ type: 'terminal' });
+      const uiFactory = UIFactoryRegistry.createUIFactory({ type: 'terminal' });
 
       const permissionManager = new PermissionManager(
         {

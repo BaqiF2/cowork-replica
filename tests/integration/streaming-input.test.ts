@@ -24,7 +24,6 @@ import { SDKQueryExecutor } from '../../src/sdk/SDKQueryExecutor';
 import { StreamingQueryManager } from '../../src/sdk/StreamingQueryManager';
 import { MessageRouter } from '../../src/core/MessageRouter';
 import { Session, SessionManager } from '../../src/core/SessionManager';
-import { ConfigManager } from '../../src/config/ConfigManager';
 import { PermissionManager } from '../../src/permissions/PermissionManager';
 import { ToolRegistry } from '../../src/tools/ToolRegistry';
 import { MockPermissionUIFactory } from '../test-helpers/MockPermissionUI';
@@ -100,7 +99,6 @@ describe('流式输入集成测试', () => {
     sdkExecutor = new SDKQueryExecutor();
     sessionManager = new SessionManager(path.join(tempDir, 'sessions'));
 
-    const configManager = new ConfigManager();
     const toolRegistry = new ToolRegistry();
     const permissionManager = new PermissionManager(
       { mode: 'default' },
@@ -109,7 +107,6 @@ describe('流式输入集成测试', () => {
     );
 
     messageRouter = new MessageRouter({
-      configManager,
       toolRegistry,
       permissionManager,
     });

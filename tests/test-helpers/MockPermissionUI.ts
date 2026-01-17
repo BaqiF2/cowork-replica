@@ -16,7 +16,9 @@ import {
   QuestionAnswers,
 } from '../../src/permissions/PermissionUI';
 import { PermissionUIResult } from '../../src/permissions/types';
-import { PermissionUIFactory } from '../../src/ui/factories/PermissionUIFactory';
+import type { OutputInterface } from '../../src/ui/OutputInterface';
+import type { ParserInterface } from '../../src/ui/ParserInterface';
+import type { UIFactory } from '../../src/ui/factories/UIFactory';
 
 export class MockPermissionUI implements PermissionUI {
   async promptToolPermission(): Promise<PermissionUIResult> {
@@ -35,7 +37,26 @@ export class MockPermissionUI implements PermissionUI {
 /**
  * Mock PermissionUIFactory for testing
  */
-export class MockPermissionUIFactory implements PermissionUIFactory {
+export class MockPermissionUIFactory implements UIFactory {
+  createParser(): ParserInterface {
+    return {
+      parse: () => ({ help: false, version: false, debug: false }),
+      getHelpText: () => 'mock help',
+      getVersionText: () => 'mock version',
+    };
+  }
+
+  createOutput(): OutputInterface {
+    return {
+      info: () => undefined,
+      warn: () => undefined,
+      error: () => undefined,
+      success: () => undefined,
+      section: () => undefined,
+      blankLine: () => undefined,
+    };
+  }
+
   createPermissionUI(
     _output?: NodeJS.WritableStream,
     _input?: NodeJS.ReadableStream

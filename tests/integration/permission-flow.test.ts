@@ -73,12 +73,11 @@ jest.mock('@anthropic-ai/claude-agent-sdk', () => {
 });
 
 import { PermissionManager } from '../../src/permissions/PermissionManager';
-import { TerminalPermissionUIFactory } from '../../src/ui/factories/TerminalPermissionUIFactory';
+import { TerminalUIFactory } from '../../src/ui/factories/TerminalUIFactory';
 import { MessageRouter } from '../../src/core/MessageRouter';
 import { StreamingQueryManager } from '../../src/sdk/StreamingQueryManager';
 import { SDKQueryExecutor } from '../../src/sdk/SDKQueryExecutor';
 import { SessionManager } from '../../src/core/SessionManager';
-import { ConfigManager } from '../../src/config/ConfigManager';
 import type { PermissionMode } from '../../src/permissions';
 import type { QuestionInput } from '../../src/permissions/PermissionUI';
 import * as fs from 'fs/promises';
@@ -87,11 +86,10 @@ import * as os from 'os';
 
 describe('Permission Flow Integration Tests', () => {
   let permissionManager: PermissionManager;
-  let permissionUIFactory: TerminalPermissionUIFactory;
+  let permissionUIFactory: TerminalUIFactory;
   let messageRouter: MessageRouter;
   let streamingQueryManager: StreamingQueryManager;
   let sessionManager: SessionManager;
-  let configManager: ConfigManager;
   let sdkExecutor: SDKQueryExecutor;
   let testDir: string;
 
@@ -112,10 +110,8 @@ describe('Permission Flow Integration Tests', () => {
 
   beforeEach(async () => {
     // Initialize managers
-    configManager = new ConfigManager();
-
     // Initialize permission system
-    permissionUIFactory = new TerminalPermissionUIFactory();
+    permissionUIFactory = new TerminalUIFactory();
     permissionManager = new PermissionManager(
       {
         mode: 'default',
@@ -128,7 +124,6 @@ describe('Permission Flow Integration Tests', () => {
     // Initialize message router
     messageRouter = new MessageRouter({
       permissionManager,
-      configManager,
     });
 
     // Initialize SDK executor

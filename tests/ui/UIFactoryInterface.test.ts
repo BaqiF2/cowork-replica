@@ -8,11 +8,11 @@ const UI_FACTORY_INTERFACE_PATH = path.join(
 );
 const UI_FACTORY_INTERFACE_ENCODING = 'utf-8';
 const EXPECTED_METHOD_COUNT = parseInt(
-  process.env.UI_FACTORY_INTERFACE_METHOD_COUNT || '2',
+  process.env.UI_FACTORY_INTERFACE_METHOD_COUNT || '3',
   10
 );
 const EXPECTED_IMPORT_COUNT = parseInt(
-  process.env.UI_FACTORY_INTERFACE_IMPORT_COUNT || '2',
+  process.env.UI_FACTORY_INTERFACE_IMPORT_COUNT || '3',
   10
 );
 
@@ -79,7 +79,7 @@ describe('UIFactory', () => {
   const uiFactoryInterface = getInterfaceDeclaration('UIFactory');
 
   it('defines required factory methods', () => {
-    const methodNames = ['createParser', 'createOutput'];
+    const methodNames = ['createParser', 'createOutput', 'createPermissionUI'];
     expect(methodNames).toHaveLength(EXPECTED_METHOD_COUNT);
     methodNames.forEach((methodName) => {
       expect(getMethodSignature(uiFactoryInterface, methodName)).toBeDefined();
@@ -98,7 +98,13 @@ describe('UIFactory', () => {
     assertTypeReference(createOutput.type, 'OutputInterface');
   });
 
-  it('imports only ParserInterface and OutputInterface', () => {
+  it('defines createPermissionUI(): PermissionUI', () => {
+    const createPermissionUI = getMethodSignature(uiFactoryInterface, 'createPermissionUI');
+    expect(createPermissionUI.parameters).toHaveLength(2);
+    assertTypeReference(createPermissionUI.type, 'PermissionUI');
+  });
+
+  it('imports only ParserInterface, OutputInterface, and PermissionUI', () => {
     const importDeclarations = sourceFile.statements.filter(ts.isImportDeclaration);
     expect(importDeclarations).toHaveLength(EXPECTED_IMPORT_COUNT);
 
@@ -108,6 +114,8 @@ describe('UIFactory', () => {
       .map((literal) => literal.text)
       .sort();
 
-    expect(importedModules).toEqual(['../OutputInterface', '../ParserInterface'].sort());
+    expect(importedModules).toEqual(
+      ['../OutputInterface', '../ParserInterface', '../../permissions/PermissionUI'].sort()
+    );
   });
 });

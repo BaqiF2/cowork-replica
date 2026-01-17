@@ -52,7 +52,6 @@ import { SessionManager } from '../../src/core/SessionManager';
 import { StreamingQueryManager } from '../../src/sdk/StreamingQueryManager';
 import { MessageRouter } from '../../src/core/MessageRouter';
 import { SDKQueryExecutor } from '../../src/sdk/SDKQueryExecutor';
-import { ConfigManager } from '../../src/config/ConfigManager';
 import { ToolRegistry } from '../../src/tools/ToolRegistry';
 import { PermissionManager } from '../../src/permissions/PermissionManager';
 import { MockPermissionUIFactory } from '../test-helpers/MockPermissionUI';
@@ -78,7 +77,6 @@ function captureConsoleLog(): { logs: string[]; restore: () => void } {
 describe('/resume 命令集成测试', () => {
   let tempDir: string;
   let sessionManager: SessionManager;
-  let configManager: ConfigManager;
   let toolRegistry: ToolRegistry;
   let permissionManager: PermissionManager;
   let messageRouter: MessageRouter;
@@ -88,7 +86,6 @@ describe('/resume 命令集成测试', () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'resume-cmd-test-'));
     sessionManager = new SessionManager(path.join(tempDir, 'sessions'));
-    configManager = new ConfigManager();
     toolRegistry = new ToolRegistry();
     permissionManager = new PermissionManager(
       { mode: 'acceptEdits' },
@@ -96,7 +93,6 @@ describe('/resume 命令集成测试', () => {
       toolRegistry
     );
     messageRouter = new MessageRouter({
-      configManager,
       toolRegistry,
       permissionManager,
     });

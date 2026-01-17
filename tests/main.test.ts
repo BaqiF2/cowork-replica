@@ -9,6 +9,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { CLIParser } from '../src/cli/CLIParser';
+import { TestUIFactory } from './helpers/TestUIFactory';
+import { TerminalUIFactory } from '../src/ui/factories/TerminalUIFactory';
 
 // 模拟 SDK 模块 - 返回正确的 AsyncGenerator
 jest.mock('@anthropic-ai/claude-agent-sdk', () => ({
@@ -58,6 +60,10 @@ let Application: typeof import('../src/main').Application;
 let tempHome: string;
 let originalHome: string | undefined;
 let originalUserProfile: string | undefined;
+const EXPECTED_PERMISSION_UI_COUNT = parseInt(
+  process.env.APP_PERMISSION_UI_INSTANCE_COUNT || '1',
+  10
+);
 beforeAll(async () => {
   originalHome = process.env.HOME;
   originalUserProfile = process.env.USERPROFILE;
@@ -233,14 +239,26 @@ describe('main 函数', () => {
 describe('Application 类', () => {
   describe('构造函数', () => {
     it('应该正确创建 Application 实例', () => {
-      const app = new Application();
+      const app = new Application(new TerminalUIFactory());
       expect(app).toBeInstanceOf(Application);
+    });
+  });
+
+  describe('initialize 方法', () => {
+    it('应该复用同一 UIFactory 实例创建 PermissionUI', async () => {
+      const uiFactory = new TestUIFactory();
+      const app = new Application(uiFactory);
+
+      await (app as unknown as { initialize: (options: Record<string, unknown>) => Promise<void> })
+        .initialize({});
+
+      expect(uiFactory.permissionUIInstances).toHaveLength(EXPECTED_PERMISSION_UI_COUNT);
     });
   });
 
   describe('run 方法', () => {
     it('应该处理 --help 选项', async () => {
-      const app = new Application();
+      const app = new Application(new TerminalUIFactory());
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
       const exitCode = await app.run(['--help']);
@@ -251,7 +269,7 @@ describe('Application 类', () => {
     });
 
     it('应该处理 --version 选项', async () => {
-      const app = new Application();
+      const app = new Application(new TerminalUIFactory());
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
       const exitCode = await app.run(['--version']);
@@ -262,7 +280,7 @@ describe('Application 类', () => {
     });
 
     it('应该处理非交互模式查询', async () => {
-      const app = new Application();
+      const app = new Application(new TerminalUIFactory());
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
       const exitCode = await app.run(['-p', '你好']);
@@ -793,4 +811,3 @@ describe('启动时自动清理旧会话', () => {
     expect(sessions.length).toBeGreaterThan(0);
   });
 });
-

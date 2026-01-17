@@ -12,7 +12,7 @@
  */
 
 import { ToolRegistry } from '../tools/ToolRegistry';
-import { PermissionUIFactory } from '../ui/factories/PermissionUIFactory';
+import type { UIFactory } from '../ui/factories/UIFactory';
 import { PermissionUI, QuestionInput } from './PermissionUI';
 import { PermissionResult, SDKCanUseTool } from './types';
 
@@ -53,16 +53,6 @@ export interface ToolUseParams {
 export type CanUseTool = (params: ToolUseParams) => boolean | Promise<boolean>;
 
 /**
- * UI 配置接口
- */
-export interface UIConfig {
-  /** UI type (e.g., 'terminal', 'web', 'gui') */
-  type: string;
-  /** UI options (optional, factory-specific) */
-  options?: Record<string, unknown>;
-}
-
-/**
  * 权限配置接口
  */
 export interface PermissionConfig {
@@ -78,8 +68,6 @@ export interface PermissionConfig {
   allowedCommands?: string[];
   /** 命令黑名单（始终拒绝的 bash 命令） */
   disallowedCommands?: string[];
-  /** UI 配置（可选） */
-  ui?: UIConfig;
 }
 
 /**
@@ -95,9 +83,9 @@ export class PermissionManager {
   /** 权限 UI 接口 */
   private permissionUI: PermissionUI;
   /** UI 工厂（用于创建 UI 实例） */
-  private uiFactory: PermissionUIFactory;
+  private uiFactory: UIFactory;
 
-  constructor(config: PermissionConfig, uiFactory: PermissionUIFactory, toolRegistry?: ToolRegistry) {
+  constructor(config: PermissionConfig, uiFactory: UIFactory, toolRegistry?: ToolRegistry) {
     this.config = { ...config };
     this.uiFactory = uiFactory;
     // 通过工厂创建 UI 实例

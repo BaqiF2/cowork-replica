@@ -12,7 +12,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { MessageRouter } from '../../src/core/MessageRouter';
 import { SessionManager, Session } from '../../src/core/SessionManager';
-import { ConfigManager } from '../../src/config/ConfigManager';
 import { ToolRegistry } from '../../src/tools/ToolRegistry';
 import { PermissionManager } from '../../src/permissions/PermissionManager';
 import { AgentRegistry } from '../../src/agents/AgentRegistry';
@@ -23,7 +22,6 @@ import { MockPermissionUIFactory } from '../test-helpers/MockPermissionUI';
 describe('SDK SubAgents 集成测试', () => {
   let tempDir: string;
   let sessionManager: SessionManager;
-  let configManager: ConfigManager;
   let toolRegistry: ToolRegistry;
   let permissionManager: PermissionManager;
   let agentRegistry: AgentRegistry;
@@ -33,7 +31,6 @@ describe('SDK SubAgents 集成测试', () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sdk-subagents-test-'));
     sessionManager = new SessionManager(path.join(tempDir, 'sessions'));
-    configManager = new ConfigManager();
     toolRegistry = new ToolRegistry();
     permissionManager = new PermissionManager({ mode: 'default' }, new MockPermissionUIFactory(), toolRegistry);
     agentRegistry = new AgentRegistry();
@@ -54,7 +51,6 @@ describe('SDK SubAgents 集成测试', () => {
 
   const createMessageRouter = (): MessageRouter =>
     new MessageRouter({
-      configManager,
       toolRegistry,
       permissionManager,
     });

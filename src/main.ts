@@ -63,6 +63,7 @@ export class Application {
   private readonly securityManager: SecurityManager;
   private readonly sdkExecutor: SDKQueryExecutor;
   private readonly customToolManager: CustomToolManager;
+  private readonly uiFactory: UIFactory;
 
   private rewindManager: RewindManager | null = null;
   private permissionManager!: PermissionManager;
@@ -72,7 +73,8 @@ export class Application {
   private logger!: Logger;
   private runnerFactory!: RunnerFactory;
 
-  constructor(uiFactory: UIFactory = UIFactoryRegistry.createUIFactory()) {
+  constructor(uiFactory: UIFactory) {
+    this.uiFactory = uiFactory;
     this.parser = uiFactory.createParser();
     this.output = uiFactory.createOutput();
     this.configManager = new ConfigManager();
@@ -149,10 +151,11 @@ export class Application {
     const workingDir = process.cwd();
     const permissionConfig = await this.configManager.loadPermissionConfig(options, workingDir);
 
-    // Create UI factory from configuration (default to terminal)
-    const uiFactory = UIFactoryRegistry.create(permissionConfig.ui);
-
-    this.permissionManager = new PermissionManager(permissionConfig, uiFactory, this.toolRegistry);
+    this.permissionManager = new PermissionManager(
+      permissionConfig,
+      this.uiFactory,
+      this.toolRegistry
+    );
 
     this.messageRouter = new MessageRouter({
       toolRegistry: this.toolRegistry,
@@ -191,6 +194,7 @@ export class Application {
 }
 
 export async function main(args: string[] = process.argv.slice(2)): Promise<number> {
-  const app = new Application();
+  const uiFactory = UIFactoryRegistry.createUIFactory();
+  const app = new Application(uiFactory);
   return app.run(args);
 }

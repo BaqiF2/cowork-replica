@@ -23,7 +23,6 @@ import { StreamingQueryManager } from '../../src/sdk/StreamingQueryManager';
 import { SDKQueryExecutor, SDKQueryResult } from '../../src/sdk/SDKQueryExecutor';
 import { MessageRouter } from '../../src/core/MessageRouter';
 import { Session, SessionManager } from '../../src/core/SessionManager';
-import { ConfigManager } from '../../src/config/ConfigManager';
 import { PermissionManager } from '../../src/permissions/PermissionManager';
 import { ToolRegistry } from '../../src/tools/ToolRegistry';
 import { MockPermissionUIFactory } from '../test-helpers/MockPermissionUI';
@@ -84,7 +83,6 @@ describe('StreamingQueryManager', () => {
       extractTextFromAssistantMessage: jest.fn(),
     } as unknown as jest.Mocked<SDKQueryExecutor>;
 
-    const configManager = new ConfigManager();
     const permissionManager = new PermissionManager(
       { mode: 'default' },
       new MockPermissionUIFactory(),
@@ -92,7 +90,6 @@ describe('StreamingQueryManager', () => {
     );
 
     mockMessageRouter = new MessageRouter({
-      configManager,
       permissionManager,
     });
 
@@ -480,16 +477,14 @@ describe('StreamingQueryManager - 属性测试', () => {
           }),
         } as unknown as SDKQueryExecutor;
 
-        const configManager = new ConfigManager();
-        const permissionManager = new PermissionManager(
+            const permissionManager = new PermissionManager(
           { mode: 'default' },
           new MockPermissionUIFactory(),
           new ToolRegistry()
         );
 
         const mockMessageRouter = new MessageRouter({
-          configManager,
-          permissionManager,
+              permissionManager,
         });
 
         jest.spyOn(mockMessageRouter, 'buildQueryOptions').mockResolvedValue({
@@ -558,16 +553,14 @@ describe('StreamingQueryManager - 属性测试', () => {
           }),
         } as unknown as SDKQueryExecutor;
 
-        const configManager = new ConfigManager();
-        const permissionManager = new PermissionManager(
+            const permissionManager = new PermissionManager(
           { mode: 'default' },
           new MockPermissionUIFactory(),
           new ToolRegistry()
         );
 
         const mockMessageRouter = new MessageRouter({
-          configManager,
-          permissionManager,
+              permissionManager,
         });
 
         jest.spyOn(mockMessageRouter, 'buildQueryOptions').mockResolvedValue({
