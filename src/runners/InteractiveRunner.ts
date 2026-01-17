@@ -110,9 +110,8 @@ export class InteractiveRunner implements ApplicationRunner {
     this.streamingQueryManager.startSession(session);
     await this.logger.debug('Started streaming query session with tool callbacks');
 
-    this.ui.setInitialPermissionMode(this.permissionManager.getMode());
-
     try {
+      this.ui.setInitialPermissionMode(this.permissionManager.getMode());
       await this.ui.start();
       return EXIT_CODE_SUCCESS;
     } catch (error) {
@@ -123,8 +122,6 @@ export class InteractiveRunner implements ApplicationRunner {
 
   private async getOrCreateSession(): Promise<Session> {
     const workingDir = process.cwd();
-
-    await this.logger.debug('create new session');
     const projectConfig = await this.configManager.loadProjectConfig(workingDir);
     return this.sessionManager.createSession(workingDir, projectConfig);
   }

@@ -20,7 +20,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import * as crypto from 'crypto';
-import { ProjectConfig } from '../config/SDKConfigLoader';
+import {ProjectConfig} from '../config/SDKConfigLoader';
 
 /**
  * 消息内容块类型
@@ -253,7 +253,7 @@ export class SessionManager {
     await this.ensureSessionsDir();
 
     const now = new Date();
-    const session: Session = {
+    return {
       id: this.generateSessionId(),
       createdAt: now,
       lastAccessedAt: now,
@@ -266,8 +266,6 @@ export class SessionManager {
       expired: false,
       workingDirectory: workingDir,
     };
-
-    return session;
   }
 
   /**
