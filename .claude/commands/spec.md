@@ -85,37 +85,45 @@ arguments:
 
 ## 任务
 
-### Scenario 1: [场景名称] (任务组)
+### [功能模块名称] (任务组 N)
 
-- [ ] 1. [测试] [Scenario 名称] - 编写测试用例
+#### 包含场景
+- Scenario 1: [场景名称 1]
+- Scenario 2: [场景名称 2]
+- Scenario 3: [场景名称 3]
+
+#### 任务列表
+
+- [ ] 1. [测试] 编写测试用例
    - 测试文件: `tests/{module}.test.ts`
-   - 验证 GIVEN-WHEN-THEN 条件
+   - 覆盖所有场景的 GIVEN-WHEN-THEN 条件
    - _Requirements: [需求名称]_
-   - _Scenario: [Scenario 名称]_
-   - _TaskGroup: 1_
+   - _Scenarios: Scenario 1, Scenario 2, Scenario 3_
+   - _TaskGroup: N_
 
 - [ ] 2. [验证] Red 阶段
    - 运行: `npm test -- {test-file}`
    - 预期失败
    - _Validates: 1_
-   - _TaskGroup: 1_
+   - _TaskGroup: N_
 
 - [ ] 3. [实现] 实现核心逻辑
    - 实现文件: `src/{module}.ts`
-   - 最小实现，满足测试
+   - 满足所有场景的验收条件
    - _Requirements: [需求名称]_
-   - _TaskGroup: 1_
+   - _Scenarios: Scenario 1, Scenario 2, Scenario 3_
+   - _TaskGroup: N_
 
 - [ ] 4. [验证] Green 阶段
    - 运行: `npm test -- {test-file}`
    - 预期通过
    - _Validates: 3_
-   - _TaskGroup: 1_
+   - _TaskGroup: N_
 
 - [ ] 5. [重构] 优化代码（可选）
    - 提高可读性和可维护性
    - _Requirements: [需求名称]_
-   - _TaskGroup: 1_
+   - _TaskGroup: N_
 ```
 
 **TDD 流程：**
@@ -145,11 +153,22 @@ arguments:
 
 3. **生成场景**
    - 成功路径、错误路径、边缘情况
+   - **合并同类场景**：
+     * 同一接口的多个方法 → 合并为"定义完整接口"场景
+     * 同一类的多个回调 → 合并为"实现回调机制"场景
+     * 同一功能的多个步骤 → 合并为"实现完整功能"场景
 
 4. **创建任务**
-   - 每个 Scenario 生成完整 TDD 循环
+   - **场景分组**：将 2-5 个相关场景合并为一个任务组
+   - 每个任务组生成完整 TDD 循环（5 个任务）
    - 指定测试文件路径和命令
    - 包含可追溯性标记
+
+5. **任务粒度控制**
+   - **接口定义**：整个接口作为一个任务组
+   - **类实现**：按功能模块分组（核心功能、回调处理、工具方法）
+   - **依赖注入**：按调用链路分组
+   - **目标任务数**：控制在 30-50 个任务（大型重构项目）
 
 ## 质量检查
 
@@ -161,10 +180,12 @@ arguments:
 
 **task.md：**
 - [ ] 包含 Reference 栏
-- [ ] 每个 Scenario 有完整 TDD 循环
-- [ ] 任务包含追溯标记
-- [ ] 使用任务标签前缀
+- [ ] 每个任务组覆盖 2-5 个相关场景（避免过细拆分）
+- [ ] 任务组总数不超过 15 个（大型项目不超过 20 个）
+- [ ] 任务包含追溯标记（_Requirements, _Scenarios, _TaskGroup, _Validates）
+- [ ] 使用任务标签前缀（[测试]、[验证]、[实现]、[重构]）
 - [ ] 无 TODO 占位符
+- [ ] 每个任务组有完整 TDD 循环（5 个任务）
 
 ## 执行步骤
 

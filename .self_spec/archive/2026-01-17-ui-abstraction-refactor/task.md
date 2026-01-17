@@ -4,8 +4,8 @@
 通过引入 InteractiveUIInterface 抽象层和工厂模式,消除 InteractiveRunner 对 InteractiveUI 具体实现的依赖,支持多种 UI 实现(Terminal、Web、Desktop),完成依赖注入链重构,并确保所有测试通过。
 
 ## Reference
-- Design: [design.md](./design.md)
-- Specification: [spec.md](./spec.md)
+- Design: [design.md](design.md)
+- Specification: [spec.md](spec.md)
 
 ## 任务
 
