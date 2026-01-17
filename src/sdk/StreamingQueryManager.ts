@@ -20,7 +20,7 @@ import {
   StreamMessage,
   StreamContentBlock,
 } from './SDKQueryExecutor';
-import type { SDKMessage, SDKAssistantMessage } from '@anthropic-ai/claude-agent-sdk';
+import type { SDKMessage, SDKAssistantMessage, Query } from '@anthropic-ai/claude-agent-sdk';
 import type { PermissionMode } from '../config/SDKConfigLoader';
 
 /**
@@ -273,7 +273,7 @@ export class StreamingQueryManager {
   /** 最新的 SDK 查询结果 */
   private lastResult: SDKQueryResult | null = null;
   /** Query 实例引用（用于动态权限切换） */
-  private queryInstance: any | null = null;
+  private queryInstance: Query | null = null;
 
   constructor(options: StreamingQueryManagerOptions) {
     this.messageRouter = options.messageRouter;
@@ -639,7 +639,7 @@ export class StreamingQueryManager {
         // 传递消息回调，用于实时输出工具调用信息
         onMessage: (message) => this.handleSDKMessage(message),
         // 保存 query 实例的回调
-        onQueryCreated: (queryInstance) => {
+        onQueryCreated: (queryInstance: Query) => {
           this.queryInstance = queryInstance;
           this.messageRouter.setQueryInstance(queryInstance);
         },

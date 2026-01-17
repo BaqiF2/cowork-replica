@@ -462,7 +462,7 @@ claude-replica/
 
 ## 🤝 贡献
 
-欢迎贡献代码！请阅读 [CONTRIBUTING_ZH.md](CONTRIBUTING_ZH.md) 了解贡献指南。
+欢迎贡献代码！请阅读 [CONTRIBUTING_ZH.md](CONTRIBUTING.md) 了解贡献指南。
 
 ## 📄 许可证
 

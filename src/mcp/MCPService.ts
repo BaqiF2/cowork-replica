@@ -215,7 +215,7 @@ export class MCPService {
       return undefined;
     }
     const candidate = match[1];
-    const baseField = candidate.split(/[.\[]/)[0];
+    const baseField = candidate.split(/\[|\./)[0];
     if (!MCP_FIELD_NAME_WHITELIST.has(baseField)) {
       return undefined;
     }

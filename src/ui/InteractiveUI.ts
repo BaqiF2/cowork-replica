@@ -450,7 +450,7 @@ export class InteractiveUI extends EventEmitter {
     // 使用 readline（生产环境）或 raw listener（测试环境）
     if (this.rl) {
       // 生产环境：使用 readline 统一输入处理
-      while (true) {
+      for (;;) {
         const answer = await this.promptRaw(
           `${this.colorize('?', 'yellow')} 请选择 (0-${snapshots.length}): `
         );
@@ -547,7 +547,7 @@ export class InteractiveUI extends EventEmitter {
     // 使用 readline（生产环境）或 raw listener（测试环境）
     if (this.rl) {
       // 生产环境：使用 readline 统一输入处理
-      while (true) {
+      for (;;) {
         const answer = await this.promptRaw(
           `${this.colorize('?', 'yellow')} 请选择 (0-${sessions.length}): `
         );
@@ -636,7 +636,7 @@ export class InteractiveUI extends EventEmitter {
 
     // 使用 readline（生产环境）或 raw listener（测试环境）
     if (this.rl) {
-      while (true) {
+      for (;;) {
         const answer = await this.promptRaw(
           `${this.colorize('?', 'yellow')} 请选择 (${options.map((o) => o.key).join('/')}): `
         );

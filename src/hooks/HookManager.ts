@@ -631,7 +631,7 @@ export class HookManager {
     const resolvedWorkingDir = path.resolve(workingDir);
     let currentDir = resolvedWorkingDir;
 
-    while (true) {
+    for (;;) {
       const gitPath = path.join(currentDir, GIT_DIRECTORY_NAME);
       try {
         await fs.stat(gitPath);

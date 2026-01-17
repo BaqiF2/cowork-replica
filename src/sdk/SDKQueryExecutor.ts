@@ -19,6 +19,7 @@ import {
   type SDKAssistantMessage,
   type SDKResultMessage,
   type Options as SDKOptions,
+  type Query,
   type PermissionMode,
   type AgentDefinition,
   type McpServerConfig,
@@ -152,7 +153,7 @@ export interface SDKQueryOptions {
   /** 消息回调 - 用于实时接收 SDK 消息（工具调用、结果等） */
   onMessage?: SDKMessageCallback;
   /** Query 实例创建回调 - 用于获取 query generator 实例以支持动态权限切换 */
-  onQueryCreated?: (queryInstance: any) => void;
+  onQueryCreated?: (queryInstance: Query) => void;
   /** 会话保存回调 - 在 SDK 返回 system init 消息时触发 */
   onSessionSave?: (sessionId: string) => Promise<void>;
 }
