@@ -4,8 +4,8 @@
 将现有的 RewindManager 替换为基于 Claude Agent SDK 的文件检查点功能,实现自动检查点捕获、恢复界面和配置管理。
 
 ## Reference
-- Design: [design.md](./design.md)
-- Specification: [spec.md](./spec.md)
+- Design: [design.md](design.md)
+- Specification: [spec.md](spec.md)
 
 ## 任务
 
