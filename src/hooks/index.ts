@@ -12,6 +12,8 @@ export {
   SDKHookCallbackMatcher,
   SDKHookConfig,
   HookExecutionResult,
+  HookInput,
+  HookJSONOutput,
   PromptHookHandler,
   HookManagerOptions,
   ALL_HOOK_EVENTS,

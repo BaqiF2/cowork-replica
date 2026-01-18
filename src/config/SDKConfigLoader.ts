@@ -31,6 +31,29 @@ export type HookEvent =
   | 'PermissionRequest';
 
 /**
+ * 所有有效的钩子事件类型列表
+ */
+const VALID_HOOK_EVENTS: HookEvent[] = [
+  'PreToolUse',
+  'PostToolUse',
+  'PostToolUseFailure',
+  'Notification',
+  'UserPromptSubmit',
+  'SessionStart',
+  'SessionEnd',
+  'Stop',
+  'SubagentStart',
+  'SubagentStop',
+  'PreCompact',
+  'PermissionRequest',
+];
+
+/**
+ * 有效的钩子类型
+ */
+const VALID_HOOK_TYPES = ['command', 'prompt', 'script'] as const;
+
+/**
  * 权限模式
  */
 export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
@@ -44,9 +67,10 @@ export type SettingSource = 'user' | 'project' | 'local';
  * 钩子定义（配置文件中的格式）
  */
 export interface HookDefinition {
-  type: 'command' | 'prompt';
+  type: 'command' | 'prompt' | 'script';
   command?: string;
   prompt?: string;
+  script?: string;
 }
 
 /**
@@ -259,6 +283,10 @@ export class SDKConfigLoader {
   private parseConfig(content: string): ProjectConfig {
     const json = JSON.parse(content);
     const hasLegacyMcpServers = Object.prototype.hasOwnProperty.call(json, 'mcpServers');
+
+    // Validate and parse hooks configuration
+    const validatedHooks = this.validateAndParseHooks(json.hooks);
+
     return {
       ...this.getDefaultProjectConfig(),
       model: json.model,
@@ -270,9 +298,158 @@ export class SDKConfigLoader {
       permissionMode: json.permissionMode,
       legacyMcpServers: hasLegacyMcpServers,
       agents: json.agents,
-      hooks: json.hooks,
+      hooks: validatedHooks,
       sandbox: json.sandbox,
     };
+  }
+
+  /**
+   * 验证并解析 hooks 配置
+   *
+   * @param hooks - 原始 hooks 配置
+   * @returns 验证后的 hooks 配置，无效配置返回 undefined
+   */
+  private validateAndParseHooks(
+    hooks: unknown
+  ): Partial<Record<HookEvent, HookConfig[]>> | undefined {
+    // If hooks is not provided, return undefined
+    if (hooks === undefined || hooks === null) {
+      return undefined;
+    }
+
+    // If hooks is not an object, log warning and return undefined
+    if (!this.isPlainObject(hooks)) {
+      console.warn('Invalid hooks configuration: hooks must be an object');
+      return undefined;
+    }
+
+    const result: Partial<Record<HookEvent, HookConfig[]>> = {};
+
+    for (const [eventName, eventConfig] of Object.entries(hooks)) {
+      // Check if event type is valid
+      if (!VALID_HOOK_EVENTS.includes(eventName as HookEvent)) {
+        console.warn(`Unknown hook event type: ${eventName}`);
+        continue;
+      }
+
+      // Check if event configuration is an array
+      if (!Array.isArray(eventConfig)) {
+        console.warn(`Invalid hooks configuration for event ${eventName}: must be an array`);
+        continue;
+      }
+
+      // Validate and filter hook configurations
+      const validConfigs: HookConfig[] = [];
+      for (const config of eventConfig) {
+        const validatedConfig = this.validateHookConfig(config, eventName);
+        if (validatedConfig) {
+          validConfigs.push(validatedConfig);
+        }
+      }
+
+      if (validConfigs.length > 0) {
+        result[eventName as HookEvent] = validConfigs;
+      }
+    }
+
+    // Return undefined if no valid hooks found
+    return Object.keys(result).length > 0 ? result : undefined;
+  }
+
+  /**
+   * 验证单个 hook 配置项
+   *
+   * @param config - 原始 hook 配置
+   * @param eventName - 事件名称（用于日志）
+   * @returns 验证后的配置，无效返回 undefined
+   */
+  private validateHookConfig(config: unknown, eventName: string): HookConfig | undefined {
+    if (!this.isPlainObject(config)) {
+      console.warn(`Invalid hooks configuration for event ${eventName}: config must be an object`);
+      return undefined;
+    }
+
+    const configObj = config;
+
+    // Validate matcher field
+    if (typeof configObj.matcher !== 'string') {
+      console.warn(`Invalid hooks configuration for event ${eventName}: missing matcher field`);
+      return undefined;
+    }
+
+    // Validate hooks field
+    if (!Array.isArray(configObj.hooks)) {
+      console.warn(`Invalid hooks configuration for event ${eventName}: hooks must be an array`);
+      return undefined;
+    }
+
+    // Validate and filter hook definitions
+    const validHooks: HookDefinition[] = [];
+    for (const hookDef of configObj.hooks) {
+      const validatedHook = this.validateHookDefinition(hookDef);
+      if (validatedHook) {
+        validHooks.push(validatedHook);
+      }
+    }
+
+    if (validHooks.length === 0) {
+      return undefined;
+    }
+
+    return {
+      matcher: configObj.matcher,
+      hooks: validHooks,
+    };
+  }
+
+  /**
+   * 验证单个 hook 定义
+   *
+   * @param hookDef - 原始 hook 定义
+   * @returns 验证后的定义，无效返回 undefined
+   */
+  private validateHookDefinition(hookDef: unknown): HookDefinition | undefined {
+    if (!this.isPlainObject(hookDef)) {
+      console.warn('Invalid hook definition: must be an object');
+      return undefined;
+    }
+
+    const def = hookDef as Record<string, unknown>;
+    const hookType = def.type;
+
+    // Validate type field using constant
+    if (!VALID_HOOK_TYPES.includes(hookType as (typeof VALID_HOOK_TYPES)[number])) {
+      console.warn(`Invalid hook definition: type must be ${VALID_HOOK_TYPES.join(', ')}`);
+      return undefined;
+    }
+
+    // Validate required fields based on type
+    const type = hookType as HookDefinition['type'];
+    const requiredFieldMap: Record<HookDefinition['type'], keyof HookDefinition> = {
+      command: 'command',
+      prompt: 'prompt',
+      script: 'script',
+    };
+
+    const requiredField = requiredFieldMap[type];
+    if (!def[requiredField]) {
+      console.warn(`Invalid hook definition: ${type} type requires ${requiredField} field`);
+      return undefined;
+    }
+
+    return {
+      type,
+      command: typeof def.command === 'string' ? def.command : undefined,
+      prompt: typeof def.prompt === 'string' ? def.prompt : undefined,
+      script: typeof def.script === 'string' ? def.script : undefined,
+    };
+  }
+
+  /**
+   * 检查值是否为普通对象（非数组、非 null）
+   */
+  private isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 
   private getDefaultProjectConfig(): ProjectConfig {
