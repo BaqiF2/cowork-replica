@@ -31,7 +31,7 @@ import type { ParserInterface } from './ui/ParserInterface';
 import { HookManager } from './hooks/HookManager';
 import { MCPManager } from './mcp/MCPManager';
 import { MCPService } from './mcp/MCPService';
-import { RewindManager } from './rewind/RewindManager';
+import { CheckpointManager } from './checkpoint/CheckpointManager';
 import { OutputFormatter } from './output/OutputFormatter';
 import { SecurityManager } from './security/SecurityManager';
 import { SDKQueryExecutor } from './sdk';
@@ -65,7 +65,7 @@ export class Application {
   private readonly customToolManager: CustomToolManager;
   private readonly uiFactory: UIFactory;
 
-  private rewindManager: RewindManager | null = null;
+  private checkpointManager: CheckpointManager | null = null;
   private permissionManager!: PermissionManager;
   private messageRouter!: MessageRouter;
   // @ts-expect-error 流式消息处理器，用于处理 SDK 返回的流式消息（保留引用以便未来扩展）
@@ -150,6 +150,8 @@ export class Application {
 
     const workingDir = process.cwd();
     const permissionConfig = await this.configManager.loadPermissionConfig(options, workingDir);
+    const projectConfig = await this.configManager.loadProjectConfig(workingDir);
+    this.configManager.validateCheckpointEnvironment(projectConfig);
 
     this.permissionManager = new PermissionManager(
       permissionConfig,
@@ -169,9 +171,15 @@ export class Application {
     await this.customToolManager.registerMcpServers(this.sdkExecutor, this.logger);
     // mcp初始化
     await this.mcpManager.configureMessageRouter(workingDir, this.messageRouter, this.logger);
-    // 文件回退点初始化
-    this.rewindManager = new RewindManager({ workingDir });
-    await this.rewindManager.initialize();
+    const envCheckpointEnabled = process.env.CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING === '1';
+    const configCheckpointEnabled = projectConfig.enableFileCheckpointing ?? true;
+    if (envCheckpointEnabled && configCheckpointEnabled) {
+      this.checkpointManager = new CheckpointManager({
+        checkpointKeepCount: projectConfig.checkpointKeepCount,
+      });
+    } else {
+      this.checkpointManager = null;
+    }
     // hooks初始化
     await this.hookManager.loadFromProjectRoot(workingDir);
 
@@ -184,7 +192,7 @@ export class Application {
       this.outputFormatter,
       this.permissionManager,
       this.mcpService,
-      this.rewindManager,
+      this.checkpointManager,
       this.configManager,
       this.uiFactory,
       this.logger

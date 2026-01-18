@@ -79,6 +79,10 @@ export class ConfigManager {
     return config;
   }
 
+  validateCheckpointEnvironment(config: ProjectConfig): void {
+    this.loader.validateCheckpointEnvironment(config);
+  }
+
   /**
    * 直接加载权限配置
    *
