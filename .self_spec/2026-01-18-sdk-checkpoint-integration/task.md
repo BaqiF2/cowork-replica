@@ -334,7 +334,7 @@
    - _Validates: 37_
    - _TaskGroup: 8_
 
-- [ ] 39. [验证] 手动端到端测试
+- [x] 39. [验证] 手动端到端测试
    - 设置 CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING=1
    - 启动交互模式并执行完整用户流程
    - 验证 UI 显示、检查点创建、恢复功能
