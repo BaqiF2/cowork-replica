@@ -270,6 +270,7 @@ export class StreamingQueryManager {
   private readonly onThinking?: (content?: string) => void;
   /** SDK 文件检查点管理器 */
   private readonly checkpointManager?: CheckpointManager;
+  private lastCapturedUserMessageId: string | null = null;
 
   /** 当前活跃的流式会话 */
   private activeSession: StreamingSession | null = null;
@@ -688,38 +689,56 @@ export class StreamingQueryManager {
       return;
     }
 
+    if (this.lastCapturedUserMessageId === userMessage.uuid) {
+      return;
+    }
+
     const description = this.extractCheckpointDescription(message);
+    if (!description) {
+      return;
+    }
     const sessionId = userMessage.session_id || this.activeSession.session.sdkSessionId;
 
     if (!sessionId) {
       return;
     }
 
+    this.lastCapturedUserMessageId = userMessage.uuid;
     void this.checkpointManager.captureCheckpoint(userMessage.uuid, description, sessionId);
   }
 
   /**
    * 提取检查点描述
    */
-  private extractCheckpointDescription(message: SDKMessage): string {
+  private extractCheckpointDescription(message: SDKMessage): string | null {
     const userMessage = message as {
-      message?: { content?: string | Array<{ type: string; text?: string }> };
+      message?: {
+        content?: string | Array<{ type: string; text?: string } | { type: 'tool_result' }>;
+      };
     };
     const content = userMessage.message?.content;
 
     if (typeof content === 'string') {
-      return content.replace(/\n/g, ' ').substring(0, CHECKPOINT_DESCRIPTION_MAX_LENGTH);
+      return this.formatCheckpointDescriptionText(content);
     }
 
     if (Array.isArray(content)) {
+      if (content.some((block) => block.type === 'tool_result')) {
+        return null;
+      }
+
       for (const block of content) {
         if (block.type === 'text' && typeof block.text === 'string') {
-          return block.text.replace(/\n/g, ' ').substring(0, CHECKPOINT_DESCRIPTION_MAX_LENGTH);
+          return this.formatCheckpointDescriptionText(block.text);
         }
       }
     }
 
     return `Checkpoint at ${new Date().toLocaleTimeString()}`;
+  }
+
+  private formatCheckpointDescriptionText(text: string): string {
+    return text.replace(/\n/g, ' ').substring(0, CHECKPOINT_DESCRIPTION_MAX_LENGTH);
   }
 
   /**
