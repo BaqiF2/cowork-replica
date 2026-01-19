@@ -1,6 +1,16 @@
 /**
  * 文件功能：消息路由模块，负责将用户消息路由到 Claude Agent SDK 并构建查询参数
  *
+ * 作用说明：组装系统提示词、工具权限、子代理与钩子配置，统一构建 SDK 查询参数。
+ *
+ * 核心导出：
+ * - MessageRouter
+ * - Message
+ * - QueryOptions
+ * - QueryResult
+ * - MessageRouterOptions
+ * - StreamMessageBuildResult
+ *
  * 核心类：
  * - MessageRouter: 消息路由器核心类
  *
@@ -10,6 +20,7 @@
  * - getSystemPromptOptions(): 获取系统提示词选项（SDK 预设格式）
  * - buildAppendPrompt(): 构建追加提示词（当前无追加内容）
  * - getSettingSources(): 获取配置源列表（用于 SDK 自动加载 CLAUDE.md）
+ * - getHooksForSDK(): 获取 SDK 格式的钩子配置
  * - buildQueryOptions(): 构建完整的 SDK 查询选项
  * - getEnabledToolNames(): 获取启用的工具列表
  * - createPermissionHandler(): 创建权限处理函数
@@ -26,6 +37,7 @@ import {
   PermissionMode,
   SandboxSettings,
 } from '../config/SDKConfigLoader';
+import { HookManager } from '../hooks';
 import { ToolRegistry } from '../tools/ToolRegistry';
 import { PermissionManager } from '../permissions/PermissionManager';
 import { ContentBlock, Session } from './SessionManager';
@@ -106,6 +118,8 @@ export interface MessageRouterOptions {
   imageHandler?: ImageHandler;
   /** 工作目录（可选） */
   workingDirectory?: string;
+  /** 钩子管理器（可选） */
+  hookManager?: HookManager;
 }
 
 /**
@@ -179,10 +193,13 @@ export class MessageRouter {
   private queryInstance: Query | null = null;
   /** 当前加载的 MCP 服务器配置 */
   private mcpServers?: Record<string, McpServerConfig>;
+  /** 钩子管理器 */
+  private readonly hookManager?: HookManager;
 
   constructor(options: MessageRouterOptions) {
     this.toolRegistry = options.toolRegistry || new ToolRegistry();
     this.permissionManager = options.permissionManager;
+    this.hookManager = options.hookManager;
     // 使用传入的工作目录，如果没有则使用默认值
     this.defaultWorkingDirectory = options.workingDirectory || process.cwd();
     // 如果提供了 imageHandler，将其存储为默认工作目录的缓存
@@ -623,6 +640,29 @@ When you're ready to implement your plan, use the ExitPlanMode tool.
   }
 
   /**
+   * 获取 SDK 格式的钩子配置
+   *
+   * 从 HookManager 获取钩子配置并转换为 SDK 格式。
+   * 如果没有配置 HookManager 或钩子配置为空，返回 undefined。
+   *
+   * @returns SDK 格式的钩子配置，如果没有配置则返回 undefined
+   */
+  getHooksForSDK(): Partial<Record<HookEvent, HookCallbackMatcher[]>> | undefined {
+    if (!this.hookManager) {
+      return undefined;
+    }
+
+    const sdkHooks = this.hookManager.getHooksForSDK();
+
+    // Check if the hooks object has any entries
+    if (Object.keys(sdkHooks).length === 0) {
+      return undefined;
+    }
+
+    return sdkHooks as Partial<Record<HookEvent, HookCallbackMatcher[]>>;
+  }
+
+  /**
    * 构建查询选项
    *
    * 组合所有配置构建完整的 SDK Options
@@ -652,6 +692,9 @@ When you're ready to implement your plan, use the ExitPlanMode tool.
     const canUseTool = this.createPermissionHandler(session);
     const checkpointingEnabled = process.env[CHECKPOINTING_ENV_FLAG] === '1';
 
+    // 获取钩子配置
+    const hooks = this.getHooksForSDK();
+
     // 构建选项
     const options: QueryOptions = {
       model: projectConfig.model || DEFAULT_MODEL,
@@ -663,6 +706,7 @@ When you're ready to implement your plan, use the ExitPlanMode tool.
       permissionMode: projectConfig.permissionMode || 'default',
       canUseTool,
       agents: Object.keys(agents).length > 0 ? agents : undefined,
+      hooks,
       maxTurns: projectConfig.maxTurns,
       maxBudgetUsd: projectConfig.maxBudgetUsd,
       maxThinkingTokens: projectConfig.maxThinkingTokens,

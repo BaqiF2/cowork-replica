@@ -3,6 +3,12 @@
 /**
  * 文件功能：主程序入口，负责初始化应用程序、解析命令行参数、管理会话和执行查询。
  *
+ * 作用说明：装配核心子系统并选择 Runner 执行 CLI 流程。
+ *
+ * 核心导出：
+ * - Application
+ * - main
+ *
  * 核心类：
  * - Application: CLI 应用生命周期与执行流程管理。
  *
@@ -18,6 +24,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ quiet: process.env.DOTENV_QUIET === 'true' });
 
 import { ConfigManager } from './config';
+import type { HookEvent, HookConfig } from './config/SDKConfigLoader';
 import { SessionManager } from './core/SessionManager';
 import { MessageRouter } from './core/MessageRouter';
 import { StreamingMessageProcessor } from './core/StreamingMessageProcessor';
@@ -78,7 +85,6 @@ export class Application {
     this.uiFactory = uiFactory;
     this.parser = uiFactory.createParser();
     this.output = uiFactory.createOutput();
-    this.configManager = new ConfigManager();
     this.sessionManager = new SessionManager();
     this.toolRegistry = new ToolRegistry();
     this.hookManager = new HookManager();
@@ -92,6 +98,7 @@ export class Application {
       serverVersion: process.env.CUSTOM_TOOL_SERVER_VERSION,
     });
     this.logger = new Logger(this.securityManager);
+    this.configManager = new ConfigManager(this.logger);
     this.checkpointManager = null;
   }
 
@@ -142,42 +149,91 @@ export class Application {
   }
 
   private async initialize(options: ApplicationOptions): Promise<void> {
-    // session清理
+    // Session cleanup
     await this.sessionManager.cleanOldSessions(SESSION_KEEP_COUNT);
 
+    // Logger initialization
     await this.logger.init();
     await this.logger.info('Application started', { args: process.argv.slice(2) });
 
+    // Ensure user configuration directory exists
     await this.configManager.ensureUserConfigDir();
 
     const workingDir = process.cwd();
-    const permissionConfig = await this.configManager.loadPermissionConfig(options, workingDir);
 
+    // Step 1: Load project configuration (including hooks)
+    const projectConfig = await this.configManager.loadProjectConfig(workingDir);
+    await this.logger.info('Project configuration loaded', {
+      hasHooks: !!projectConfig.hooks,
+      hasAgents: !!projectConfig.agents,
+    });
+
+    // Step 2: Initialize permission manager
+    const permissionConfig = await this.configManager.loadPermissionConfig(options, workingDir);
     this.permissionManager = new PermissionManager(
       permissionConfig,
       this.uiFactory,
       this.toolRegistry
     );
+    await this.logger.info('Permission manager initialized', {
+      mode: permissionConfig.mode,
+    });
 
+    // Step 3: Load hooks configuration into HookManager
+    if (projectConfig.hooks) {
+      try {
+        const hookManagerConfig = this.convertHooksToHookManagerFormat(projectConfig.hooks);
+        this.hookManager.loadHooks(hookManagerConfig);
+        await this.logger.info('Hooks configuration loaded', {
+          eventCount: Object.keys(hookManagerConfig).length,
+        });
+      } catch (error) {
+        await this.logger.warn('Failed to load hooks configuration', { error });
+        // Continue initialization even if hooks loading fails
+      }
+    } else {
+      try {
+        await this.hookManager.loadFromProjectRoot(workingDir);
+        const legacyHookConfig = this.hookManager.getConfig();
+        if (Object.keys(legacyHookConfig).length > 0) {
+          await this.logger.info('Hooks configuration loaded from hooks.json', {
+            eventCount: Object.keys(legacyHookConfig).length,
+          });
+        }
+      } catch (error) {
+        await this.logger.warn('Failed to load hooks.json configuration', { error });
+      }
+    }
+
+    // Step 4: Initialize MessageRouter with HookManager
     this.messageRouter = new MessageRouter({
       toolRegistry: this.toolRegistry,
       permissionManager: this.permissionManager,
       workingDirectory: workingDir,
+      hookManager: this.hookManager,
     });
+    await this.logger.info('Message router initialized');
 
+    // Streaming processor initialization
     this.streamingProcessor = new StreamingMessageProcessor();
-    // 自定义工具初始化
+
+    // Custom tools initialization
     await this.customToolManager.initialize();
     await this.customToolManager.registerMcpServers(this.sdkExecutor, this.logger);
-    // mcp初始化
-    await this.mcpManager.configureMessageRouter(workingDir, this.messageRouter, this.logger);
-    // hooks初始化
-    await this.hookManager.loadFromProjectRoot(workingDir);
+    await this.logger.info('Custom tools initialized');
 
+    // MCP initialization
+    await this.mcpManager.configureMessageRouter(workingDir, this.messageRouter, this.logger);
+    await this.logger.info('MCP servers configured');
+
+    // Checkpointing initialization
     const checkpointingEnabled = process.env[CHECKPOINT_ENV_FLAG] === '1';
     this.checkpointManager = checkpointingEnabled ? new CheckpointManager({}) : null;
+    if (checkpointingEnabled) {
+      await this.logger.info('File checkpointing enabled');
+    }
 
-    // 创建 RunnerFactory
+    // Create RunnerFactory
     this.runnerFactory = new RunnerFactory(
       this.output,
       this.sessionManager,
@@ -192,7 +248,43 @@ export class Application {
       this.logger
     );
 
-    await this.logger.info('Application initialized');
+    await this.logger.info('Application initialized successfully');
+  }
+
+  /**
+   * Convert hooks configuration from SDKConfigLoader format to HookManager format
+   *
+   * This conversion is necessary because:
+   * - SDKConfigLoader uses HookConfig[] with HookDefinition[] (file format)
+   * - HookManager uses HookMatcher[] with Hook[] (runtime format)
+   *
+   * Each hook definition in the file format is expanded to include the matcher
+   * from its parent configuration.
+   *
+   * @param sdkHooks - Hooks configuration from settings.json
+   * @returns Hooks configuration in HookManager format
+   */
+  private convertHooksToHookManagerFormat(
+    sdkHooks: Partial<Record<HookEvent, HookConfig[]>>
+  ): import('./hooks/HookManager').HookConfig {
+    const result: import('./hooks/HookManager').HookConfig = {};
+
+    for (const [event, configs] of Object.entries(sdkHooks)) {
+      if (!configs || configs.length === 0) continue;
+
+      result[event as HookEvent] = configs.map(config => ({
+        matcher: config.matcher,
+        hooks: config.hooks.map(hookDef => ({
+          matcher: config.matcher,
+          type: hookDef.type,
+          command: hookDef.command,
+          prompt: hookDef.prompt,
+          script: hookDef.script,
+        })),
+      }));
+    }
+
+    return result;
   }
 }
 

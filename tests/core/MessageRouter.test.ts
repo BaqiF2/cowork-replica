@@ -907,6 +907,284 @@ describe('MessageRouter - Options 接口构建', () => {
   });
 });
 
+describe('MessageRouter - Hooks 集成', () => {
+  let toolRegistry: ToolRegistry;
+  let permissionManager: PermissionManager;
+
+  beforeEach(() => {
+    toolRegistry = new ToolRegistry();
+    permissionManager = new PermissionManager({ mode: 'default' }, new MockPermissionUIFactory(), toolRegistry);
+  });
+
+  describe('构造函数接收 HookManager', () => {
+    it('应该接受可选的 hookManager 参数', () => {
+      const { HookManager } = require('../../src/hooks/HookManager');
+      const hookManager = new HookManager();
+
+      const router = new MessageRouter({
+        toolRegistry,
+        permissionManager,
+        hookManager,
+      });
+
+      expect(router).toBeDefined();
+      expect(router).toBeInstanceOf(MessageRouter);
+    });
+
+    it('应该在没有 hookManager 时正常工作', () => {
+      const router = new MessageRouter({
+        toolRegistry,
+        permissionManager,
+      });
+
+      expect(router).toBeDefined();
+    });
+  });
+
+  describe('buildQueryOptions 中的 hooks 字段', () => {
+    it('应该在项目配置包含 hooks 时返回 hooks 字段', async () => {
+      const { HookManager } = require('../../src/hooks/HookManager');
+      const hookManager = new HookManager();
+
+      // 加载测试 hooks 配置
+      hookManager.loadHooks({
+        PreToolUse: [
+          {
+            matcher: 'Write',
+            hooks: [
+              { matcher: '.*', type: 'command', command: 'echo test' },
+            ],
+          },
+        ],
+      });
+
+      const router = new MessageRouter({
+        toolRegistry,
+        permissionManager,
+        hookManager,
+      });
+
+      const session = createMockSession({
+        context: {
+          workingDirectory: '/test/project',
+          projectConfig: {
+            hooks: {
+              PreToolUse: [
+                {
+                  matcher: 'Write',
+                  hooks: [
+                    { type: 'command', command: 'echo test' },
+                  ],
+                },
+              ],
+            },
+          },
+          activeAgents: [],
+        },
+      });
+
+      const options = await router.buildQueryOptions(session);
+
+      expect(options.hooks).toBeDefined();
+      expect(options.hooks).toHaveProperty('PreToolUse');
+    });
+
+    it('应该在没有 hooks 配置时不包含 hooks 字段', async () => {
+      const router = new MessageRouter({
+        toolRegistry,
+        permissionManager,
+      });
+
+      const session = createMockSession({
+        context: {
+          workingDirectory: '/test/project',
+          projectConfig: {},
+          activeAgents: [],
+        },
+      });
+
+      const options = await router.buildQueryOptions(session);
+
+      expect(options.hooks).toBeUndefined();
+    });
+
+    it('应该在没有 hookManager 但有 hooks 配置时不包含 hooks 字段', async () => {
+      const router = new MessageRouter({
+        toolRegistry,
+        permissionManager,
+      });
+
+      const session = createMockSession({
+        context: {
+          workingDirectory: '/test/project',
+          projectConfig: {
+            hooks: {
+              PreToolUse: [
+                {
+                  matcher: 'Write',
+                  hooks: [
+                    { type: 'command', command: 'echo test' },
+                  ],
+                },
+              ],
+            },
+          },
+          activeAgents: [],
+        },
+      });
+
+      const options = await router.buildQueryOptions(session);
+
+      // 没有 hookManager，所以不包含 hooks
+      expect(options.hooks).toBeUndefined();
+    });
+  });
+
+  describe('getHooksForSDK 方法', () => {
+    it('应该返回 SDK 格式的 hooks 配置', async () => {
+      const { HookManager } = require('../../src/hooks/HookManager');
+      const hookManager = new HookManager();
+
+      hookManager.loadHooks({
+        PreToolUse: [
+          {
+            matcher: 'Write|Edit',
+            hooks: [
+              { matcher: '.*', type: 'command', command: 'echo "PreToolUse: $TOOL"' },
+            ],
+          },
+        ],
+        PostToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [
+              { matcher: '.*', type: 'prompt', prompt: 'Review the output' },
+            ],
+          },
+        ],
+      });
+
+      const router = new MessageRouter({
+        toolRegistry,
+        permissionManager,
+        hookManager,
+      });
+
+      const session = createMockSession({
+        context: {
+          workingDirectory: '/test/project',
+          projectConfig: {
+            hooks: {
+              PreToolUse: [
+                {
+                  matcher: 'Write|Edit',
+                  hooks: [{ type: 'command', command: 'echo "PreToolUse: $TOOL"' }],
+                },
+              ],
+            },
+          },
+          activeAgents: [],
+        },
+      });
+
+      const options = await router.buildQueryOptions(session);
+
+      expect(options.hooks).toBeDefined();
+      // 验证 SDK 格式
+      if (options.hooks && options.hooks.PreToolUse) {
+        expect(Array.isArray(options.hooks.PreToolUse)).toBe(true);
+        expect(options.hooks.PreToolUse[0]).toHaveProperty('matcher');
+        expect(options.hooks.PreToolUse[0]).toHaveProperty('callback');
+        expect(typeof options.hooks.PreToolUse[0].callback).toBe('function');
+      }
+    });
+
+    it('应该在 hookManager 为空配置时返回 undefined', async () => {
+      const { HookManager } = require('../../src/hooks/HookManager');
+      const hookManager = new HookManager();
+
+      // 不加载任何 hooks
+      hookManager.loadHooks({});
+
+      const router = new MessageRouter({
+        toolRegistry,
+        permissionManager,
+        hookManager,
+      });
+
+      const session = createMockSession({
+        context: {
+          workingDirectory: '/test/project',
+          projectConfig: {},
+          activeAgents: [],
+        },
+      });
+
+      const options = await router.buildQueryOptions(session);
+
+      expect(options.hooks).toBeUndefined();
+    });
+  });
+
+  describe('convertToSDKFormat 方法', () => {
+    it('应该将 HookManager 配置转换为 SDK 格式', () => {
+      const { HookManager } = require('../../src/hooks/HookManager');
+      const hookManager = new HookManager();
+
+      hookManager.loadHooks({
+        UserPromptSubmit: [
+          {
+            matcher: '.*',
+            hooks: [
+              { matcher: '.*', type: 'prompt', prompt: 'Remember coding standards' },
+            ],
+          },
+        ],
+      });
+
+      const sdkHooks = hookManager.getHooksForSDK();
+
+      expect(sdkHooks).toHaveProperty('UserPromptSubmit');
+      expect(Array.isArray(sdkHooks.UserPromptSubmit)).toBe(true);
+      expect(sdkHooks.UserPromptSubmit[0]).toHaveProperty('matcher', '.*');
+      expect(typeof sdkHooks.UserPromptSubmit[0].callback).toBe('function');
+    });
+
+    it('应该为多个事件类型生成正确的 SDK 格式', () => {
+      const { HookManager } = require('../../src/hooks/HookManager');
+      const hookManager = new HookManager();
+
+      hookManager.loadHooks({
+        PreToolUse: [
+          {
+            matcher: 'Write',
+            hooks: [{ matcher: '.*', type: 'command', command: 'echo pre' }],
+          },
+        ],
+        PostToolUse: [
+          {
+            matcher: 'Write',
+            hooks: [{ matcher: '.*', type: 'command', command: 'echo post' }],
+          },
+        ],
+        SessionStart: [
+          {
+            matcher: '.*',
+            hooks: [{ matcher: '.*', type: 'prompt', prompt: 'Session started' }],
+          },
+        ],
+      });
+
+      const sdkHooks = hookManager.getHooksForSDK();
+
+      expect(Object.keys(sdkHooks)).toHaveLength(3);
+      expect(sdkHooks).toHaveProperty('PreToolUse');
+      expect(sdkHooks).toHaveProperty('PostToolUse');
+      expect(sdkHooks).toHaveProperty('SessionStart');
+    });
+  });
+});
+
 describe('MessageRouter - 边缘情况和缓存测试', () => {
   let toolRegistry: ToolRegistry;
   let permissionManager: PermissionManager;

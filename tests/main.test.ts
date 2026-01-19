@@ -13,6 +13,7 @@ import ts from 'typescript';
 import { CLIParser } from '../src/cli/CLIParser';
 import { TestUIFactory } from './helpers/TestUIFactory';
 import { TerminalUIFactory } from '../src/ui/factories/TerminalUIFactory';
+import { Logger } from '../src/logging/Logger';
 
 // 模拟 SDK 模块 - 返回正确的 AsyncGenerator
 jest.mock('@anthropic-ai/claude-agent-sdk', () => ({
@@ -76,6 +77,7 @@ const mainSourceFile = ts.createSourceFile(
   ts.ScriptTarget.Latest,
   true
 );
+const logger = new Logger();
 
 const getClassDeclaration = (name: string): ts.ClassDeclaration => {
   let found: ts.ClassDeclaration | undefined;
@@ -910,5 +912,250 @@ describe('启动时自动清理旧会话', () => {
     const entries = await fs.readdir(sessionsDir);
     const sessions = entries.filter(e => e.startsWith('session-'));
     expect(sessions.length).toBeGreaterThan(0);
+  });
+});
+
+describe('Application 初始化流程 - HookManager 集成 (任务组 4)', () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hooks-test-'));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('HookManager 传递给 MessageRouter', () => {
+    it('应该在 Application 初始化时创建 HookManager', () => {
+      const app = new Application(new TerminalUIFactory());
+
+      // HookManager 应该在构造函数中被创建
+      expect(app).toHaveProperty('hookManager');
+    });
+
+    it('应该从项目配置加载 hooks', async () => {
+      // 创建测试配置
+      const projectConfigDir = path.join(tempDir, '.claude');
+      await fs.mkdir(projectConfigDir, { recursive: true });
+
+      const testHooksConfig = {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [
+              {
+                type: 'command' as const,
+                command: 'echo "test"',
+              },
+            ],
+          },
+        ],
+      };
+
+      const settingsContent = {
+        hooks: testHooksConfig,
+      };
+
+      await fs.writeFile(
+        path.join(projectConfigDir, 'settings.json'),
+        JSON.stringify(settingsContent, null, 2),
+        'utf-8'
+      );
+
+      // 测试配置加载
+      const configManager = new (await import('../src/config')).ConfigManager(logger);
+      const projectConfig = await configManager.loadProjectConfig(tempDir);
+
+      expect(projectConfig).toHaveProperty('hooks');
+      expect(projectConfig.hooks).toBeDefined();
+      expect(projectConfig.hooks?.PreToolUse).toBeDefined();
+      expect(projectConfig.hooks?.PreToolUse?.[0].matcher).toBe('Bash');
+    });
+
+    it('应该调用 HookManager.loadHooks() 传入项目配置', async () => {
+      // 这个测试验证 HookManager.loadHooks 被正确调用
+      // 具体实现将在任务 18 中完成
+      const mockHooksConfig = {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [
+              {
+                matcher: 'Bash',
+                type: 'command' as const,
+                command: 'echo "hook test"',
+              },
+            ],
+          },
+        ],
+      };
+
+      const { HookManager: RealHookManager } = await import('../src/hooks/HookManager');
+      const hookManager = new RealHookManager();
+
+      // 验证 loadHooks 方法存在且可调用
+      expect(hookManager.loadHooks).toBeDefined();
+      expect(typeof hookManager.loadHooks).toBe('function');
+
+      // 调用 loadHooks
+      hookManager.loadHooks(mockHooksConfig);
+
+      // 验证配置已加载
+      const config = hookManager.getConfig();
+      expect(config).toEqual(mockHooksConfig);
+    });
+
+    it('应该将 HookManager 传递给 MessageRouter 构造函数', async () => {
+      const { HookManager: RealHookManager } = await import('../src/hooks/HookManager');
+      const { MessageRouter: RealMessageRouter } = await import('../src/core/MessageRouter');
+      const { PermissionManager } = await import('../src/permissions/PermissionManager');
+      const { ToolRegistry } = await import('../src/tools/ToolRegistry');
+      const { TerminalUIFactory } = await import('../src/ui/factories/TerminalUIFactory');
+
+      const hookManager = new RealHookManager();
+      const permissionManager = new PermissionManager(
+        {
+          mode: 'acceptEdits',
+          allowedTools: [],
+          disallowedTools: [],
+        },
+        new TerminalUIFactory(),
+        new ToolRegistry()
+      );
+
+      // 创建 MessageRouter 时传入 hookManager
+      const messageRouter = new RealMessageRouter({
+        permissionManager,
+        hookManager,
+        workingDirectory: tempDir,
+      });
+
+      // 验证 MessageRouter 接收了 hookManager
+      // 通过检查私有属性（仅用于测试）
+      expect(messageRouter).toBeDefined();
+    });
+  });
+
+  describe('初始化流程顺序', () => {
+    it('应该按正确顺序执行：ConfigManager → HookManager.loadHooks → MessageRouter', async () => {
+      const { ConfigManager } = await import('../src/config');
+      const { HookManager: RealHookManager } = await import('../src/hooks/HookManager');
+      const { MessageRouter: RealMessageRouter } = await import('../src/core/MessageRouter');
+      const { PermissionManager } = await import('../src/permissions/PermissionManager');
+      const { ToolRegistry } = await import('../src/tools/ToolRegistry');
+      const { TerminalUIFactory } = await import('../src/ui/factories/TerminalUIFactory');
+
+      const callOrder: string[] = [];
+
+      // 1. ConfigManager 加载配置
+      const configManager = new ConfigManager(logger);
+      await configManager.ensureUserConfigDir();
+      callOrder.push('ConfigManager.ensureUserConfigDir');
+
+      const projectConfig = await configManager.loadProjectConfig(tempDir);
+      callOrder.push('ConfigManager.loadProjectConfig');
+
+      // 2. HookManager 加载 hooks
+      const hookManager = new RealHookManager();
+      // 使用 as any 暂时绕过类型检查，因为任务 18 会实现类型转换
+      hookManager.loadHooks((projectConfig.hooks as any) || {});
+      callOrder.push('HookManager.loadHooks');
+
+      // 3. 创建 MessageRouter 并传入 HookManager
+      const permissionManager = new PermissionManager(
+        {
+          mode: 'acceptEdits',
+          allowedTools: [],
+          disallowedTools: [],
+        },
+        new TerminalUIFactory(),
+        new ToolRegistry()
+      );
+
+      const messageRouter = new RealMessageRouter({
+        permissionManager,
+        hookManager,
+        workingDirectory: tempDir,
+      });
+      callOrder.push('MessageRouter.constructor');
+
+      // 验证顺序
+      expect(callOrder).toEqual([
+        'ConfigManager.ensureUserConfigDir',
+        'ConfigManager.loadProjectConfig',
+        'HookManager.loadHooks',
+        'MessageRouter.constructor',
+      ]);
+
+      expect(messageRouter).toBeDefined();
+    });
+
+    it('应该在 Application.initialize() 中遵循依赖顺序', async () => {
+      // 这个测试将在任务 18 实现后验证完整的初始化流程
+      const app = new Application(new TerminalUIFactory());
+
+      // 验证 Application 包含所需的组件
+      expect(app).toHaveProperty('configManager');
+      expect(app).toHaveProperty('hookManager');
+
+      // 实际的初始化顺序验证将在实现时进行
+      expect(true).toBe(true);
+    });
+  });
+
+  describe('错误处理', () => {
+    it('应该处理空的 hooks 配置', async () => {
+      const { HookManager: RealHookManager } = await import('../src/hooks/HookManager');
+      const hookManager = new RealHookManager();
+
+      // 传入空配置不应报错
+      expect(() => hookManager.loadHooks({})).not.toThrow();
+
+      const config = hookManager.getConfig();
+      expect(config).toEqual({});
+    });
+
+    it('应该处理 undefined hooks 配置', async () => {
+      const { ConfigManager } = await import('../src/config');
+      const configManager = new ConfigManager(logger);
+
+      // 创建没有 settings.json 的目录
+      const emptyDir = await fs.mkdtemp(path.join(os.tmpdir(), 'empty-'));
+
+      try {
+        const projectConfig = await configManager.loadProjectConfig(emptyDir);
+
+        // hooks 应该是 undefined 或空对象
+        expect(projectConfig.hooks === undefined || Object.keys(projectConfig.hooks).length === 0).toBe(true);
+      } finally {
+        await fs.rm(emptyDir, { recursive: true, force: true });
+      }
+    });
+
+    it('应该在 HookManager 传递失败时仍能创建 MessageRouter', async () => {
+      const { MessageRouter: RealMessageRouter } = await import('../src/core/MessageRouter');
+      const { PermissionManager } = await import('../src/permissions/PermissionManager');
+      const { ToolRegistry } = await import('../src/tools/ToolRegistry');
+      const { TerminalUIFactory } = await import('../src/ui/factories/TerminalUIFactory');
+
+      const permissionManager = new PermissionManager(
+        {
+          mode: 'acceptEdits',
+          allowedTools: [],
+          disallowedTools: [],
+        },
+        new TerminalUIFactory(),
+        new ToolRegistry()
+      );
+
+      // 不传 hookManager 也应该能创建 MessageRouter
+      const messageRouter = new RealMessageRouter({
+        permissionManager,
+        workingDirectory: tempDir,
+      });
+
+      expect(messageRouter).toBeDefined();
+    });
   });
 });

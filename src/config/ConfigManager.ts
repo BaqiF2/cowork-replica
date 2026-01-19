@@ -1,6 +1,20 @@
 /**
  * 文件功能：配置管理模块，负责加载和管理项目配置
  *
+ * 作用说明：合并 CLI/配置文件选项，提供权限配置与 SDK 配置加载的统一入口。
+ *
+ * 核心导出：
+ * - ConfigManager
+ * - SDKConfigLoader
+ * - SDKOptions
+ * - ProjectConfig
+ * - PermissionMode
+ * - HookEvent
+ * - HookConfig
+ * - McpServerConfig
+ * - AgentDefinition
+ * - SandboxSettings
+ *
  * 核心类：
  * - ConfigManager: 配置管理器核心类
  *
@@ -17,6 +31,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import type { ConfigOverrides } from './ConfigOverrides';
+import type { Logger } from '../logging/Logger';
 import {
   SDKConfigLoader,
   SDKOptions,
@@ -56,8 +71,8 @@ export class ConfigManager {
   /** 缓存的项目配置（按目录） */
   private cachedProjectConfigs: Map<string, ProjectConfig> = new Map();
 
-  constructor() {
-    this.loader = new SDKConfigLoader();
+  constructor(logger: Logger) {
+    this.loader = new SDKConfigLoader(logger);
     // 用户配置目录
     this.userConfigDir = path.join(os.homedir(), '.claude');
   }

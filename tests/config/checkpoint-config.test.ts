@@ -2,10 +2,12 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { SDKConfigLoader } from '../../src/config/SDKConfigLoader';
+import { Logger } from '../../src/logging/Logger';
 
 const TEMP_DIR_PREFIX =
   process.env.CHECKPOINT_CONFIG_TEMP_DIR_PREFIX || 'checkpoint-config-';
 const JSON_INDENT = parseInt(process.env.CHECKPOINT_CONFIG_JSON_INDENT || '2', 10);
+const logger = new Logger();
 
 describe('checkpoint configuration', () => {
   let tempDir: string;
@@ -16,7 +18,7 @@ describe('checkpoint configuration', () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), TEMP_DIR_PREFIX));
     configPath = path.join(tempDir, '.claude', 'settings.json');
-    loader = new SDKConfigLoader();
+    loader = new SDKConfigLoader(logger);
   });
 
   afterEach(async () => {

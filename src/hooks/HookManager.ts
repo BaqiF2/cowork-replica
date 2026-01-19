@@ -1,45 +1,119 @@
 /**
  * 文件功能：钩子管理模块，管理和执行钩子操作，支持 12 种 SDK 钩子事件类型
  *
+ * 作用说明：集中加载钩子配置、转换为 SDK 回调，并按事件执行命令/脚本/提示词钩子。
+ *
+ * 核心导出：
+ * - HookManager
+ * - HookEvent
+ * - HookConfig
+ * - HookContext
+ * - ALL_HOOK_EVENTS
+ * - DEFAULT_SCRIPT_ALLOWED_PATHS
+ *
  * 核心类：
  * - HookManager: 钩子管理器核心类
  *
  * 核心方法：
  * - loadHooks(): 从配置加载钩子定义
  * - executeHooks(): 执行指定事件的钩子
- * - registerHook(): 注册新的钩子
- * - unregisterHook(): 取消注册钩子
- * - listHooks(): 列出所有已注册的钩子
+ * - executeCommand(): 执行命令类型钩子
+ * - executeScript(): 执行脚本类型钩子
+ * - executePrompt(): 执行提示词类型钩子
+ * - createSDKCallback(): 为单个钩子创建 SDK 回调函数
+ * - expandVariables(): 变量替换（HookContext）
+ * - expandVariablesFromSDKInput(): 变量替换（SDK HookInput）
+ * - getHooksForSDK(): 转换为 SDK 格式
+ * - validateConfig(): 验证钩子配置
+ * - validateScriptPath(): 验证脚本路径是否在白名单内
+ * - getDefaultScriptAllowedPaths(): 获取默认的脚本允许路径
+ *
+ * 核心常量：
+ * - ALL_HOOK_EVENTS: 所有 12 种钩子事件列表
+ * - DEFAULT_SCRIPT_ALLOWED_PATHS: 默认脚本允许路径白名单
+ *
+ * 核心接口：
+ * - HookEvent: SDK 支持的 12 种钩子事件类型
+ * - HookContext: 钩子执行时的上下文信息
+ * - HookInput: SDK 传入的钩子输入数据
+ * - HookJSONOutput: 钩子返回给 SDK 的输出数据
+ * - Hook: 钩子定义（command/prompt/script）
+ * - HookConfig: 钩子配置
+ * - ScriptPathValidationResult: 脚本路径验证结果
  */
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { createRequire } from 'module';
+import { pathToFileURL } from 'url';
+import { Logger } from '../logging/Logger';
 
 const execAsync = promisify(exec);
+const requireModule = createRequire(__filename);
+const dynamicImport = new Function(
+  'specifier',
+  'return import(specifier)'
+) as (specifier: string) => Promise<unknown>;
+
+// Configuration constants
 const HOOKS_CONFIG_FILENAME = 'hooks.json';
 const GIT_DIRECTORY_NAME = '.git';
 
-/**
- * SDK 支持的 12 种钩子事件类型
- */
-export type HookEvent =
-  | 'PreToolUse' // 工具使用前
-  | 'PostToolUse' // 工具使用后
-  | 'PostToolUseFailure' // 工具使用失败后
-  | 'Notification' // 通知事件
-  | 'UserPromptSubmit' // 用户提交提示词
-  | 'SessionStart' // 会话开始
-  | 'SessionEnd' // 会话结束
-  | 'Stop' // 停止事件
-  | 'SubagentStart' // 子代理开始
-  | 'SubagentStop' // 子代理停止
-  | 'PreCompact' // 压缩前
-  | 'PermissionRequest'; // 权限请求
+/** Default command execution timeout in milliseconds */
+const DEFAULT_COMMAND_TIMEOUT_MS = parseInt(process.env.HOOK_COMMAND_TIMEOUT_MS || '30000', 10);
 
 /**
- * 所有支持的钩子事件列表
+ * Default script allowed paths for hook scripts
+ * These are relative to the project working directory
+ */
+export const DEFAULT_SCRIPT_ALLOWED_PATHS = ['./.claude/hooks', './hooks'];
+
+/**
+ * Script path validation result
+ */
+export interface ScriptPathValidationResult {
+  /** Whether the path is valid and within allowed directories */
+  valid: boolean;
+  /** The resolved absolute path (if valid) */
+  resolvedPath?: string;
+  /** Error message (if invalid) */
+  error?: string;
+}
+
+/**
+ * SDK 支持的 12 种钩子事件类型
+ *
+ * - PreToolUse: 工具使用前触发
+ * - PostToolUse: 工具使用成功后触发
+ * - PostToolUseFailure: 工具使用失败后触发
+ * - UserPromptSubmit: 用户提交提示词时触发
+ * - SessionStart: 会话开始时触发
+ * - SessionEnd: 会话结束时触发
+ * - Stop: 会话停止时触发
+ * - SubagentStart: 子代理启动时触发
+ * - SubagentStop: 子代理停止时触发
+ * - PreCompact: 上下文压缩前触发
+ * - PermissionRequest: 权限请求时触发
+ * - Notification: 通知事件触发
+ */
+export type HookEvent =
+  | 'PreToolUse'
+  | 'PostToolUse'
+  | 'PostToolUseFailure'
+  | 'Notification'
+  | 'UserPromptSubmit'
+  | 'SessionStart'
+  | 'SessionEnd'
+  | 'Stop'
+  | 'SubagentStart'
+  | 'SubagentStop'
+  | 'PreCompact'
+  | 'PermissionRequest';
+
+/**
+ * 所有支持的钩子事件列表（12 种）
  */
 export const ALL_HOOK_EVENTS: HookEvent[] = [
   'PreToolUse',
@@ -87,11 +161,13 @@ export interface Hook {
   /** 匹配器 - 用于匹配工具名称或其他条件 */
   matcher: string;
   /** 钩子类型 */
-  type: 'command' | 'prompt';
+  type: 'command' | 'prompt' | 'script';
   /** 要执行的命令（command 类型） */
   command?: string;
   /** 要发送的提示词（prompt 类型） */
   prompt?: string;
+  /** 脚本文件路径（script 类型） */
+  script?: string;
 }
 
 /**
@@ -116,7 +192,7 @@ export interface SDKHookCallbackMatcher {
   /** 匹配器 */
   matcher: string | RegExp;
   /** 回调函数 */
-  callback: (context: HookContext) => void | Promise<void>;
+  callback: (context: HookContext | HookInput) => void | Promise<void>;
 }
 
 /**
@@ -131,11 +207,86 @@ export interface HookExecutionResult {
   /** 是否成功 */
   success: boolean;
   /** 钩子类型 */
-  type: 'command' | 'prompt';
+  type: 'command' | 'prompt' | 'script';
   /** 输出内容 */
   output?: string;
   /** 错误信息 */
   error?: string;
+}
+
+/**
+ * SDK HookInput 接口 - 从 SDK 传入的钩子输入数据
+ */
+export interface HookInput {
+  /** 钩子事件名称 */
+  hook_event_name: HookEvent;
+  /** 会话 ID */
+  session_id?: string;
+  /** 对话记录路径 */
+  transcript_path?: string;
+  /** 错误信息 */
+  error?: string;
+  /** 是否由中断导致失败 */
+  is_interrupt?: boolean;
+  /** 用户提示词 */
+  prompt?: string;
+  /** 停止钩子是否激活 */
+  stop_hook_active?: boolean;
+  /** 通知类型 */
+  notification_type?: string;
+  /** 通知消息 */
+  message?: string;
+  /** 通知标题 */
+  title?: string;
+  /** 工具名称 */
+  tool_name?: string;
+  /** 工具输入参数 */
+  tool_input?: Record<string, unknown>;
+  /** 工具执行结果 */
+  tool_response?: unknown;
+  /** 子代理类型 */
+  agent_type?: string;
+  /** 子代理 ID */
+  agent_id?: string;
+  /** 子代理对话记录路径 */
+  agent_transcript_path?: string;
+  /** 触发压缩原因 */
+  trigger?: string;
+  /** 压缩指令 */
+  custom_instructions?: string;
+  /** 权限建议 */
+  permission_suggestions?: unknown[];
+  /** 会话来源 */
+  source?: string;
+  /** 会话结束原因 */
+  reason?: string;
+  /** 当前工作目录 */
+  cwd: string;
+  /** 消息 UUID */
+  message_uuid?: string;
+}
+
+/**
+ * SDK HookJSONOutput 接口 - 钩子返回给 SDK 的输出数据
+ */
+export interface HookJSONOutput {
+  /** 是否继续执行 */
+  continue?: boolean;
+  /** 决策：阻止或允许 */
+  decision?: 'block' | 'allow';
+  /** 决策原因 */
+  reason?: string;
+  /** 系统消息 */
+  systemMessage?: string;
+  /** 钩子特定输出 */
+  hookSpecificOutput?: {
+    hookEventName?: string;
+    permissionDecision?: 'allow' | 'deny';
+    permissionDecisionReason?: string;
+    updatedInput?: Record<string, unknown>;
+  };
+  /** 内部字段：标记执行过程中是否发生错误（不影响 continue 字段） */
+  _executionError?: boolean;
 }
 
 /**
@@ -155,6 +306,8 @@ export interface HookManagerOptions {
   commandTimeout?: number;
   /** 是否启用调试日志 */
   debug?: boolean;
+  /** 日志记录器 */
+  logger?: Logger;
 }
 
 /**
@@ -168,12 +321,14 @@ export class HookManager {
   private promptHandler?: PromptHookHandler;
   private commandTimeout: number;
   private debug: boolean;
+  private logger?: Logger;
 
   constructor(options: HookManagerOptions = {}) {
     this.workingDir = options.workingDir || process.cwd();
     this.promptHandler = options.promptHandler;
-    this.commandTimeout = options.commandTimeout || 30000; // 默认 30 秒
+    this.commandTimeout = options.commandTimeout || DEFAULT_COMMAND_TIMEOUT_MS;
     this.debug = options.debug || false;
+    this.logger = options.logger;
   }
 
   /**
@@ -205,8 +360,10 @@ export class HookManager {
 
       result[event as HookEvent] = matchers.map((m) => ({
         matcher: m.matcher,
-        callback: async (context: HookContext) => {
-          await this.executeHooks(m.hooks, context);
+        callback: async (context: HookContext | HookInput) => {
+          const hookInput = this.isHookInput(context) ? context : undefined;
+          const hookContext = this.normalizeHookContext(context);
+          await this.executeHooks(m.hooks, hookContext, hookInput);
         },
       }));
     }
@@ -221,7 +378,11 @@ export class HookManager {
    * @param context 钩子上下文
    * @returns 执行结果列表
    */
-  async executeHooks(hooks: Hook[], context: HookContext): Promise<HookExecutionResult[]> {
+  async executeHooks(
+    hooks: Hook[],
+    context: HookContext,
+    hookInput?: HookInput
+  ): Promise<HookExecutionResult[]> {
     const results: HookExecutionResult[] = [];
 
     for (const hook of hooks) {
@@ -237,11 +398,30 @@ export class HookManager {
         } else if (hook.type === 'prompt' && hook.prompt) {
           const result = await this.executePrompt(hook.prompt, context);
           results.push(result);
+        } else if (hook.type === 'script' && hook.script) {
+          const scriptInput = hookInput ?? this.contextToHookInput(context);
+          const scriptResult = await this.executeScript(
+            hook.script,
+            scriptInput,
+            context.messageUuid,
+            new AbortController().signal
+          );
+          results.push({
+            success: scriptResult.continue !== false && !scriptResult._executionError,
+            type: 'script',
+            output: scriptResult.systemMessage,
+            error: scriptResult._executionError ? 'Script execution failed' : undefined,
+          });
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         if (this.debug) {
-          console.error(`Hook execution failed:`, error);
+          void this.logger?.error('Hook execution failed', {
+            hookType: hook.type,
+            matcher: hook.matcher,
+            event: context.event,
+            error: errorMessage,
+          });
         }
         results.push({
           success: false,
@@ -365,7 +545,7 @@ export class HookManager {
 
     // 如果没有提示词处理器，只记录日志
     if (this.debug) {
-      console.log('Executing prompt hook:', expandedPrompt);
+      void this.logger?.debug('Executing prompt hook', { prompt: expandedPrompt });
     }
 
     return {
@@ -380,7 +560,7 @@ export class HookManager {
    *
    * 支持的变量:
    * - $TOOL: 工具名称
-   * - $FILE: 文件路径（从 args.path 获取）
+   * - $FILE: 文件路径（从 args.path 或 args.file 获取）
    * - $COMMAND: 命令（从 args.command 获取）
    * - $EVENT: 事件类型
    * - $SESSION_ID: 会话 ID
@@ -393,15 +573,23 @@ export class HookManager {
    * @returns 替换后的字符串
    */
   expandVariables(template: string, context: HookContext): string {
-    return template
-      .replace(/\$TOOL/g, context.tool || '')
-      .replace(/\$FILE/g, String(context.args?.path || context.args?.file || ''))
-      .replace(/\$COMMAND/g, String(context.args?.command || ''))
-      .replace(/\$EVENT/g, context.event || '')
-      .replace(/\$SESSION_ID/g, context.sessionId || '')
-      .replace(/\$MESSAGE_UUID/g, context.messageUuid || '')
-      .replace(/\$AGENT/g, context.agentName || '')
-      .replace(/\$ERROR/g, context.error?.message || '');
+    // Build variable mapping for better readability
+    const variables: Record<string, string> = {
+      TOOL: context.tool || '',
+      FILE: String(context.args?.path || context.args?.file || ''),
+      COMMAND: String(context.args?.command || ''),
+      EVENT: context.event || '',
+      SESSION_ID: context.sessionId || '',
+      MESSAGE_UUID: context.messageUuid || '',
+      AGENT: context.agentName || '',
+      ERROR: context.error?.message || '',
+    };
+
+    // Replace all variables in template
+    return Object.entries(variables).reduce(
+      (result, [key, value]) => result.replace(new RegExp(`\\$${key}`, 'g'), value),
+      template
+    );
   }
 
   /**
@@ -542,7 +730,7 @@ export class HookManager {
         for (let j = 0; j < matcher.hooks.length; j++) {
           const hook = matcher.hooks[j];
 
-          if (hook.type !== 'command' && hook.type !== 'prompt') {
+          if (hook.type !== 'command' && hook.type !== 'prompt' && hook.type !== 'script') {
             errors.push(
               `Event ${event} matcher ${i + 1} hook ${j + 1} has invalid type: ${hook.type}`
             );
@@ -557,6 +745,12 @@ export class HookManager {
           if (hook.type === 'prompt' && !hook.prompt) {
             errors.push(
               `Event ${event} matcher ${i + 1} prompt hook ${j + 1} missing 'prompt' field`
+            );
+          }
+
+          if (hook.type === 'script' && !hook.script) {
+            errors.push(
+              `Event ${event} matcher ${i + 1} script hook ${j + 1} missing 'script' field`
             );
           }
         }
@@ -614,7 +808,10 @@ export class HookManager {
     } catch (error) {
       // 如果读取失败，记录错误但不抛出，保持应用启动
       if (this.debug) {
-        console.error(`Failed to load hooks from ${configPath}:`, error);
+        void this.logger?.error('Failed to load hooks from config file', {
+          configPath,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
       // 清空配置以防加载了部分配置
       this.config = {};
@@ -664,5 +861,317 @@ export class HookManager {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * 将 HookContext 转换为 HookInput
+   *
+   * @param context 钩子上下文
+   * @returns SDK HookInput 对象
+   */
+  private contextToHookInput(context: HookContext): HookInput {
+    return {
+      hook_event_name: context.event,
+      tool_name: context.tool,
+      tool_input: context.args,
+      tool_response: context.result,
+      error: context.error?.message,
+      cwd: this.workingDir,
+      session_id: context.sessionId,
+      message_uuid: context.messageUuid,
+    };
+  }
+
+  private normalizeHookContext(input: HookContext | HookInput): HookContext {
+    if (!this.isHookInput(input)) {
+      return input;
+    }
+
+    const toolInput = this.normalizeToolInput(input.tool_input);
+    const errorMessage = typeof input.error === 'string' ? input.error : undefined;
+    const notification = this.getNotificationValue(input);
+    const agentName =
+      typeof input.agent_type === 'string'
+        ? input.agent_type
+        : typeof input.agent_id === 'string'
+          ? input.agent_id
+          : undefined;
+
+    return {
+      event: input.hook_event_name,
+      tool: input.tool_name,
+      args: toolInput,
+      result: input.tool_response,
+      error: errorMessage ? new Error(errorMessage) : undefined,
+      sessionId: input.session_id,
+      messageUuid: input.message_uuid,
+      agentName,
+      notification,
+    };
+  }
+
+  private normalizeToolInput(toolInput: unknown): Record<string, unknown> | undefined {
+    if (typeof toolInput !== 'object' || toolInput === null || Array.isArray(toolInput)) {
+      return undefined;
+    }
+
+    const normalized = { ...(toolInput as Record<string, unknown>) };
+    if (typeof normalized.path !== 'string' && typeof normalized.file_path === 'string') {
+      normalized.path = normalized.file_path;
+    }
+
+    return normalized;
+  }
+
+  private getNotificationValue(input: HookInput): string | undefined {
+    if (typeof input.notification_type === 'string') {
+      return input.notification_type;
+    }
+
+    if (typeof input.message === 'string') {
+      return input.message;
+    }
+
+    return undefined;
+  }
+
+  private isHookInput(input: HookContext | HookInput): input is HookInput {
+    return (
+      typeof input === 'object' &&
+      input !== null &&
+      'hook_event_name' in input &&
+      typeof (input as { hook_event_name?: unknown }).hook_event_name === 'string'
+    );
+  }
+
+  /**
+   * 验证脚本路径是否在允许的白名单目录内
+   *
+   * @param scriptPath 脚本路径（相对或绝对）
+   * @param allowedPaths 允许的路径列表（相对于 cwd）
+   * @param cwd 当前工作目录
+   * @returns 验证结果
+   */
+  validateScriptPath(
+    scriptPath: string,
+    allowedPaths: string[],
+    cwd: string
+  ): ScriptPathValidationResult {
+    // Reject empty script path
+    if (!scriptPath || scriptPath.trim() === '') {
+      return {
+        valid: false,
+        error: 'Script path is empty',
+      };
+    }
+
+    // Resolve the script path to absolute and normalize
+    const resolvedPath = this.resolveAndNormalizePath(scriptPath, cwd);
+
+    // Check if the resolved path is within any of the allowed directories
+    for (const allowedPath of allowedPaths) {
+      if (this.isPathWithinDirectory(resolvedPath, allowedPath, cwd)) {
+        return {
+          valid: true,
+          resolvedPath,
+        };
+      }
+    }
+
+    return {
+      valid: false,
+      error: `Script path "${scriptPath}" is not in allowed paths: ${allowedPaths.join(', ')}`,
+    };
+  }
+
+  /**
+   * Resolve and normalize a path
+   *
+   * @param inputPath Path to resolve (relative or absolute)
+   * @param cwd Current working directory for relative paths
+   * @returns Normalized absolute path
+   */
+  private resolveAndNormalizePath(inputPath: string, cwd: string): string {
+    return path.isAbsolute(inputPath)
+      ? path.normalize(inputPath)
+      : path.normalize(path.join(cwd, inputPath));
+  }
+
+  /**
+   * Check if a path is within a directory
+   *
+   * @param targetPath Path to check
+   * @param directory Directory to check against (relative or absolute)
+   * @param cwd Current working directory for relative paths
+   * @returns Whether targetPath is within directory
+   */
+  private isPathWithinDirectory(targetPath: string, directory: string, cwd: string): boolean {
+    // Resolve the directory to absolute
+    const absoluteDir = this.resolveAndNormalizePath(directory, cwd);
+
+    // Check if target path is exactly the directory or starts with directory + separator
+    // Adding path.sep ensures we match directory boundaries, not partial names
+    const dirWithSep = absoluteDir.endsWith(path.sep) ? absoluteDir : absoluteDir + path.sep;
+
+    return targetPath === absoluteDir || targetPath.startsWith(dirWithSep);
+  }
+
+  /**
+   * 获取默认的脚本允许路径
+   *
+   * @returns 默认允许路径列表
+   */
+  getDefaultScriptAllowedPaths(): string[] {
+    return DEFAULT_SCRIPT_ALLOWED_PATHS;
+  }
+
+  /**
+   * 执行脚本类型钩子
+   *
+   * 动态加载 JS/TS 模块，调用导出函数，返回完整的 SDK HookJSONOutput 对象。
+   * 如果脚本不存在或执行失败，返回 { continue: true } 不阻止流程。
+   *
+   * @param scriptPath 脚本文件路径（相对或绝对）
+   * @param context SDK HookInput 上下文
+   * @param toolUseID 工具使用 ID
+   * @param signal 中止信号
+   * @param allowedPaths 可选的允许路径列表，用于白名单验证
+   * @returns HookJSONOutput 对象
+   */
+  async executeScript(
+    scriptPath: string,
+    context: HookInput,
+    toolUseID: string | undefined,
+    signal: AbortSignal,
+    allowedPaths?: string[]
+  ): Promise<HookJSONOutput> {
+    const cwd = context.cwd || this.workingDir;
+
+    // Validate script path against whitelist if provided
+    if (allowedPaths) {
+      const validation = this.validateScriptPath(scriptPath, allowedPaths, cwd);
+      if (!validation.valid) {
+        if (this.debug) {
+          void this.logger?.error('Hook script path validation failed', {
+            scriptPath,
+            error: validation.error,
+          });
+        }
+        return { continue: true, reason: validation.error };
+      }
+    }
+
+    // Resolve path (relative paths based on cwd)
+    const absolutePath = path.isAbsolute(scriptPath)
+      ? scriptPath
+      : path.join(cwd, scriptPath);
+
+    // Check if file exists
+    if (!(await this.pathExists(absolutePath))) {
+      if (this.debug) {
+        void this.logger?.error('Hook script not found', { absolutePath });
+      }
+      return { continue: true, _executionError: true };
+    }
+
+    try {
+      // Dynamically load module
+      let loadedModule: unknown;
+      try {
+        loadedModule = requireModule(absolutePath);
+      } catch (error) {
+        const err = error as NodeJS.ErrnoException;
+        if (err && err.code === 'ERR_REQUIRE_ESM') {
+          loadedModule = await dynamicImport(pathToFileURL(absolutePath).href);
+        } else {
+          throw error;
+        }
+      }
+
+      const module = loadedModule as { default?: unknown; hook?: unknown };
+      const hookFunction = module.default || module.hook || loadedModule;
+
+      if (typeof hookFunction !== 'function') {
+        if (this.debug) {
+          void this.logger?.error('Hook script must export a default function', { absolutePath });
+        }
+        return { continue: true, _executionError: true };
+      }
+
+      // Call the hook function
+      const result = await hookFunction(context, toolUseID, { signal });
+      return result || { continue: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (this.debug) {
+        void this.logger?.error('Hook script execution failed', {
+          scriptPath: absolutePath,
+          eventName: context.hook_event_name,
+          toolName: context.tool_name,
+          error: errorMessage,
+        });
+      }
+      // Return continue: true on error to not block the flow
+      return { continue: true, _executionError: true };
+    }
+  }
+
+  /**
+   * 为单个钩子创建 SDK 回调函数
+   *
+   * 根据钩子类型（command、prompt、script）创建相应的回调函数。
+   *
+   * @param hook 钩子定义
+   * @returns SDK 回调函数
+   */
+  createSDKCallback(hook: Hook): (context: HookContext) => void | Promise<void> {
+    return async (context: HookContext) => {
+      if (hook.type === 'command' && hook.command) {
+        await this.executeCommand(hook.command, context);
+      } else if (hook.type === 'prompt' && hook.prompt) {
+        await this.executePrompt(hook.prompt, context);
+      } else if (hook.type === 'script' && hook.script) {
+        const hookInput = this.contextToHookInput(context);
+        await this.executeScript(
+          hook.script,
+          hookInput,
+          context.messageUuid,
+          new AbortController().signal
+        );
+      }
+    };
+  }
+
+  /**
+   * 从 SDK HookInput 扩展变量
+   *
+   * 支持的变量:
+   * - $TOOL: 工具名称 (tool_name)
+   * - $FILE: 文件路径（从 tool_input.file_path 或 tool_input.path 获取）
+   * - $COMMAND: 命令（从 tool_input.command 获取）
+   * - $CWD: 当前工作目录
+   * - $SESSION_ID: 会话 ID
+   * - $MESSAGE_UUID: 消息 UUID
+   *
+   * @param template 模板字符串
+   * @param input SDK HookInput 上下文
+   * @returns 替换后的字符串
+   */
+  expandVariablesFromSDKInput(template: string, input: HookInput): string {
+    // Build variable mapping for better readability
+    const variables: Record<string, string> = {
+      TOOL: input.tool_name || '',
+      FILE: String(input.tool_input?.file_path || input.tool_input?.path || ''),
+      COMMAND: String(input.tool_input?.command || ''),
+      CWD: input.cwd || '',
+      SESSION_ID: input.session_id || '',
+      MESSAGE_UUID: input.message_uuid || '',
+    };
+
+    // Replace all variables in template
+    return Object.entries(variables).reduce(
+      (result, [key, value]) => result.replace(new RegExp(`\\$${key}`, 'g'), value),
+      template
+    );
   }
 }

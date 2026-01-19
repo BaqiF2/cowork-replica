@@ -183,9 +183,10 @@ interface QueryOptions {
 配置管理器，负责加载和合并配置。
 
 ```typescript
-import { ConfigManager, UserConfig, ProjectConfig } from 'claude-replica';
+import { ConfigManager, Logger, UserConfig, ProjectConfig } from 'claude-replica';
 
-const configManager = new ConfigManager();
+const logger = new Logger();
+const configManager = new ConfigManager(logger);
 
 // 确保用户配置目录存在
 await configManager.ensureUserConfigDir(): Promise<void>;
@@ -241,9 +242,10 @@ interface ProjectConfig extends UserConfig {
 SDK 配置加载器，用于构建 SDK 兼容的配置。
 
 ```typescript
-import { SDKConfigLoader, SDKOptions } from 'claude-replica';
+import { SDKConfigLoader, Logger, SDKOptions } from 'claude-replica';
 
-const loader = new SDKConfigLoader();
+const logger = new Logger();
+const loader = new SDKConfigLoader(logger);
 
 // 加载完整配置
 const config = await loader.loadFullConfig(
@@ -454,12 +456,16 @@ interface AgentDefinition {
 
 ### HookManager
 
-钩子管理器，管理事件触发的自动化操作。
+钩子管理器，管理事件触发的自动化操作。支持三种回调类型（command、prompt、script）和 12 种钩子事件。
 
 ```typescript
 import { HookManager, HookConfig, HookEvent } from 'claude-replica';
 
-const hookManager = new HookManager();
+const hookManager = new HookManager({
+  workingDir: process.cwd(),      // 工作目录
+  commandTimeout: 30000,           // 命令超时（毫秒）
+  debug: false,                    // 调试模式
+});
 
 // 加载钩子配置
 hookManager.loadHooks(config: HookConfig): void;
@@ -476,38 +482,232 @@ hookManager.addHook(
 
 // 移除钩子
 hookManager.removeHook(event: HookEvent, matcher: string): void;
+
+// 触发事件
+const results = await hookManager.triggerEvent(
+  event: HookEvent,
+  context: HookContext
+): Promise<HookExecutionResult[]>;
+
+// 执行命令类型钩子
+const result = await hookManager.executeCommand(
+  command: string,
+  context: HookContext
+): Promise<HookExecutionResult>;
+
+// 执行脚本类型钩子
+const output = await hookManager.executeScript(
+  scriptPath: string,
+  context: HookInput,
+  toolUseID: string,
+  signal: AbortSignal
+): Promise<HookJSONOutput>;
+
+// 执行提示词类型钩子
+const result = await hookManager.executePrompt(
+  prompt: string,
+  context: HookContext
+): Promise<HookExecutionResult>;
+
+// 验证配置
+const validation = HookManager.validateConfig(config: HookConfig): {
+  valid: boolean;
+  errors: string[];
+};
+
+// 验证脚本路径
+const pathValidation = hookManager.validateScriptPath(
+  scriptPath: string,
+  allowedPaths: string[],
+  cwd: string
+): ScriptPathValidationResult;
 ```
 
 #### HookConfig 接口
 
 ```typescript
+// 12 种钩子事件类型
 type HookEvent =
-  | 'PreToolUse'
-  | 'PostToolUse'
-  | 'PostToolUseFailure'
-  | 'Notification'
-  | 'UserPromptSubmit'
-  | 'SessionStart'
-  | 'SessionEnd'
-  | 'Stop'
-  | 'SubagentStart'
-  | 'SubagentStop'
-  | 'PreCompact'
-  | 'PermissionRequest';
+  | 'PreToolUse'          // 工具使用前
+  | 'PostToolUse'         // 工具使用成功后
+  | 'PostToolUseFailure'  // 工具使用失败后
+  | 'Notification'        // 通知事件
+  | 'UserPromptSubmit'    // 用户提交提示词
+  | 'SessionStart'        // 会话开始
+  | 'SessionEnd'          // 会话结束
+  | 'Stop'                // 会话停止
+  | 'SubagentStart'       // 子代理启动
+  | 'SubagentStop'        // 子代理停止
+  | 'PreCompact'          // 上下文压缩前
+  | 'PermissionRequest';  // 权限请求
 
+// 钩子定义（支持三种类型）
 interface Hook {
-  matcher: string | RegExp;
-  type: 'command' | 'prompt';
-  command?: string;
-  prompt?: string;
+  matcher: string;
+  type: 'command' | 'prompt' | 'script';
+  command?: string;   // command 类型必填
+  prompt?: string;    // prompt 类型必填
+  script?: string;    // script 类型必填
 }
 
+// 钩子配置
 interface HookConfig {
   [event: string]: Array<{
     matcher: string;
     hooks: Hook[];
   }>;
 }
+
+// 钩子执行上下文
+interface HookContext {
+  event: HookEvent;
+  tool?: string;
+  args?: Record<string, unknown>;
+  result?: unknown;
+  error?: Error;
+  sessionId?: string;
+  messageUuid?: string;
+  agentName?: string;
+  notification?: string;
+}
+
+// 钩子执行结果
+interface HookExecutionResult {
+  success: boolean;
+  type: 'command' | 'prompt' | 'script';
+  output?: string;
+  error?: string;
+}
+```
+
+#### 变量替换
+
+钩子支持以下变量替换：
+
+| 变量 | 描述 |
+|------|------|
+| `$TOOL` | 工具名称 |
+| `$FILE` | 文件路径（从 args.path 或 args.file 获取） |
+| `$COMMAND` | 命令（从 args.command 获取） |
+| `$CWD` | 当前工作目录 |
+| `$EVENT` | 事件类型 |
+| `$SESSION_ID` | 会话 ID |
+| `$MESSAGE_UUID` | 消息 UUID |
+| `$AGENT` | 子代理名称 |
+| `$ERROR` | 错误信息 |
+
+#### settings.json 配置示例
+
+在 `.claude/settings.json` 中配置钩子：
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"Executing bash command: $COMMAND\""
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Writing to file: $FILE"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "script",
+            "script": "./.claude/hooks/log-tool-use.js"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"Session started: $SESSION_ID\""
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### 脚本类型钩子
+
+script 类型钩子需要导出一个函数：
+
+```javascript
+// .claude/hooks/log-tool-use.js
+export default async function(input, toolUseID, options) {
+  const { hook_event_name, tool_name, tool_input, cwd } = input;
+
+  console.log(`Tool ${tool_name} executed in ${cwd}`);
+
+  // 返回 HookJSONOutput
+  return {
+    continue: true,          // 是否继续执行
+    systemMessage: 'Logged', // 可选的系统消息
+  };
+}
+```
+
+#### 脚本路径白名单
+
+默认允许的脚本路径：
+- `./.claude/hooks`
+- `./hooks`
+
+可通过 `validateScriptPath()` 方法自定义白名单验证。
+
+#### 端到端集成流程
+
+典型的钩子集成流程：
+
+```typescript
+// 1. ConfigManager 加载项目配置（包含 hooks）
+const configManager = new ConfigManager(logger);
+const projectConfig = await configManager.loadProjectConfig(workingDir);
+
+// 2. 初始化 HookManager 并加载配置
+const hookManager = new HookManager({ workingDir });
+if (projectConfig.hooks) {
+  // 转换配置格式
+  const hookConfig = convertToHookManagerFormat(projectConfig.hooks);
+  hookManager.loadHooks(hookConfig);
+}
+
+// 3. 创建 MessageRouter 并注入 HookManager
+const messageRouter = new MessageRouter({
+  toolRegistry,
+  permissionManager,
+  hookManager,
+  workingDirectory: workingDir,
+});
+
+// 4. buildQueryOptions 自动包含 hooks 字段
+const session = await sessionManager.createSession(workingDir);
+const queryOptions = await messageRouter.buildQueryOptions(session);
+// queryOptions.hooks 包含 SDK 格式的钩子配置
+
+// 5. SDK 查询时自动触发钩子
+const result = await sdkExecutor.execute(prompt, queryOptions);
 ```
 
 ## 集成 API

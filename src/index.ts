@@ -140,6 +140,9 @@ export {
   StreamJsonOutput,
 } from './output';
 
+// 日志组件
+export { Logger, LogLevel, LOG_DIR } from './logging/Logger';
+
 // 图像组件
 export {
   ImageHandler,
