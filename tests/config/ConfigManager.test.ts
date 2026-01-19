@@ -11,9 +11,11 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { ConfigManager } from '../../src/config/ConfigManager';
+import { Logger } from '../../src/logging/Logger';
 
 const TEMP_DIR_PREFIX = process.env.CONFIG_MANAGER_TEMP_DIR_PREFIX || 'config-manager-';
 const JSON_INDENT = parseInt(process.env.CONFIG_MANAGER_JSON_INDENT || '2', 10);
+const logger = new Logger();
 
 describe('ConfigManager', () => {
   it('should ignore legacy ui field when building permission config', async () => {
@@ -36,7 +38,7 @@ describe('ConfigManager', () => {
         )
       );
 
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const permissionConfig = await manager.loadPermissionConfig({}, tempDir);
       const permissionConfigWithUI = permissionConfig as { ui?: unknown };
 
@@ -92,7 +94,7 @@ describe('ConfigManager', () => {
       );
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: hooks configuration is correctly parsed and stored in ProjectConfig.hooks
@@ -133,7 +135,7 @@ describe('ConfigManager', () => {
       );
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: hooks configuration with script type is correctly stored
@@ -180,7 +182,7 @@ describe('ConfigManager', () => {
       );
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: all hook events are correctly loaded
@@ -198,7 +200,7 @@ describe('ConfigManager', () => {
       );
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: hooks field is undefined
@@ -210,7 +212,7 @@ describe('ConfigManager', () => {
       // (no file created in tempDir/.claude/settings.json)
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: hooks field is undefined
@@ -227,7 +229,7 @@ describe('ConfigManager', () => {
       );
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: invalid hooks configuration is skipped and warning is logged
@@ -263,7 +265,7 @@ describe('ConfigManager', () => {
       );
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: invalid event configuration is skipped, valid ones are kept
@@ -306,7 +308,7 @@ describe('ConfigManager', () => {
       );
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: unknown event is skipped with warning, valid events are kept
@@ -345,7 +347,7 @@ describe('ConfigManager', () => {
       );
 
       // WHEN: ConfigManager loads project configuration
-      const manager = new ConfigManager();
+      const manager = new ConfigManager(logger);
       const projectConfig = await manager.loadProjectConfig(tempDir);
 
       // THEN: invalid hook definition is skipped, valid ones are kept

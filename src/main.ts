@@ -79,7 +79,6 @@ export class Application {
     this.uiFactory = uiFactory;
     this.parser = uiFactory.createParser();
     this.output = uiFactory.createOutput();
-    this.configManager = new ConfigManager();
     this.sessionManager = new SessionManager();
     this.toolRegistry = new ToolRegistry();
     this.hookManager = new HookManager();
@@ -93,6 +92,7 @@ export class Application {
       serverVersion: process.env.CUSTOM_TOOL_SERVER_VERSION,
     });
     this.logger = new Logger(this.securityManager);
+    this.configManager = new ConfigManager(this.logger);
     this.checkpointManager = null;
   }
 

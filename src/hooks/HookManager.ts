@@ -234,6 +234,8 @@ export interface HookJSONOutput {
     permissionDecisionReason?: string;
     updatedInput?: Record<string, unknown>;
   };
+  /** 内部字段：标记执行过程中是否发生错误（不影响 continue 字段） */
+  _executionError?: boolean;
 }
 
 /**
@@ -348,15 +350,21 @@ export class HookManager {
             new AbortController().signal
           );
           results.push({
-            success: scriptResult.continue !== false,
+            success: scriptResult.continue !== false && !scriptResult._executionError,
             type: 'script',
             output: scriptResult.systemMessage,
+            error: scriptResult._executionError ? 'Script execution failed' : undefined,
           });
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         if (this.debug) {
-          void this.logger?.error('Hook execution failed', { error: errorMessage });
+          void this.logger?.error('Hook execution failed', {
+            hookType: hook.type,
+            matcher: hook.matcher,
+            event: context.event,
+            error: errorMessage,
+          });
         }
         results.push({
           success: false,
@@ -942,7 +950,7 @@ export class HookManager {
       if (this.debug) {
         void this.logger?.error('Hook script not found', { absolutePath });
       }
-      return { continue: true };
+      return { continue: true, _executionError: true };
     }
 
     try {
@@ -954,21 +962,24 @@ export class HookManager {
         if (this.debug) {
           void this.logger?.error('Hook script must export a default function', { absolutePath });
         }
-        return { continue: true };
+        return { continue: true, _executionError: true };
       }
 
       // Call the hook function
       const result = await hookFunction(context, toolUseID, { signal });
       return result || { continue: true };
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       if (this.debug) {
         void this.logger?.error('Hook script execution failed', {
-          absolutePath,
-          error: error instanceof Error ? error.message : String(error),
+          scriptPath: absolutePath,
+          eventName: context.hook_event_name,
+          toolName: context.tool_name,
+          error: errorMessage,
         });
       }
       // Return continue: true on error to not block the flow
-      return { continue: true };
+      return { continue: true, _executionError: true };
     }
   }
 

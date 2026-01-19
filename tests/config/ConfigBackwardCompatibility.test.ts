@@ -5,9 +5,12 @@
  * when legacy UI configuration fields appear in settings.
  */
 
-import { SDKConfigLoader } from '../../src/config/SDKConfigLoader';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { SDKConfigLoader } from '../../src/config/SDKConfigLoader';
+import { Logger } from '../../src/logging/Logger';
+
+const logger = new Logger();
 
 describe('Config Backward Compatibility', () => {
   let tempDir: string;
@@ -40,7 +43,7 @@ describe('Config Backward Compatibility', () => {
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(configPath, JSON.stringify(oldConfig, null, 2));
 
-      const loader = new SDKConfigLoader();
+      const loader = new SDKConfigLoader(logger);
       const config = await loader.loadProjectConfig(tempDir);
       const configWithUIResult = config as { ui?: unknown };
 
@@ -56,7 +59,7 @@ describe('Config Backward Compatibility', () => {
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(configPath, JSON.stringify(minimalConfig, null, 2));
 
-      const loader = new SDKConfigLoader();
+      const loader = new SDKConfigLoader(logger);
       const config = await loader.loadProjectConfig(tempDir);
       const configWithUIResult = config as { ui?: unknown };
 
@@ -80,7 +83,7 @@ describe('Config Backward Compatibility', () => {
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(configPath, JSON.stringify(configWithUI, null, 2));
 
-      const loader = new SDKConfigLoader();
+      const loader = new SDKConfigLoader(logger);
       const config = await loader.loadProjectConfig(tempDir);
       const configWithUIResult = config as { ui?: unknown };
 
@@ -97,7 +100,7 @@ describe('Config Backward Compatibility', () => {
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(configPath, JSON.stringify(configWithMinimalUI, null, 2));
 
-      const loader = new SDKConfigLoader();
+      const loader = new SDKConfigLoader(logger);
       const config = await loader.loadProjectConfig(tempDir);
       const configWithUIResult = config as { ui?: unknown };
 
@@ -119,7 +122,7 @@ describe('Config Backward Compatibility', () => {
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(configPath, JSON.stringify(fullConfigWithoutUI, null, 2));
 
-      const loader = new SDKConfigLoader();
+      const loader = new SDKConfigLoader(logger);
       const config = await loader.loadProjectConfig(tempDir);
       const configWithUIResult = config as { ui?: unknown };
 
@@ -148,7 +151,7 @@ describe('Config Backward Compatibility', () => {
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(configPath, JSON.stringify(fullConfigWithUI, null, 2));
 
-      const loader = new SDKConfigLoader();
+      const loader = new SDKConfigLoader(logger);
       const config = await loader.loadProjectConfig(tempDir);
       const configWithUIResult = config as { ui?: unknown };
 

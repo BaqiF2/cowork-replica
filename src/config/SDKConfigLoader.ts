@@ -12,6 +12,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { Logger } from '../logging/Logger';
 
 /**
  * 钩子事件类型
@@ -220,6 +221,8 @@ export interface ProjectConfig {
  * 负责从项目目录加载配置
  */
 export class SDKConfigLoader {
+  constructor(private readonly logger: Logger) {}
+
   /**
    * 加载项目级配置
    *
@@ -239,7 +242,7 @@ export class SDKConfigLoader {
       const content = await fs.readFile(configPath, 'utf-8');
       return this.parseConfig(content);
     } catch (error) {
-      console.warn(`Warning: Unable to load project configuration ${configPath}:`, error);
+      await this.logger.warn('Unable to load project configuration', { configPath, error });
       return this.getDefaultProjectConfig();
     }
   }
@@ -266,7 +269,7 @@ export class SDKConfigLoader {
         try {
           return await fs.readFile(claudeMdPath, 'utf-8');
         } catch (error) {
-          console.warn(`Warning: Unable to read CLAUDE.md ${claudeMdPath}:`, error);
+          await this.logger.warn('Unable to read CLAUDE.md', { claudeMdPath, error });
         }
       }
     }
@@ -319,7 +322,7 @@ export class SDKConfigLoader {
 
     // If hooks is not an object, log warning and return undefined
     if (!this.isPlainObject(hooks)) {
-      console.warn('Invalid hooks configuration: hooks must be an object');
+      void this.logger.warn('Invalid hooks configuration: hooks must be an object');
       return undefined;
     }
 
@@ -328,13 +331,15 @@ export class SDKConfigLoader {
     for (const [eventName, eventConfig] of Object.entries(hooks)) {
       // Check if event type is valid
       if (!VALID_HOOK_EVENTS.includes(eventName as HookEvent)) {
-        console.warn(`Unknown hook event type: ${eventName}`);
+        void this.logger.warn('Unknown hook event type', { eventName });
         continue;
       }
 
       // Check if event configuration is an array
       if (!Array.isArray(eventConfig)) {
-        console.warn(`Invalid hooks configuration for event ${eventName}: must be an array`);
+        void this.logger.warn('Invalid hooks configuration: event config must be an array', {
+          eventName,
+        });
         continue;
       }
 
@@ -365,7 +370,7 @@ export class SDKConfigLoader {
    */
   private validateHookConfig(config: unknown, eventName: string): HookConfig | undefined {
     if (!this.isPlainObject(config)) {
-      console.warn(`Invalid hooks configuration for event ${eventName}: config must be an object`);
+      void this.logger.warn('Invalid hooks configuration: config must be an object', { eventName });
       return undefined;
     }
 
@@ -373,13 +378,13 @@ export class SDKConfigLoader {
 
     // Validate matcher field
     if (typeof configObj.matcher !== 'string') {
-      console.warn(`Invalid hooks configuration for event ${eventName}: missing matcher field`);
+      void this.logger.warn('Invalid hooks configuration: missing matcher field', { eventName });
       return undefined;
     }
 
     // Validate hooks field
     if (!Array.isArray(configObj.hooks)) {
-      console.warn(`Invalid hooks configuration for event ${eventName}: hooks must be an array`);
+      void this.logger.warn('Invalid hooks configuration: hooks must be an array', { eventName });
       return undefined;
     }
 
@@ -410,7 +415,7 @@ export class SDKConfigLoader {
    */
   private validateHookDefinition(hookDef: unknown): HookDefinition | undefined {
     if (!this.isPlainObject(hookDef)) {
-      console.warn('Invalid hook definition: must be an object');
+      void this.logger.warn('Invalid hook definition: must be an object');
       return undefined;
     }
 
@@ -419,7 +424,10 @@ export class SDKConfigLoader {
 
     // Validate type field using constant
     if (!VALID_HOOK_TYPES.includes(hookType as (typeof VALID_HOOK_TYPES)[number])) {
-      console.warn(`Invalid hook definition: type must be ${VALID_HOOK_TYPES.join(', ')}`);
+      void this.logger.warn('Invalid hook definition: unsupported type', {
+        allowedTypes: VALID_HOOK_TYPES,
+        receivedType: hookType,
+      });
       return undefined;
     }
 
@@ -433,7 +441,10 @@ export class SDKConfigLoader {
 
     const requiredField = requiredFieldMap[type];
     if (!def[requiredField]) {
-      console.warn(`Invalid hook definition: ${type} type requires ${requiredField} field`);
+      void this.logger.warn('Invalid hook definition: missing required field', {
+        type,
+        requiredField,
+      });
       return undefined;
     }
 

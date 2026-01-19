@@ -13,6 +13,7 @@ import ts from 'typescript';
 import { CLIParser } from '../src/cli/CLIParser';
 import { TestUIFactory } from './helpers/TestUIFactory';
 import { TerminalUIFactory } from '../src/ui/factories/TerminalUIFactory';
+import { Logger } from '../src/logging/Logger';
 
 // 模拟 SDK 模块 - 返回正确的 AsyncGenerator
 jest.mock('@anthropic-ai/claude-agent-sdk', () => ({
@@ -76,6 +77,7 @@ const mainSourceFile = ts.createSourceFile(
   ts.ScriptTarget.Latest,
   true
 );
+const logger = new Logger();
 
 const getClassDeclaration = (name: string): ts.ClassDeclaration => {
   let found: ts.ClassDeclaration | undefined;
@@ -962,7 +964,7 @@ describe('Application 初始化流程 - HookManager 集成 (任务组 4)', () =>
       );
 
       // 测试配置加载
-      const configManager = new (await import('../src/config')).ConfigManager();
+      const configManager = new (await import('../src/config')).ConfigManager(logger);
       const projectConfig = await configManager.loadProjectConfig(tempDir);
 
       expect(projectConfig).toHaveProperty('hooks');
@@ -1047,7 +1049,7 @@ describe('Application 初始化流程 - HookManager 集成 (任务组 4)', () =>
       const callOrder: string[] = [];
 
       // 1. ConfigManager 加载配置
-      const configManager = new ConfigManager();
+      const configManager = new ConfigManager(logger);
       await configManager.ensureUserConfigDir();
       callOrder.push('ConfigManager.ensureUserConfigDir');
 
@@ -1116,7 +1118,7 @@ describe('Application 初始化流程 - HookManager 集成 (任务组 4)', () =>
 
     it('应该处理 undefined hooks 配置', async () => {
       const { ConfigManager } = await import('../src/config');
-      const configManager = new ConfigManager();
+      const configManager = new ConfigManager(logger);
 
       // 创建没有 settings.json 的目录
       const emptyDir = await fs.mkdtemp(path.join(os.tmpdir(), 'empty-'));

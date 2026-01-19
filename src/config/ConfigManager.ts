@@ -17,6 +17,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import type { ConfigOverrides } from './ConfigOverrides';
+import type { Logger } from '../logging/Logger';
 import {
   SDKConfigLoader,
   SDKOptions,
@@ -56,8 +57,8 @@ export class ConfigManager {
   /** 缓存的项目配置（按目录） */
   private cachedProjectConfigs: Map<string, ProjectConfig> = new Map();
 
-  constructor() {
-    this.loader = new SDKConfigLoader();
+  constructor(logger: Logger) {
+    this.loader = new SDKConfigLoader(logger);
     // 用户配置目录
     this.userConfigDir = path.join(os.homedir(), '.claude');
   }

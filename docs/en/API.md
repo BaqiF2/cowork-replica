@@ -183,9 +183,10 @@ interface QueryOptions {
 Configuration manager, responsible for loading and merging configurations.
 
 ```typescript
-import { ConfigManager, UserConfig, ProjectConfig } from 'claude-replica';
+import { ConfigManager, Logger, UserConfig, ProjectConfig } from 'claude-replica';
 
-const configManager = new ConfigManager();
+const logger = new Logger();
+const configManager = new ConfigManager(logger);
 
 // Ensure user config directory exists
 await configManager.ensureUserConfigDir(): Promise<void>;
@@ -241,9 +242,10 @@ interface ProjectConfig extends UserConfig {
 SDK configuration loader, used to build SDK-compatible configurations.
 
 ```typescript
-import { SDKConfigLoader, SDKOptions } from 'claude-replica';
+import { SDKConfigLoader, Logger, SDKOptions } from 'claude-replica';
 
-const loader = new SDKConfigLoader();
+const logger = new Logger();
+const loader = new SDKConfigLoader(logger);
 
 // Load full config
 const config = await loader.loadFullConfig(
@@ -454,12 +456,16 @@ interface AgentDefinition {
 
 ### HookManager
 
-Hook manager, managing event-triggered automation operations.
+Hook manager, managing event-triggered automation operations. Supports three callback types (command, prompt, script) and 12 hook events.
 
 ```typescript
 import { HookManager, HookConfig, HookEvent } from 'claude-replica';
 
-const hookManager = new HookManager();
+const hookManager = new HookManager({
+  workingDir: process.cwd(),      // Working directory
+  commandTimeout: 30000,           // Command timeout (milliseconds)
+  debug: false,                    // Debug mode
+});
 
 // Load hook config
 hookManager.loadHooks(config: HookConfig): void;
@@ -476,38 +482,232 @@ hookManager.addHook(
 
 // Remove hook
 hookManager.removeHook(event: HookEvent, matcher: string): void;
+
+// Trigger event
+const results = await hookManager.triggerEvent(
+  event: HookEvent,
+  context: HookContext
+): Promise<HookExecutionResult[]>;
+
+// Execute command type hook
+const result = await hookManager.executeCommand(
+  command: string,
+  context: HookContext
+): Promise<HookExecutionResult>;
+
+// Execute script type hook
+const output = await hookManager.executeScript(
+  scriptPath: string,
+  context: HookInput,
+  toolUseID: string,
+  signal: AbortSignal
+): Promise<HookJSONOutput>;
+
+// Execute prompt type hook
+const result = await hookManager.executePrompt(
+  prompt: string,
+  context: HookContext
+): Promise<HookExecutionResult>;
+
+// Validate config
+const validation = HookManager.validateConfig(config: HookConfig): {
+  valid: boolean;
+  errors: string[];
+};
+
+// Validate script path
+const pathValidation = hookManager.validateScriptPath(
+  scriptPath: string,
+  allowedPaths: string[],
+  cwd: string
+): ScriptPathValidationResult;
 ```
 
 #### HookConfig Interface
 
 ```typescript
+// 12 hook event types
 type HookEvent =
-  | 'PreToolUse'
-  | 'PostToolUse'
-  | 'PostToolUseFailure'
-  | 'Notification'
-  | 'UserPromptSubmit'
-  | 'SessionStart'
-  | 'SessionEnd'
-  | 'Stop'
-  | 'SubagentStart'
-  | 'SubagentStop'
-  | 'PreCompact'
-  | 'PermissionRequest';
+  | 'PreToolUse'          // Before tool use
+  | 'PostToolUse'         // After successful tool use
+  | 'PostToolUseFailure'  // After failed tool use
+  | 'Notification'        // Notification event
+  | 'UserPromptSubmit'    // User prompt submission
+  | 'SessionStart'        // Session start
+  | 'SessionEnd'          // Session end
+  | 'Stop'                // Session stop
+  | 'SubagentStart'       // Subagent start
+  | 'SubagentStop'        // Subagent stop
+  | 'PreCompact'          // Before context compaction
+  | 'PermissionRequest';  // Permission request
 
+// Hook definition (supports three types)
 interface Hook {
-  matcher: string | RegExp;
-  type: 'command' | 'prompt';
-  command?: string;
-  prompt?: string;
+  matcher: string;
+  type: 'command' | 'prompt' | 'script';
+  command?: string;   // Required for command type
+  prompt?: string;    // Required for prompt type
+  script?: string;    // Required for script type
 }
 
+// Hook configuration
 interface HookConfig {
   [event: string]: Array<{
     matcher: string;
     hooks: Hook[];
   }>;
 }
+
+// Hook execution context
+interface HookContext {
+  event: HookEvent;
+  tool?: string;
+  args?: Record<string, unknown>;
+  result?: unknown;
+  error?: Error;
+  sessionId?: string;
+  messageUuid?: string;
+  agentName?: string;
+  notification?: string;
+}
+
+// Hook execution result
+interface HookExecutionResult {
+  success: boolean;
+  type: 'command' | 'prompt' | 'script';
+  output?: string;
+  error?: string;
+}
+```
+
+#### Variable Substitution
+
+Hooks support the following variable substitutions:
+
+| Variable | Description |
+|----------|-------------|
+| `$TOOL` | Tool name |
+| `$FILE` | File path (from args.path or args.file) |
+| `$COMMAND` | Command (from args.command) |
+| `$CWD` | Current working directory |
+| `$EVENT` | Event type |
+| `$SESSION_ID` | Session ID |
+| `$MESSAGE_UUID` | Message UUID |
+| `$AGENT` | Subagent name |
+| `$ERROR` | Error message |
+
+#### settings.json Configuration Example
+
+Configure hooks in `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"Executing bash command: $COMMAND\""
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Writing to file: $FILE"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "script",
+            "script": "./.claude/hooks/log-tool-use.js"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"Session started: $SESSION_ID\""
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### Script Type Hooks
+
+Script type hooks must export a function:
+
+```javascript
+// .claude/hooks/log-tool-use.js
+export default async function(input, toolUseID, options) {
+  const { hook_event_name, tool_name, tool_input, cwd } = input;
+
+  console.log(`Tool ${tool_name} executed in ${cwd}`);
+
+  // Return HookJSONOutput
+  return {
+    continue: true,          // Whether to continue execution
+    systemMessage: 'Logged', // Optional system message
+  };
+}
+```
+
+#### Script Path Whitelist
+
+Default allowed script paths:
+- `./.claude/hooks`
+- `./hooks`
+
+Custom whitelist validation available via `validateScriptPath()` method.
+
+#### End-to-End Integration Flow
+
+Typical hook integration flow:
+
+```typescript
+// 1. ConfigManager loads project config (including hooks)
+const configManager = new ConfigManager(logger);
+const projectConfig = await configManager.loadProjectConfig(workingDir);
+
+// 2. Initialize HookManager and load config
+const hookManager = new HookManager({ workingDir });
+if (projectConfig.hooks) {
+  // Convert config format
+  const hookConfig = convertToHookManagerFormat(projectConfig.hooks);
+  hookManager.loadHooks(hookConfig);
+}
+
+// 3. Create MessageRouter and inject HookManager
+const messageRouter = new MessageRouter({
+  toolRegistry,
+  permissionManager,
+  hookManager,
+  workingDirectory: workingDir,
+});
+
+// 4. buildQueryOptions automatically includes hooks field
+const session = await sessionManager.createSession(workingDir);
+const queryOptions = await messageRouter.buildQueryOptions(session);
+// queryOptions.hooks contains SDK format hook configuration
+
+// 5. SDK query automatically triggers hooks
+const result = await sdkExecutor.execute(prompt, queryOptions);
 ```
 
 ## Integration API
