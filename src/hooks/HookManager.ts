@@ -192,7 +192,7 @@ export interface SDKHookCallbackMatcher {
   /** 匹配器 */
   matcher: string | RegExp;
   /** 回调函数 */
-  callback: (context: HookContext) => void | Promise<void>;
+  callback: (context: HookContext | HookInput) => void | Promise<void>;
 }
 
 /**
@@ -220,14 +220,48 @@ export interface HookExecutionResult {
 export interface HookInput {
   /** 钩子事件名称 */
   hook_event_name: HookEvent;
+  /** 会话 ID */
+  session_id?: string;
+  /** 对话记录路径 */
+  transcript_path?: string;
+  /** 错误信息 */
+  error?: string;
+  /** 是否由中断导致失败 */
+  is_interrupt?: boolean;
+  /** 用户提示词 */
+  prompt?: string;
+  /** 停止钩子是否激活 */
+  stop_hook_active?: boolean;
+  /** 通知类型 */
+  notification_type?: string;
+  /** 通知消息 */
+  message?: string;
+  /** 通知标题 */
+  title?: string;
   /** 工具名称 */
   tool_name?: string;
   /** 工具输入参数 */
   tool_input?: Record<string, unknown>;
+  /** 工具执行结果 */
+  tool_response?: unknown;
+  /** 子代理类型 */
+  agent_type?: string;
+  /** 子代理 ID */
+  agent_id?: string;
+  /** 子代理对话记录路径 */
+  agent_transcript_path?: string;
+  /** 触发压缩原因 */
+  trigger?: string;
+  /** 压缩指令 */
+  custom_instructions?: string;
+  /** 权限建议 */
+  permission_suggestions?: unknown[];
+  /** 会话来源 */
+  source?: string;
+  /** 会话结束原因 */
+  reason?: string;
   /** 当前工作目录 */
   cwd: string;
-  /** 会话 ID */
-  session_id?: string;
   /** 消息 UUID */
   message_uuid?: string;
 }
@@ -326,8 +360,10 @@ export class HookManager {
 
       result[event as HookEvent] = matchers.map((m) => ({
         matcher: m.matcher,
-        callback: async (context: HookContext) => {
-          await this.executeHooks(m.hooks, context);
+        callback: async (context: HookContext | HookInput) => {
+          const hookInput = this.isHookInput(context) ? context : undefined;
+          const hookContext = this.normalizeHookContext(context);
+          await this.executeHooks(m.hooks, hookContext, hookInput);
         },
       }));
     }
@@ -342,7 +378,11 @@ export class HookManager {
    * @param context 钩子上下文
    * @returns 执行结果列表
    */
-  async executeHooks(hooks: Hook[], context: HookContext): Promise<HookExecutionResult[]> {
+  async executeHooks(
+    hooks: Hook[],
+    context: HookContext,
+    hookInput?: HookInput
+  ): Promise<HookExecutionResult[]> {
     const results: HookExecutionResult[] = [];
 
     for (const hook of hooks) {
@@ -359,10 +399,10 @@ export class HookManager {
           const result = await this.executePrompt(hook.prompt, context);
           results.push(result);
         } else if (hook.type === 'script' && hook.script) {
-          const hookInput = this.contextToHookInput(context);
+          const scriptInput = hookInput ?? this.contextToHookInput(context);
           const scriptResult = await this.executeScript(
             hook.script,
-            hookInput,
+            scriptInput,
             context.messageUuid,
             new AbortController().signal
           );
@@ -834,10 +874,74 @@ export class HookManager {
       hook_event_name: context.event,
       tool_name: context.tool,
       tool_input: context.args,
+      tool_response: context.result,
+      error: context.error?.message,
       cwd: this.workingDir,
       session_id: context.sessionId,
       message_uuid: context.messageUuid,
     };
+  }
+
+  private normalizeHookContext(input: HookContext | HookInput): HookContext {
+    if (!this.isHookInput(input)) {
+      return input;
+    }
+
+    const toolInput = this.normalizeToolInput(input.tool_input);
+    const errorMessage = typeof input.error === 'string' ? input.error : undefined;
+    const notification = this.getNotificationValue(input);
+    const agentName =
+      typeof input.agent_type === 'string'
+        ? input.agent_type
+        : typeof input.agent_id === 'string'
+          ? input.agent_id
+          : undefined;
+
+    return {
+      event: input.hook_event_name,
+      tool: input.tool_name,
+      args: toolInput,
+      result: input.tool_response,
+      error: errorMessage ? new Error(errorMessage) : undefined,
+      sessionId: input.session_id,
+      messageUuid: input.message_uuid,
+      agentName,
+      notification,
+    };
+  }
+
+  private normalizeToolInput(toolInput: unknown): Record<string, unknown> | undefined {
+    if (typeof toolInput !== 'object' || toolInput === null || Array.isArray(toolInput)) {
+      return undefined;
+    }
+
+    const normalized = { ...(toolInput as Record<string, unknown>) };
+    if (typeof normalized.path !== 'string' && typeof normalized.file_path === 'string') {
+      normalized.path = normalized.file_path;
+    }
+
+    return normalized;
+  }
+
+  private getNotificationValue(input: HookInput): string | undefined {
+    if (typeof input.notification_type === 'string') {
+      return input.notification_type;
+    }
+
+    if (typeof input.message === 'string') {
+      return input.message;
+    }
+
+    return undefined;
+  }
+
+  private isHookInput(input: HookContext | HookInput): input is HookInput {
+    return (
+      typeof input === 'object' &&
+      input !== null &&
+      'hook_event_name' in input &&
+      typeof (input as { hook_event_name?: unknown }).hook_event_name === 'string'
+    );
   }
 
   /**
