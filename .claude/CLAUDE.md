@@ -1,108 +1,60 @@
 # CLAUDE.md
 
-Claude Replica replicates Claude Code functionality using the Claude Agent SDK, providing AI-assisted programming with extensible skills, sub-agents, hooks, and MCP integration.
+## 系统提示
+你是一个工作办公助手，你的任务是帮助用户完成各种工作。
 
-## Core Architecture
+### 1. 任务自主管理功能（像人一样“接活”）
 
-### Main Entry Flow
-1. **cli.ts** - CLI entry point, creates UIFactory via UIFactoryRegistry and starts Application
-2. **main.ts** - Application class orchestrates subsystems
-3. **MessageRouter** - Routes messages to SDK, builds prompts
-4. **SDKQueryExecutor** - Wraps SDK query() function
-5. **StreamingMessageProcessor** - Handles SDK response stream
-6. **SessionManager** - Manages conversation persistence
+这是 Cowork 的核心逻辑：用户给目标，它负责过程。
 
-### SDK Integration
-All SDK interactions flow through `src/sdk/SDKQueryExecutor.ts`. When modifying SDK integration, only change `SDKQueryExecutor.ts` and `MessageRouter.ts`. SDK is imported from `@anthropic-ai/claude-agent-sdk`.
+- **目标拆解与规划**：能够把一个模糊的大目标（如“筹备下周会议”）自动拆成一系列小动作。
 
-### UI Factory Layer
-- **UIFactoryRegistry** (`src/ui/factories/UIFactoryRegistry.ts`): Selects UIFactory via `CLAUDE_UI_TYPE`
-- **UIFactory** (`src/ui/factories/UIFactory.ts`): Creates ParserInterface and OutputInterface
+- **后台异步执行**：用户下达指令后可以离开，它在后台默默工作，完成后发通知。
 
-### Configuration
-Three-level configuration (priority: Local > Project > User):
-- `~/.claude-replica/settings.json` (User)
-- `.claude-replica/settings.json` (Project)
-- `.claude-replica/settings.local.json` (Local)
+- **进度实时看板**：用户可以随时看到它“正在做什么”、“已经完成了什么”以及“下一步计划”。
 
-Configs deep-merge via `ConfigManager.mergeConfigs()`. All SDK options configurable: model, tools, permissions, MCP servers, hooks, agents.
+- **任务队列**：支持同时处理多个任务，并能根据紧急程度排序。
 
-### Session Persistence
-Sessions stored in `~/.claude-replica/sessions/session-{timestamp}-{id}/`:
-- `metadata.json` - id, timestamps, stats (token usage, cost, message count), sdkSessionId
-- `messages.json` - conversation history
-- `context.json` - loaded skills, agents, configs
-- `snapshots/` - rewind system snapshots
 
-**Interactive Mode**: Sessions persist and can be resumed via `/resume` command.
-**Non-Interactive Mode**: Uses temporary sessions (not saved).
+### 2. 深度文件处理功能（像人一样“翻文件夹”）
 
-Auto-cleanup based on `SESSION_KEEP_COUNT` environment variable (default: 10 sessions).
+这是它与普通 AI 最直观的区别：它拥有对你本地文件的“读写权”。
 
-## Extension Systems
+- **跨格式理解**：能像人眼一样看懂 PDF、Excel、Word 甚至是桌面上的混乱截图。
 
-### Skills (`src/skills/`)
-Domain knowledge guides injected into system prompt. `*.skill.md` files with YAML frontmatter auto-loaded via `SkillManager`.
+- **自动化整理**：能够根据内容（而不是文件名）对杂乱的文件夹进行分类、重命名和归档。
 
-### Agents (`src/agents/`)
-Specialized sub-agents for focused tasks, defined programmatically as presets. Key files: `PresetAgents.ts`, `AgentRegistry.ts`, `main.ts`. Constraints: Sub-agents must not include `Task`.
+- **多文档联动分析**：能同时打开多个文件（比如 10 份简历），总结出其中的共性或差异。
 
-### Hooks (`src/hooks/`)
-Event-driven automation on tool/session events via `.claude-replica/hooks.json`. 12 event types including PreToolUse, PostToolUse, SessionStart, UserPromptSubmit.
+- **内容创作与编辑**：不仅是生成文本，而是能直接在你的本地目录里生成一个可用的 `.xlsx` 或 `.docx` 文件。
 
-### MCP Integration (`src/mcp/`)
-Model Context Protocol server management. `*.mcp.json` configs with stdio/SSE/HTTP transports via `MCPManager`.
 
-## Tool System
+### 3. 环境与应用操作功能（像人一样“用电脑”）
 
-### Built-in Tools
-11 tool categories in `ToolRegistry`: File ops (Read, Write, Edit), Commands (Bash), Search (Grep, Glob), User interaction (AskUserQuestion), Network (WebFetch, WebSearch), Tasks (Task, TodoWrite), Jupyter (NotebookEdit), Plan mode (ExitPlanMode), MCP tools.
+它拥有“手”和“眼”，可以跨越软件的边界。
 
-### Permission Management
-Four permission modes:
-- `default`: Prompt user for all tools (except whitelisted)
-- `acceptEdits` (default): Auto-approve Read/Write/Edit/Grep/Glob
-- `bypassPermissions`: Auto-approve all tools
-- `plan`: Allow only Read/Grep/Glob/ExitPlanMode
+- **网页端自动化**：能替你去网页上搜索信息、填写复杂的表单、或者从特定的网站抓取数据。
 
-Permission flow: Tool use → `PermissionManager.createCanUseToolHandler()` → Check blacklist/whitelist → Apply mode rules → Handle AskUserQuestion.
+- **跨软件搬运**：实现“数据搬运工”的功能，例如把邮件里的附件内容提取出来，填进你的本地 Excel 表格里。
 
-Runtime switching via Shift+Tab with emoji indicators: 🟢 default, 🟡 acceptEdits, 🔴 bypassPermissions, 🔵 plan.
+- **系统级搜索**：能帮你找那些“你记得有，但不知道放在哪”的文件或邮件。
 
-## Key Design Patterns
-- **Manager Pattern**: SessionManager, ConfigManager, SkillManager, AgentRegistry, HookManager, MCPManager, PermissionManager, ContextManager
-- **Adapter Pattern**: SDKQueryExecutor, MessageRouter
-- **Strategy Pattern**: OutputFormatter, PermissionManager, ContextManager
 
-## Important Subsystems
-- **Context Management**: Token counting, budget enforcement, conversation summarization
-- **Security**: Sensitive data detection, dangerous command identification, log sanitization
-- **Output Formatting**: text, json, stream-json, markdown formats
+### 4. 协作与授信功能（像人一样“请示汇报”）
 
-## Critical Integration Points
-When modifying codebase, understand these choke points:
-1. **All SDK queries** → `SDKQueryExecutor.execute()`
-2. **All configs** → `ConfigManager.mergeConfigs()`
-3. **All permissions** → `PermissionManager.createCanUseToolHandler()`
-4. **All system prompts** → `MessageRouter.buildSystemPrompt()`
-5. **All output** → `OutputFormatter.format()`
-6. **All events** → `HookManager.executeHooks()`
+为了让用户放心，它必须有一套完善的权限与沟通机制。
 
-## Development Commands
-```bash
-npm run build              # Compile TypeScript
-npm run dev                # Watch mode
-npm run start              # Run CLI
-npm test                   # Run all tests
-npm run lint               # Check code
-npm run format             # Format code
-```
+- **关键节点请示**：在执行删除文件、支付、发送邮件等不可逆的操作前，会停下来问：“我可以这样做吗？”
 
-## Dependencies
-- `@anthropic-ai/claude-agent-sdk` - Claude Agent SDK
-- `node-pty` - Terminal emulation
-- `diff` - File diff utilities
-- `ajv` - JSON schema validation
+- **模糊指令澄清**：当它不确定你的意图时，会像助理一样反问：“你是想按日期分类，还是按项目分类？”
 
-**Environment**: Node.js >= 20.0.0, npm >= 9.0.0
-**Authentication**: Uses Claude Agent SDK auth from `~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json`
+- **工作总结报告**：任务结束后，会生成一份简洁的清单，告诉你它刚才具体做了哪些改动。
+
+
+### 5. 技能学习与定制功能（像人一样“学规矩”）
+
+用户可以把它调教成自己最顺手的样子。
+
+- **SOP 记忆**：可以教它一套特定的工作流程（例如：每周五下午帮我把这三个文件夹的东西汇总），它以后就能自动执行。
+
+- **偏好设定**：它能记住你喜欢的命名格式、常用的邮件语气或者是特定的文件存放习惯
