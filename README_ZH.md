@@ -1,212 +1,58 @@
-# Claude Replica
+# CLAUDE.md
 
-[![npm version](https://badge.fury.io/js/claude-replica.svg)](https://badge.fury.io/js/claude-replica)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/node/v/claude-replica.svg)](https://nodejs.org)
 
-完整复刻 Claude Code 功能的智能代码助手命令行工具。本项目深度集成官方 **Claude Agent SDK**，旨在提供一个高性能、高可扩展性的 AI 辅助编程基座。
+### 1. 任务自主管理功能（像人一样“接活”）
 
----
+这是 Cowork 的核心逻辑：用户给目标，它负责过程。
 
-## 🎯 项目核心
+- **目标拆解与规划**：能够把一个模糊的大目标（如“筹备下周会议”）自动拆成一系列小动作。
 
-* **基于 Claude Agent SDK 打造**：本项目是构建在 Anthropic 官方 Agent SDK 之上的自定义编程应用，完整实现了代码感知、工具调用与任务执行的闭环。
-* **标准化分层架构**：采用清晰的 CLI 层、业务逻辑层与 SDK 适配层设计。这种高度解耦的架构使得开发者可以轻松剥离原有的命令行界面，**快速接入 Web、桌面端或插件等其他 UI 表现层**，实现能力的无缝迁移。
+- **后台异步执行**：用户下达指令后可以离开，它在后台默默工作，完成后发通知。
 
----
+- **进度实时看板**：用户可以随时看到它“正在做什么”、“已经完成了什么”以及“下一步计划”。
 
-## 💡 你可以用它做什么？
+- **任务队列**：支持同时处理多个任务，并能根据紧急程度排序。
 
-### 1. 深度定制个性化编程工具
 
-你可以通过修改核心逻辑或扩展组件，打造最符合个人工作流的 Claude 变体：
+### 2. 深度文件处理功能（像人一样“翻文件夹”）
 
-* **修改组件逻辑**：根据需求调整 Agent 的决策过程或工具使用偏好。
-* **注入特定技能**：利用内置的技能系统（Skills）为特定框架或公司内部代码库编写专属指南。
-* **自定义自动化钩子**：利用 Hook 系统在代码生成后自动执行特定的 Lint 或测试操作。
+这是它与普通 AI 最直观的区别：它拥有对你本地文件的“读写权”。
 
-### 2. 快速产出专属垂直领域应用
+- **跨格式理解**：能像人眼一样看懂 PDF、Excel、Word 甚至是桌面上的混乱截图。
 
-借助本项目成熟的“脚手架”分层设计，你可以跳过底层建设，专注于业务价值：
+- **自动化整理**：能够根据内容（而不是文件名）对杂乱的文件夹进行分类、重命名和归档。
 
-* **跨平台 UI 适配**：只需开发表现层，即可将 AI 编程能力集成到企业内部门户或定制化 IDE 中。
-* **行业垂直应用**：结合 MCP 集成，接入特定行业的专业数据库（如金融法律条文、医疗规范），快速孵化垂直领域的 AI 助理。
+- **多文档联动分析**：能同时打开多个文件（比如 10 份简历），总结出其中的共性或差异。
 
----
+- **内容创作与编辑**：不仅是生成文本，而是能直接在你的本地目录里生成一个可用的 `.xlsx` 或 `.docx` 文件。
 
-## ✨ 核心特性
 
-### 核心功能
-- 🤖 **智能对话** - 基于 Claude Agent SDK 的智能代码助手
-- 📁 **文件操作** - 读取、编辑、创建和删除文件
-- 🔧 **命令执行** - 安全执行 Bash 命令
-- 🔍 **代码搜索** - 强大的代码库导航与搜索能力
-- 💾 **会话管理** - 保存和恢复对话会话
+### 3. 环境与应用操作功能（像人一样“用电脑”）
 
-### 扩展系统
-- 🎯 **技能系统** - 自动加载领域知识和工作流指南
-- 📝 **自定义命令** - 创建可重用的命令模板
-- 🤝 **子代理** - 专门化的任务处理代理
-- 🪝 **钩子系统** - 工具使用后自动触发的操作
+它拥有“手”和“眼”，可以跨越软件的边界。
 
-### 集成能力
-- 🌐 **MCP 集成** - Model Context Protocol 服务器支持
-- 🔐 **权限管理** - 细粒度的工具权限控制
-- ⏪ **回退系统** - 撤销文件修改，恢复到之前状态
-- 🖼️ **图像支持** - 发送图像进行 UI 设计和调试
----
+- **网页端自动化**：能替你去网页上搜索信息、填写复杂的表单、或者从特定的网站抓取数据。
 
-## 🚀 快速开始
+- **跨软件搬运**：实现“数据搬运工”的功能，例如把邮件里的附件内容提取出来，填进你的本地 Excel 表格里。
 
-### 从源码安装
+- **系统级搜索**：能帮你找那些“你记得有，但不知道放在哪”的文件或邮件。
 
-```bash
-git clone https://github.com/BaqiF2/claude-replica.git
-cd claude-replica
-npm install
-npm run build
-npm link
-```
 
-### 运行
+### 4. 协作与授信功能（像人一样“请示汇报”）
 
-```bash
-# 开启交互式对话
-claude-replica
+为了让用户放心，它必须有一套完善的权限与沟通机制。
 
-# 针对特定问题进行单次查询
-claude-replica -p "重构当前目录下的 index.ts 文件，提高其可读性"
+- **关键节点请示**：在执行删除文件、支付、发送邮件等不可逆的操作前，会停下来问：“我可以这样做吗？”
 
-```
+- **模糊指令澄清**：当它不确定你的意图时，会像助理一样反问：“你是想按日期分类，还是按项目分类？”
 
----
+- **工作总结报告**：任务结束后，会生成一份简洁的清单，告诉你它刚才具体做了哪些改动。
 
-## 🔧 配置
 
-### 配置文件
+### 5. 技能学习与定制功能（像人一样“学规矩”）
 
-在项目根目录创建 `.claude/settings.json` 配置文件：
+用户可以把它调教成自己最顺手的样子。
 
-```json
-{
-  "model": "claude-sonnet-4-5-20250929",
-  "permissionMode": "default",
-  "maxTurns": 100,
-  "maxBudgetUsd": 10,
-  "allowedTools": ["Read", "Write", "Bash", "Grep"],
-  "disallowedTools": []
-}
-```
+- **SOP 记忆**：可以教它一套特定的工作流程（例如：每周五下午帮我把这三个文件夹的东西汇总），它以后就能自动执行。
 
-### 认证配置
-
-Claude Replica 使用 Claude Agent SDK，会自动从 Claude Code 配置中获取认证信息。
-
-**方式一：使用 Claude Code CLI 登录**
-```bash
-claude login
-```
-
-**方式二：在项目配置中设置 API Key**
-```json
-{
-  "apiKey": "your-api-key-here"
-}
-```
-
-**方式三：使用环境变量（CI/CD 环境）**
-```bash
-export ANTHROPIC_API_KEY="your-api-key"
-```
-
-## 🚀 快速使用
-
-### 基本命令
-
-```bash
-# 交互模式
-claude-replica
-
-# 非交互模式
-claude-replica -p "解释这段代码的作用"
-
-# 继续上次会话
-claude-replica -c
-
-# 指定模型
-claude-replica --model sonnet
-```
-
-### 内置命令
-
-在交互模式下可使用 `/help`、`/sessions`、`/config`、`/permissions`、`/mcp` 等命令。
-
-📖 **详细使用说明**：查看 [用户指南](docs/zh/USER_GUIDE.md) 了解所有命令行选项、会话管理、输出格式等完整功能。
-
-## 📚 扩展系统
-
-Claude Replica 提供了强大的扩展系统，让你可以根据需求自定义和扩展功能：
-
-### 技能系统 (Skills)
-在 `.claude/skills/` 目录创建 `SKILL.md` 文件，自动加载领域知识和工作流指南。
-
-### 自定义命令 (Commands)
-在 `.claude/commands/` 目录创建 `.md` 文件，定义可重用的命令模板。
-
-### 子代理 (Subagents)
-预设专门化的任务处理代理（code-reviewer、test-runner、doc-generator 等），在 `src/agents/` 中定义。详见 [SubAgents 使用指南](docs/zh/reference/SUBAGENTS_GUIDE.md)。
-
-### 钩子系统 (Hooks)
-在 `.claude/hooks.json` 配置事件驱动的自动化操作（支持 12 种事件类型）。
-
-### 自定义工具 (Custom Tools)
-使用 Zod schema 定义 TypeScript 工具，通过进程内 MCP 服务器注册。详见 [自定义工具配置指南](docs/zh/reference/CUSTOM_TOOLS_CONFIG_GUIDE.md)。
-
-### 自定义 UI
-基于分层 UI 架构，实现自定义界面（Web UI、桌面 GUI 等）。详见 [自定义 UI 实现指南](docs/zh/reference/CUSTOM_UI_GUIDE.md)。
-
-### MCP 集成
-在项目根目录创建 `.mcp.json` 配置 Model Context Protocol 服务器，支持 stdio、SSE、HTTP 传输。
-
-📖 **完整扩展开发指南**：查看 [开发者指南](docs/zh/DEVELOPER_GUIDE.md) 了解如何创建新的管理器、添加新工具、开发插件等高级内容。
-
-## 🔒 权限管理
-
-Claude Replica 提供细粒度的权限控制，支持四种权限模式：
-
-| 模式 | 描述 |
-|------|------|
-| `default` | 默认模式，敏感操作需要确认 |
-| `acceptEdits` | 自动接受文件编辑 |
-| `bypassPermissions` | 绕过所有权限检查（危险）|
-| `plan` | 计划模式，只生成计划不执行 |
-
-可通过命令行 `--permission-mode` 或配置文件设置。支持工具白名单/黑名单配置。
-
-📖 **详细权限配置**：查看 [用户指南 - 权限管理](docs/zh/USER_GUIDE.md#权限管理) 了解更多。
-
----
-
-## 📖 文档导航
-
-- **[用户指南](docs/zh/USER_GUIDE.md)** - 详细的使用说明、最佳实践和故障排除
-- **[开发者指南](docs/zh/DEVELOPER_GUIDE.md)** - 项目架构、扩展开发和贡献指南
-- **[SubAgents 使用指南](docs/zh/reference/SUBAGENTS_GUIDE.md)** - 子代理详细说明
-- **[自定义工具配置指南](docs/zh/reference/CUSTOM_TOOLS_CONFIG_GUIDE.md)** - 自定义工具开发
-- **[自定义 UI 实现指南](docs/zh/reference/CUSTOM_UI_GUIDE.md)** - UI 扩展开发
-
----
-
-## 🤝 贡献
-
-欢迎贡献代码！请阅读 [CONTRIBUTING_ZH.md](CONTRIBUTING.md) 了解贡献指南。
-
-## 📄 许可证
-
-[MIT License](LICENSE)
-
-## 📞 支持
-
-- 📧 Email: wuwenjun19930614@gmail.com
-- 🐛 Issues: [GitHub Issues](https://github.com/BaqiF2/claude-replica/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/BaqiF2/claude-replica/discussions)
+- **偏好设定**：它能记住你喜欢的命名格式、常用的邮件语气或者是特定的文件存放习惯
