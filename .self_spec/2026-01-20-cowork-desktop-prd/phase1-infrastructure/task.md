@@ -18,20 +18,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 Tauri 项目初始化测试
+- [x] 1. [测试] 编写 Tauri 项目初始化测试
    - 测试文件: `tests/tauri-setup.test.ts`
    - 验证项目结构、配置文件、构建流程
    - _Requirements: Tauri 项目初始化_
    - _Scenarios: 创建 Tauri 项目结构, 配置开发构建流程, 配置生产构建流程_
    - _TaskGroup: 1_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- tauri-setup.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 1_
 
-- [ ] 3. [实现] 初始化 Tauri 项目
+- [x] 3. [实现] 初始化 Tauri 项目
    - 执行: `npm create tauri-app@latest`
    - 配置文件: `src-tauri/tauri.conf.json`
    - 添加 macOS 权限: 文件系统、通知
@@ -40,13 +40,13 @@
    - _Scenarios: 创建 Tauri 项目结构, 配置开发构建流程, 配置生产构建流程_
    - _TaskGroup: 1_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- tauri-setup.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 1_
 
-- [ ] 5. [重构] 优化配置文件（可选）
+- [x] 5. [重构] 优化配置文件（可选）
    - 提取环境变量配置
    - 添加构建优化选项
    - _Requirements: Tauri 项目初始化_
@@ -63,20 +63,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写进程管理测试
-   - 测试文件: `src-tauri/tests/process.test.rs`
+- [x] 1. [测试] 编写进程管理测试
+   - 测试文件: `src-tauri/tests/process_test.rs`
    - 覆盖进程启动、崩溃恢复、优雅关闭场景
    - _Requirements: Node.js Backend 进程管理_
    - _Scenarios: 启动 Node.js 子进程, 处理 Node.js 进程崩溃, 优雅关闭 Node.js 进程_
    - _TaskGroup: 2_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `cargo test --manifest-path=src-tauri/Cargo.toml`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 2_
 
-- [ ] 3. [实现] 实现进程管理模块
+- [x] 3. [实现] 实现进程管理模块
    - 实现文件: `src-tauri/src/process.rs`
    - 功能:
      - `start_node_backend()`: 启动 Node.js 进程
@@ -87,13 +87,13 @@
    - _Scenarios: 启动 Node.js 子进程, 处理 Node.js 进程崩溃, 优雅关闭 Node.js 进程_
    - _TaskGroup: 2_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `cargo test --manifest-path=src-tauri/Cargo.toml`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 2_
 
-- [ ] 5. [重构] 优化进程管理（可选）
+- [x] 5. [重构] 优化进程管理（可选）
    - 添加进程健康检查
    - 优化日志记录
    - _Requirements: Node.js Backend 进程管理_
@@ -108,20 +108,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写消息序列化测试
+- [x] 1. [测试] 编写消息序列化测试
    - 测试文件: `tests/ipc/message-serialization.test.ts`
    - 测试复杂对象、Error、Date 的序列化
    - _Requirements: IPC 通信层实现_
    - _Scenarios: 消息序列化和反序列化_
    - _TaskGroup: 3_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- message-serialization.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 3_
 
-- [ ] 3. [实现] 实现消息序列化模块
+- [x] 3. [实现] 实现消息序列化模块
    - 实现文件: `src/ui/implementations/desktop/MessageSerializer.ts`
    - 定义 IPCMessage 接口
    - 实现序列化/反序列化函数
@@ -130,13 +130,13 @@
    - _Scenarios: 消息序列化和反序列化_
    - _TaskGroup: 3_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- message-serialization.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 3_
 
-- [ ] 5. [重构] 优化序列化性能（可选）
+- [x] 5. [重构] 优化序列化性能（可选）
    - 使用更高效的序列化库
    - 添加缓存机制
    - _Requirements: IPC 通信层实现_
@@ -153,20 +153,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 IPCMessageAdapter 测试
+- [x] 1. [测试] 编写 IPCMessageAdapter 测试
    - 测试文件: `tests/ui/implementations/desktop/IPCMessageAdapter.test.ts`
    - 覆盖 emit、request、on、off 方法
    - _Requirements: IPCMessageAdapter 实现_
    - _Scenarios: 发送单向事件, 发送请求并等待响应, 注册和取消事件监听_
    - _TaskGroup: 4_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- IPCMessageAdapter.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 4_
 
-- [ ] 3. [实现] 实现 IPCMessageAdapter 类
+- [x] 3. [实现] 实现 IPCMessageAdapter 类
    - 实现文件: `src/ui/implementations/desktop/IPCMessageAdapter.ts`
    - 核心方法:
      - `emit(event, payload)`: 发送单向事件
@@ -179,13 +179,13 @@
    - _Scenarios: 发送单向事件, 发送请求并等待响应, 注册和取消事件监听_
    - _TaskGroup: 4_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- IPCMessageAdapter.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 4_
 
-- [ ] 5. [重构] 优化 IPCMessageAdapter（可选）
+- [x] 5. [重构] 优化 IPCMessageAdapter（可选）
    - 添加消息批处理
    - 优化内存管理
    - _Requirements: IPCMessageAdapter 实现_
