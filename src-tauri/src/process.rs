@@ -30,6 +30,7 @@ pub struct ProcessManager {
     child: Arc<Mutex<Option<Child>>>,
     backend_script: String,
     working_dir: String,
+    #[allow(dead_code)]
     auto_restart: bool,
     restart_attempts: Arc<Mutex<u32>>,
     last_restart: Arc<Mutex<Option<Instant>>>,
@@ -121,7 +122,7 @@ impl ProcessManager {
                                 drop(child_lock); // Release lock before restarting
 
                                 debug!("Attempting to restart backend process");
-                                let mut new_child = Command::new("node")
+                                let new_child = Command::new("node")
                                     .arg(&backend_script)
                                     .current_dir(&working_dir)
                                     .env("NODE_ENV", std::env::var("NODE_ENV").unwrap_or_else(|_| "production".to_string()))

@@ -201,20 +201,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 Rust IPC 桥接测试
-   - 测试文件: `src-tauri/tests/ipc.test.rs`
+- [x] 1. [测试] 编写 Rust IPC 桥接测试
+   - 测试文件: `src-tauri/tests/ipc_test.rs`
    - 测试 stdin/stdout 消息传递和 Tauri emit
    - _Requirements: IPC 通信层实现_
    - _Scenarios: Node.js 到 Rust 的消息发送, Rust 到 SolidJS 的事件推送_
    - _TaskGroup: 5_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `cargo test --manifest-path=src-tauri/Cargo.toml ipc`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 5_
 
-- [ ] 3. [实现] 实现 IPC 桥接模块
+- [x] 3. [实现] 实现 IPC 桥接模块
    - 实现文件: `src-tauri/src/ipc.rs`
    - 功能:
      - `handle_stdin()`: 监听 Node.js stdout 并解析
@@ -224,13 +224,13 @@
    - _Scenarios: Node.js 到 Rust 的消息发送, Rust 到 SolidJS 的事件推送_
    - _TaskGroup: 5_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `cargo test --manifest-path=src-tauri/Cargo.toml ipc`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 5_
 
-- [ ] 5. [重构] 优化 IPC 桥接（可选）
+- [x] 5. [重构] 优化 IPC 桥接（可选）
    - 添加消息队列
    - 优化错误处理
    - _Requirements: IPC 通信层实现_
@@ -248,7 +248,7 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 ipcService 测试
+- [x] 1. [测试] 编写 ipcService 测试
    - 测试文件: `src-ui/services/ipcService.test.ts`
    - 模拟 Tauri API 调用
    - 覆盖 initialize、emit、request、on 方法
@@ -256,13 +256,13 @@
    - _Scenarios: 初始化 IPC 监听, 发送事件到后端, 发送请求并等待响应, 监听来自后端的事件_
    - _TaskGroup: 6_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- ipcService.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 6_
 
-- [ ] 3. [实现] 实现 ipcService 模块
+- [x] 3. [实现] 实现 ipcService 模块
    - 实现文件: `src-ui/services/ipcService.ts`
    - 核心方法:
      - `initialize()`: 启动 Tauri 监听
@@ -275,13 +275,13 @@
    - _Scenarios: 初始化 IPC 监听, 发送事件到后端, 发送请求并等待响应, 监听来自后端的事件_
    - _TaskGroup: 6_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- ipcService.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 6_
 
-- [ ] 5. [重构] 优化 ipcService（可选）
+- [x] 5. [重构] 优化 ipcService（可选）
    - 添加类型安全
    - 优化事件订阅管理
    - _Requirements: SolidJS ipcService 实现_
@@ -298,20 +298,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 DesktopUIFactory 测试
+- [x] 1. [测试] 编写 DesktopUIFactory 测试
    - 测试文件: `tests/ui/factories/DesktopUIFactory.test.ts`
    - 测试所有 create 方法
    - _Requirements: DesktopUIFactory 实现_
    - _Scenarios: 创建 DesktopUIFactory 实例, 创建 InteractiveUI 实例, 创建其他 UI 组件_
    - _TaskGroup: 7_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- DesktopUIFactory.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 7_
 
-- [ ] 3. [实现] 实现 DesktopUIFactory 类
+- [x] 3. [实现] 实现 DesktopUIFactory 类
    - 实现文件: `src/ui/factories/DesktopUIFactory.ts`
    - 实现 UIFactory 接口
    - 核心方法:
@@ -323,13 +323,13 @@
    - _Scenarios: 创建 DesktopUIFactory 实例, 创建 InteractiveUI 实例, 创建其他 UI 组件_
    - _TaskGroup: 7_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- DesktopUIFactory.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 7_
 
-- [ ] 5. [重构] 优化工厂模式（可选）
+- [x] 5. [重构] 优化工厂模式（可选）
    - 添加依赖注入容器
    - 优化实例缓存
    - _Requirements: DesktopUIFactory 实现_
@@ -347,20 +347,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 DesktopInteractiveUI 测试
+- [x] 1. [测试] 编写 DesktopInteractiveUI 测试
    - 测试文件: `tests/ui/implementations/desktop/DesktopInteractiveUI.test.ts`
    - 覆盖 start、stop、displayMessage、displayToolUse、promptConfirmation
    - _Requirements: DesktopInteractiveUI 实现_
    - _Scenarios: 启动和停止 IPC 监听, 显示消息到前端, 显示工具调用, 请求用户确认_
    - _TaskGroup: 8_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- DesktopInteractiveUI.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 8_
 
-- [ ] 3. [实现] 实现 DesktopInteractiveUI 类
+- [x] 3. [实现] 实现 DesktopInteractiveUI 类
    - 实现文件: `src/ui/implementations/desktop/DesktopInteractiveUI.ts`
    - 实现 InteractiveUIInterface 接口 (26 个方法)
    - 核心方法:
@@ -374,13 +374,13 @@
    - _Scenarios: 启动和停止 IPC 监听, 显示消息到前端, 显示工具调用, 请求用户确认_
    - _TaskGroup: 8_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- DesktopInteractiveUI.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 8_
 
-- [ ] 5. [重构] 优化 DesktopInteractiveUI（可选）
+- [x] 5. [重构] 优化 DesktopInteractiveUI（可选）
    - 添加消息队列
    - 优化错误处理
    - _Requirements: DesktopInteractiveUI 实现_
@@ -395,20 +395,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写主题变量测试
+- [x] 1. [测试] 编写主题变量测试
    - 测试文件: `src-ui/styles/__tests__/theme.test.ts`
    - 验证所有 CSS 变量定义
    - _Requirements: 基础 UI 布局实现_
    - _Scenarios: 定义黑曜石黑主题 CSS 变量_
    - _TaskGroup: 9_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- theme.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 9_
 
-- [ ] 3. [实现] 实现主题 CSS 文件
+- [x] 3. [实现] 实现主题 CSS 文件
    - 实现文件: `src-ui/styles/theme.css`
    - 定义颜色变量: bg-primary, bg-secondary, bg-tertiary, bg-elevated
    - 定义边框变量: border-subtle, border-default, border-strong
@@ -419,13 +419,13 @@
    - _Scenarios: 定义黑曜石黑主题 CSS 变量_
    - _TaskGroup: 9_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- theme.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 9_
 
-- [ ] 5. [重构] 优化主题系统（可选）
+- [x] 5. [重构] 优化主题系统（可选）
    - 添加主题切换功能
    - 支持用户自定义颜色
    - _Requirements: 基础 UI 布局实现_
@@ -440,20 +440,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写布局测试
+- [x] 1. [测试] 编写布局测试
    - 测试文件: `src-ui/components/__tests__/Layout.test.tsx`
    - 测试最小窗口尺寸、侧边栏宽度、主内容区自适应
    - _Requirements: 基础 UI 布局实现_
    - _Scenarios: 响应式布局框架_
    - _TaskGroup: 10_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- Layout.test.tsx`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 10_
 
-- [ ] 3. [实现] 实现主布局组件
+- [x] 3. [实现] 实现主布局组件
    - 实现文件: `src-ui/App.tsx`
    - 侧边栏: 固定宽度 240px, 可折叠
    - 主内容区: flex-grow 自适应
@@ -462,13 +462,13 @@
    - _Scenarios: 响应式布局框架_
    - _TaskGroup: 10_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- Layout.test.tsx`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 10_
 
-- [ ] 5. [重构] 优化布局（可选）
+- [x] 5. [重构] 优化布局（可选）
    - 添加窗口大小监听
    - 优化折叠动画
    - _Requirements: 基础 UI 布局实现_
@@ -483,20 +483,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写通用组件测试
+- [x] 1. [测试] 编写通用组件测试
    - 测试文件: `src-ui/components/common/__tests__/components.test.tsx`
    - 测试 Button、Input、Modal 组件
    - _Requirements: 基础 UI 布局实现_
    - _Scenarios: 通用组件库_
    - _TaskGroup: 11_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- components.test.tsx`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 11_
 
-- [ ] 3. [实现] 实现通用组件
+- [x] 3. [实现] 实现通用组件
    - 实现文件:
      - `src-ui/components/common/Button.tsx`: 5 种变体, 状态支持
      - `src-ui/components/common/Input.tsx`: 聚焦边框, 占位符样式
@@ -506,13 +506,13 @@
    - _Scenarios: 通用组件库_
    - _TaskGroup: 11_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- components.test.tsx`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 11_
 
-- [ ] 5. [重构] 优化组件库（可选）
+- [x] 5. [重构] 优化组件库（可选）
    - 添加更多组件变体
    - 优化无障碍访问
    - _Requirements: 基础 UI 布局实现_
@@ -530,20 +530,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写端到端测试
+- [x] 1. [测试] 编写端到端测试
    - 测试文件: `tests/e2e/phase1-validation.test.ts`
    - 使用 Playwright 测试完整流程
    - _Requirements: 验证基础架构_
    - _Scenarios: 前端启动后端进程, 双向 IPC 通信测试, 后端主动推送事件, 基础 UI 渲染验证_
    - _TaskGroup: 12_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm run test:e2e`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 12_
 
-- [ ] 3. [实现] 集成所有模块
+- [x] 3. [实现] 集成所有模块
    - 确保所有模块正确集成
    - 配置 Tauri 主进程启动流程
    - 连接 Rust IPC 桥接与 Node.js 进程
@@ -551,7 +551,7 @@
    - _Scenarios: 前端启动后端进程, 双向 IPC 通信测试, 后端主动推送事件, 基础 UI 渲染验证_
    - _TaskGroup: 12_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm run test:e2e`
    - 预期通过
    - 验证:
@@ -562,7 +562,7 @@
    - _Validates: 3_
    - _TaskGroup: 12_
 
-- [ ] 5. [重构] 优化性能（可选）
+- [x] 5. [重构] 优化性能（可选）
    - 优化 IPC 消息传递
    - 减少启动时间
    - _Requirements: 验证基础架构_

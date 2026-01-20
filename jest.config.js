@@ -2,12 +2,14 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/tests'],
+  roots: ['<rootDir>/tests', '<rootDir>/src-ui'],
   testMatch: ['**/*.test.ts', '**/*.spec.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   collectCoverageFrom: [
     'src/**/*.ts',
+    'src-ui/**/*.ts',
     '!src/**/*.d.ts',
+    '!src-ui/**/*.d.ts',
     '!src/index.ts',
     '!src/cli.ts',
     '!src/docs/DocumentGenerator.ts',
