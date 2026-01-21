@@ -1,11 +1,11 @@
 {
-  "name": "claude-replica",
+  "name": "cowork-replica",
   "version": "0.1.0",
   "description": "完整复刻 Claude Code 的智能代码助手命令行工具",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "claude-replica": "dist/cli.js"
+    "cowork-replica": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -50,18 +50,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/claude-replica.git"
+    "url": "https://github.com/your-username/cowork-replica.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/claude-replica/issues"
+    "url": "https://github.com/your-username/cowork-replica/issues"
   },
-  "homepage": "https://github.com/your-username/claude-replica#readme",
+  "homepage": "https://github.com/your-username/cowork-replica#readme",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.76",
-    "@types/diff": "^7.0.2",
-    "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1",
-    "diff": "^8.0.2",
     "dotenv": "^17.2.3",
     "expr-eval": "^2.0.2",
     "zod": "^4.3.5"
