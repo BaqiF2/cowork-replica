@@ -16,6 +16,15 @@ import type { PermissionUI, QuestionInput, QuestionAnswers } from '../../../perm
 import type { ToolPermissionRequest, PermissionUIResult } from '../../../permissions/types';
 import { IPCMessageAdapter } from './IPCMessageAdapter';
 
+const PERMISSION_REQUEST_TIMEOUT_MS = parseInt(
+  process.env.COWORK_PERMISSION_REQUEST_TIMEOUT_MS || '120000',
+  10
+);
+const USER_QUESTIONS_TIMEOUT_MS = parseInt(
+  process.env.COWORK_PERMISSION_QUESTIONS_TIMEOUT_MS || '300000',
+  10
+);
+
 /**
  * Desktop Permission UI
  *
@@ -36,7 +45,7 @@ export class DesktopPermissionUI implements PermissionUI {
       const result = await this.ipcAdapter.request<PermissionUIResult>(
         'permission_request',
         request,
-        { timeout: 120000 } // 2 minute timeout for user interaction
+        { timeout: PERMISSION_REQUEST_TIMEOUT_MS }
       );
       return result;
     } catch (error) {
@@ -63,7 +72,7 @@ export class DesktopPermissionUI implements PermissionUI {
       const result = await this.ipcAdapter.request<QuestionAnswers>(
         'user_questions',
         { questions },
-        { timeout: 300000 } // 5 minute timeout for multiple questions
+        { timeout: USER_QUESTIONS_TIMEOUT_MS }
       );
       return result;
     } catch (error) {

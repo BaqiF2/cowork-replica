@@ -94,6 +94,24 @@ export class DesktopInteractiveUI implements InteractiveUIInterface {
     this.ipcAdapter.on('user_message', userMessageHandler);
     this.registeredHandlers.set('user_message', userMessageHandler as (payload: unknown) => void);
 
+    if (this.callbacks.onQueueMessage) {
+      const userQueueHandler = (payload: { message: string }) => {
+        try {
+          this.callbacks.onQueueMessage?.(payload.message);
+        } catch (error) {
+          this.errorHandler(
+            error instanceof Error ? error : new Error(String(error)),
+            'user_queue_message'
+          );
+        }
+      };
+      this.ipcAdapter.on('user_queue_message', userQueueHandler);
+      this.registeredHandlers.set(
+        'user_queue_message',
+        userQueueHandler as (payload: unknown) => void
+      );
+    }
+
     const userInterruptHandler = () => {
       this.callbacks.onInterrupt();
     };

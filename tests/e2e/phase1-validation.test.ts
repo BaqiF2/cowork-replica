@@ -40,8 +40,21 @@ import {
 /**
  * Test constants
  */
-const TEST_TIMEOUT_MS = 5000;
-const IPC_LATENCY_THRESHOLD_MS = 100;
+const TEST_TIMEOUT_MS = parseInt(process.env.PHASE1_TEST_TIMEOUT_MS || '5000', 10);
+const IPC_LATENCY_THRESHOLD_MS = parseInt(
+  process.env.PHASE1_IPC_LATENCY_THRESHOLD_MS || '100',
+  10
+);
+const IPC_RESPONSE_DELAY_MS = parseInt(
+  process.env.PHASE1_IPC_RESPONSE_DELAY_MS || '10',
+  10
+);
+const IPC_REQUEST_TIMEOUT_MS = parseInt(
+  process.env.PHASE1_IPC_REQUEST_TIMEOUT_MS || '50',
+  10
+);
+const DEFAULT_RESPOND_TO_REQUESTS =
+  (process.env.PHASE1_IPC_RESPOND_TO_REQUESTS || 'true').toLowerCase() === 'true';
 
 /**
  * Mock Tauri API for testing
@@ -51,6 +64,7 @@ interface MockTauriState {
   listeners: Map<string, Set<(event: { payload: unknown }) => void>>;
   invokeDelay: number;
   invokeError: Error | null;
+  respondToRequests: boolean;
 }
 
 function createMockTauriApi(): {
@@ -67,6 +81,7 @@ function createMockTauriApi(): {
     listeners: new Map(),
     invokeDelay: 0,
     invokeError: null,
+    respondToRequests: DEFAULT_RESPOND_TO_REQUESTS,
   };
 
   const invoke = async (
@@ -87,21 +102,23 @@ function createMockTauriApi(): {
     if (cmd === 'send_to_node') {
       const message = args?.message as IPCMessage;
       if (message?.msg_type === 'request' && message.id) {
-        // Simulate async response
-        setTimeout(() => {
-          const responseListeners = state.listeners.get('ipc_message');
-          if (responseListeners) {
-            const response: IPCMessage = {
-              id: message.id,
-              msg_type: 'response',
-              event: message.event,
-              payload: { success: true, data: `response_to_${message.event}` },
-            };
-            responseListeners.forEach((handler) =>
-              handler({ payload: response })
-            );
-          }
-        }, 10);
+        if (state.respondToRequests) {
+          // Simulate async response
+          setTimeout(() => {
+            const responseListeners = state.listeners.get('ipc_message');
+            if (responseListeners) {
+              const response: IPCMessage = {
+                id: message.id,
+                msg_type: 'response',
+                event: message.event,
+                payload: { success: true, data: `response_to_${message.event}` },
+              };
+              responseListeners.forEach((handler) =>
+                handler({ payload: response })
+              );
+            }
+          }, IPC_RESPONSE_DELAY_MS);
+        }
       }
       return undefined;
     }
@@ -245,10 +262,10 @@ describe('Phase 1 Infrastructure End-to-End Validation', () => {
 
     it('should handle request timeout', async () => {
       // Don't respond to requests
-      mockTauri.state.invokeDelay = TEST_TIMEOUT_MS + 100;
+      mockTauri.state.respondToRequests = false;
 
       await expect(
-        ipcService.request('slow_request', {}, { timeout: 50 })
+        ipcService.request('slow_request', {}, { timeout: IPC_REQUEST_TIMEOUT_MS })
       ).rejects.toMatchObject({
         type: IPCErrorType.Timeout,
       });

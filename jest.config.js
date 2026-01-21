@@ -3,8 +3,11 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/tests', '<rootDir>/src-ui'],
-  testMatch: ['**/*.test.ts', '**/*.spec.ts'],
-  moduleFileExtensions: ['ts', 'js', 'json'],
+  testMatch: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
+  },
   collectCoverageFrom: [
     'src/**/*.ts',
     'src-ui/**/*.ts',

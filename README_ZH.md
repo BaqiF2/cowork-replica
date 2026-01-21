@@ -100,11 +100,15 @@ cp .env.example .env
 ### 开发模式
 
 ```bash
-# 启动 TypeScript 编译监听
-npm run dev
-
-# 在另一个终端，启动 Tauri 开发服务器
+# 启动 Tauri 开发服务器（会自动启动 vite 前端服务）
 npm run tauri:dev
+```
+
+如需同时开发 CLI 工具，可在另一个终端运行：
+
+```bash
+# 启动 TypeScript 编译监听（仅 CLI 开发需要）
+npm run dev:cli
 ```
 
 ### 生产构建

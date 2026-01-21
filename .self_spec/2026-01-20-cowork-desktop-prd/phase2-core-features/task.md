@@ -19,20 +19,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 chatStore 测试
+- [x] 1. [测试] 编写 chatStore 测试
    - 测试文件: `src-ui/stores/__tests__/chatStore.test.ts`
    - 测试 messages, toolUses, isComputing, sendMessage
    - _Requirements: 聊天状态管理_
    - _Scenarios: 消息状态管理, 工具调用状态管理, 计算状态管理, 发送消息_
    - _TaskGroup: 1_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- chatStore.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 1_
 
-- [ ] 3. [实现] 实现 chatStore 模块
+- [x] 3. [实现] 实现 chatStore 模块
    - 实现文件: `src-ui/stores/chatStore.ts`
    - 状态定义:
      - messages: Signal<Message[]>
@@ -47,13 +47,13 @@
    - _Scenarios: 消息状态管理, 工具调用状态管理, 计算状态管理, 发送消息_
    - _TaskGroup: 1_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- chatStore.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 1_
 
-- [ ] 5. [重构] 优化状态管理（可选）
+- [x] 5. [重构] 优化状态管理（可选）
    - 添加消息分页
    - 优化内存管理
    - _Requirements: 聊天状态管理_
@@ -71,20 +71,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写聊天 UI 组件测试
+- [x] 1. [测试] 编写聊天 UI 组件测试
    - 测试文件: `src-ui/views/__tests__/ChatView.test.tsx`
    - 测试消息列表、输入框、工具调用展示、思考指示器
    - _Requirements: 聊天界面实现_
    - _Scenarios: 用户发送消息并接收流式响应, 工具调用可视化展示, 思考内容实时显示, Markdown 消息渲染_
    - _TaskGroup: 2_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- ChatView.test.tsx`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 2_
 
-- [ ] 3. [实现] 实现聊天 UI 组件
+- [x] 3. [实现] 实现聊天 UI 组件
    - 实现文件:
      - `src-ui/views/ChatView.tsx`: 聊天视图容器
      - `src-ui/components/chat/MessageList.tsx`: 消息列表 (虚拟滚动)
@@ -97,13 +97,13 @@
    - _Scenarios: 用户发送消息并接收流式响应, 工具调用可视化展示, 思考内容实时显示, Markdown 消息渲染_
    - _TaskGroup: 2_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- ChatView.test.tsx`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 2_
 
-- [ ] 5. [重构] 优化聊天 UI（可选）
+- [x] 5. [重构] 优化聊天 UI（可选）
    - 优化虚拟滚动性能
    - 添加消息搜索功能
    - _Requirements: 聊天界面实现_
@@ -120,20 +120,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 workspaceStore 测试
+- [x] 1. [测试] 编写 workspaceStore 测试
    - 测试文件: `src-ui/stores/__tests__/workspaceStore.test.ts`
    - 测试 workspaces, currentWorkspace, sessionHistory, switchWorkspace
    - _Requirements: 工作区状态管理_
    - _Scenarios: 工作区列表管理, 切换当前工作区, 会话历史管理_
    - _TaskGroup: 3_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- workspaceStore.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 3_
 
-- [ ] 3. [实现] 实现 workspaceStore 模块
+- [x] 3. [实现] 实现 workspaceStore 模块
    - 实现文件: `src-ui/stores/workspaceStore.ts`
    - 状态定义:
      - workspaces: Signal<Workspace[]>
@@ -148,13 +148,13 @@
    - _Scenarios: 工作区列表管理, 切换当前工作区, 会话历史管理_
    - _TaskGroup: 3_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- workspaceStore.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 3_
 
-- [ ] 5. [重构] 优化工作区管理（可选）
+- [x] 5. [重构] 优化工作区管理（可选）
    - 添加工作区搜索
    - 优化切换性能
    - _Requirements: 工作区状态管理_
@@ -172,20 +172,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写工作区 UI 测试
+- [x] 1. [测试] 编写工作区 UI 测试
    - 测试文件: `src-ui/views/__tests__/WorkspaceView.test.tsx`
    - 测试工作区列表、创建、切换、会话历史
    - _Requirements: 工作区管理功能_
    - _Scenarios: 创建新工作区, 切换工作区, 浏览会话历史, 恢复历史会话_
    - _TaskGroup: 4_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- WorkspaceView.test.tsx`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 4_
 
-- [ ] 3. [实现] 实现工作区 UI 组件
+- [x] 3. [实现] 实现工作区 UI 组件
    - 实现文件:
      - `src-ui/views/WorkspaceView.tsx`: 工作区管理视图
      - `src-ui/components/workspace/WorkspaceList.tsx`: 工作区列表
@@ -196,13 +196,13 @@
    - _Scenarios: 创建新工作区, 切换工作区, 浏览会话历史, 恢复历史会话_
    - _TaskGroup: 4_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- WorkspaceView.test.tsx`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 4_
 
-- [ ] 5. [重构] 优化工作区 UI（可选）
+- [x] 5. [重构] 优化工作区 UI（可选）
    - 添加工作区图标
    - 优化切换动画
    - _Requirements: 工作区管理功能_
@@ -219,20 +219,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 DesktopPermissionUI 测试
+- [x] 1. [测试] 编写 DesktopPermissionUI 测试
    - 测试文件: `tests/ui/implementations/desktop/DesktopPermissionUI.test.ts`
    - 测试 promptForPermission, 用户响应处理
    - _Requirements: 权限管理 UI_
    - _Scenarios: 工具调用时请求权限, 用户允许权限, 用户拒绝权限_
    - _TaskGroup: 5_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- DesktopPermissionUI.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 5_
 
-- [ ] 3. [实现] 实现 DesktopPermissionUI 类
+- [x] 3. [实现] 实现 DesktopPermissionUI 类
    - 实现文件: `src/ui/implementations/desktop/DesktopPermissionUI.ts`
    - 实现 PermissionUI 接口
    - 核心方法:
@@ -243,13 +243,13 @@
    - _Scenarios: 工具调用时请求权限, 用户允许权限, 用户拒绝权限_
    - _TaskGroup: 5_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- DesktopPermissionUI.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 5_
 
-- [ ] 5. [重构] 优化权限 UI（可选）
+- [x] 5. [重构] 优化权限 UI（可选）
    - 添加权限缓存
    - 优化请求性能
    - _Requirements: 权限管理 UI_
@@ -266,20 +266,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写权限对话框测试
+- [x] 1. [测试] 编写权限对话框测试
    - 测试文件: `src-ui/components/common/__tests__/PermissionModal.test.tsx`
    - 测试对话框显示、用户交互、响应发送
    - _Requirements: 权限管理 UI_
    - _Scenarios: 工具调用时请求权限, 用户允许权限, 用户拒绝权限_
    - _TaskGroup: 6_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- PermissionModal.test.tsx`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 6_
 
-- [ ] 3. [实现] 实现权限对话框组件
+- [x] 3. [实现] 实现权限对话框组件
    - 实现文件: `src-ui/components/common/PermissionModal.tsx`
    - 显示工具名称、操作描述、目标资源
    - 提供三个按钮: "允许一次"、"总是允许"、"拒绝"
@@ -289,13 +289,13 @@
    - _Scenarios: 工具调用时请求权限, 用户允许权限, 用户拒绝权限_
    - _TaskGroup: 6_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- PermissionModal.test.tsx`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 6_
 
-- [ ] 5. [重构] 优化对话框（可选）
+- [x] 5. [重构] 优化对话框（可选）
    - 添加动画效果
    - 优化无障碍访问
    - _Requirements: 权限管理 UI_
@@ -311,20 +311,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写权限设置测试
+- [x] 1. [测试] 编写权限设置测试
    - 测试文件: `src-ui/components/settings/__tests__/PermissionSettings.test.tsx`
    - 测试权限模式切换、历史查看
    - _Requirements: 权限管理 UI_
    - _Scenarios: 切换权限模式, 查看权限历史_
    - _TaskGroup: 7_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- PermissionSettings.test.tsx`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 7_
 
-- [ ] 3. [实现] 实现权限设置组件
+- [x] 3. [实现] 实现权限设置组件
    - 实现文件: `src-ui/components/settings/PermissionSettings.tsx`
    - 权限模式选择器 (4 种模式)
    - 当前模式指示器
@@ -334,13 +334,13 @@
    - _Scenarios: 切换权限模式, 查看权限历史_
    - _TaskGroup: 7_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- PermissionSettings.test.tsx`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 7_
 
-- [ ] 5. [重构] 优化设置界面（可选）
+- [x] 5. [重构] 优化设置界面（可选）
    - 添加搜索功能
    - 优化列表性能
    - _Requirements: 权限管理 UI_
@@ -358,20 +358,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写文件 Diff 测试
+- [x] 1. [测试] 编写文件 Diff 测试
    - 测试文件: `src-ui/components/files/__tests__/FileDiff.test.tsx`
    - 测试 Diff 渲染、语法高亮、折叠、确认
    - _Requirements: 文件修改预览_
    - _Scenarios: 显示文件修改 Diff, 语法高亮, 折叠/展开代码块, 审核和确认修改_
    - _TaskGroup: 8_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- FileDiff.test.tsx`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 8_
 
-- [ ] 3. [实现] 实现文件 Diff 组件
+- [x] 3. [实现] 实现文件 Diff 组件
    - 实现文件: `src-ui/components/files/FileDiff.tsx`
    - 集成 CodeMirror 6 编辑器
    - 使用 diff 库生成差异
@@ -383,13 +383,13 @@
    - _Scenarios: 显示文件修改 Diff, 语法高亮, 折叠/展开代码块, 审核和确认修改_
    - _TaskGroup: 8_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- FileDiff.test.tsx`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 8_
 
-- [ ] 5. [重构] 优化 Diff 组件（可选）
+- [x] 5. [重构] 优化 Diff 组件（可选）
    - 优化大文件性能
    - 添加行号显示
    - _Requirements: 文件修改预览_
@@ -407,20 +407,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 Checkpoint UI 测试
+- [x] 1. [测试] 编写 Checkpoint UI 测试
    - 测试文件: `src-ui/components/files/__tests__/RewindMenu.test.tsx`
    - 测试快照列表、时间轴、差异预览、恢复
    - _Requirements: Checkpoint 恢复 UI_
    - _Scenarios: 显示快照列表, 时间轴可视化, 预览快照差异, 恢复到历史快照_
    - _TaskGroup: 9_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- RewindMenu.test.tsx`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 9_
 
-- [ ] 3. [实现] 实现 Checkpoint UI 组件
+- [x] 3. [实现] 实现 Checkpoint UI 组件
    - 实现文件: `src-ui/components/files/RewindMenu.tsx`
    - 快照列表视图 (按时间倒序)
    - 时间轴视图 (可缩放和拖动)
@@ -431,13 +431,13 @@
    - _Scenarios: 显示快照列表, 时间轴可视化, 预览快照差异, 恢复到历史快照_
    - _TaskGroup: 9_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- RewindMenu.test.tsx`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 9_
 
-- [ ] 5. [重构] 优化 Checkpoint UI（可选）
+- [x] 5. [重构] 优化 Checkpoint UI（可选）
    - 添加快照搜索
    - 优化时间轴性能
    - _Requirements: Checkpoint 恢复 UI_
@@ -456,20 +456,20 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写核心模块集成测试
+- [x] 1. [测试] 编写核心模块集成测试
    - 测试文件: `tests/integration/core-modules.test.ts`
    - 验证所有核心模块正确集成
    - _Requirements: 复用现有核心模块_
    - _Scenarios: 复用 StreamingQueryManager, 复用 MessageRouter, 复用 SessionManager, 复用 PermissionManager, 复用 CheckpointManager_
    - _TaskGroup: 10_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm test -- core-modules.test.ts`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 10_
 
-- [ ] 3. [实现] 集成核心模块
+- [x] 3. [实现] 集成核心模块
    - 确保 DesktopInteractiveUI 正确调用 StreamingQueryManager
    - 确保 DesktopRunner 正确使用 MessageRouter
    - 确保工作区管理使用 SessionManager
@@ -480,13 +480,13 @@
    - _Scenarios: 复用 StreamingQueryManager, 复用 MessageRouter, 复用 SessionManager, 复用 PermissionManager, 复用 CheckpointManager_
    - _TaskGroup: 10_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm test -- core-modules.test.ts`
    - 预期通过
    - _Validates: 3_
    - _TaskGroup: 10_
 
-- [ ] 5. [重构] 优化集成（可选）
+- [x] 5. [重构] 优化集成（可选）
    - 添加错误处理
    - 优化性能
    - _Requirements: 复用现有核心模块_
@@ -501,26 +501,26 @@
 
 #### 任务列表
 
-- [ ] 1. [测试] 编写 Phase 2 端到端测试
+- [x] 1. [测试] 编写 Phase 2 端到端测试
    - 测试文件: `tests/e2e/phase2-validation.test.ts`
    - 使用 Playwright 测试完整流程
    - 覆盖聊天、工作区、权限、Diff、Checkpoint
    - _Requirements: 所有 Phase 2 需求_
    - _TaskGroup: 11_
 
-- [ ] 2. [验证] Red 阶段
+- [x] 2. [验证] Red 阶段
    - 运行: `npm run test:e2e -- phase2-validation`
    - 预期失败
    - _Validates: 1_
    - _TaskGroup: 11_
 
-- [ ] 3. [实现] 集成所有 Phase 2 功能
+- [x] 3. [实现] 集成所有 Phase 2 功能
    - 确保所有功能正确集成
    - 修复集成问题
    - _Requirements: 所有 Phase 2 需求_
    - _TaskGroup: 11_
 
-- [ ] 4. [验证] Green 阶段
+- [x] 4. [验证] Green 阶段
    - 运行: `npm run test:e2e -- phase2-validation`
    - 预期通过
    - 验证:
@@ -533,7 +533,7 @@
    - _Validates: 3_
    - _TaskGroup: 11_
 
-- [ ] 5. [重构] 优化整体性能（可选）
+- [x] 5. [重构] 优化整体性能（可选）
    - 优化加载速度
    - 减少内存占用
    - _Requirements: 所有 Phase 2 需求_
